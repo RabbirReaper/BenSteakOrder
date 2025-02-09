@@ -19,10 +19,10 @@ const filePath = join(__dirname, 'src', 'views', 'index.html');
 
 mongoose.connect(`${process.env.MongoDB_url}`)
   .then(() => {
-    console.log("Connection OPEN!!!")
+    console.log("MongoDB connected")
   })
   .catch((err) => {
-    console.log("OH NOOOOO")
+    console.log("MongoDB connection failed")
     console.log(err)
   })
 
