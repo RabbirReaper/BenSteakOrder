@@ -13,6 +13,6 @@ const mainDishSchema = new mongoose.Schema({
   steakDoneness: { type: [Number], default: [5, 7, 9], required: function () { 
     return this.subcategory === 'Steak'; 
   }}, // 熟度選項（僅適用於牛排類）
-}, { timestamps: true });
+});
 
 export default mongoose.model('MainDish', mainDishSchema);
