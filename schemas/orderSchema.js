@@ -27,6 +27,15 @@ const orderSchema = new mongoose.Schema({
     quantity: { type: Number, required: true }, // 數量
   }], // 訂購餐點
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true }, // 客人資料
+  weekday: { type: String }, // 星期
 }, { timestamps: true });
+
+// 在儲存之前自動計算星期
+orderSchema.pre('save', function (next) {
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const createdAtDate = this.createdAt || new Date(); // 確保有 createdAt
+  this.weekday = daysOfWeek[createdAtDate.getDay()]; // 根據 createdAt 計算星期
+  next();
+});
 
 export default mongoose.model('Order', orderSchema);
