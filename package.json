@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "bootstrap": "5.2.3",
-    "bootstrap-vue": "^2.23.1",
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.3",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "mongoose": "^8.9.5",
