@@ -32,7 +32,7 @@ const router = createRouter({
       component: AdminDashboard,
       meta: { requiresAuth: true }, // 需要登入
       // children: [
-        
+
       // ]
     },
     {
@@ -47,9 +47,9 @@ const router = createRouter({
       component: CustomerMenu,
     },
     {
-      path:"/*",
-      name:"NotFound",
-      component:NotFound
+      path: '/:pathMatch(.*)*',
+      name: "NotFound",
+      component: NotFound
     }
   ],
 })
