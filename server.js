@@ -46,23 +46,22 @@ app.post('/login', async (req, res) => {
     const { name, password } = req.body;
     const admin = await Administrator.findOne({ name });
 
-    if (!admin) {
-      return res.status(401).send('adminname not found');
+    if (!admin) { // adminname not found
+      return res.status(401).send('adminname or password arrors');
     }
 
     const validPassword = await bcrypt.compare(password, admin.password);
     if (validPassword) {
       req.session.user_id = admin._id;
       return res.send('Login successful');
-    } else {
-      return res.status(401).send('Invalid password');
+    } else { // invalid password
+      return res.status(401).send('adminname or password arrors');
     }
   } catch (error) {
     console.error('Login error:', error);
     return res.status(500).send('Internal server error');
   }
 });
-
 
 app.post('/logout', (req, res) => {
   req.session.user_id = null;
