@@ -5,12 +5,18 @@ import LoginView from '../views/LoginView.vue'
 import AdminDashboard from '../views/admin/AdminDashboard.vue'
 import StaffOrder from '../views/staff/StaffOrder.vue'
 import CustomerMenu from '../views/customer/CustomerMenu.vue'
+import NotFound from '../views/NotFound.vue'
+import axios from 'axios';
 
-// // 假設的檢查登入狀態函數
-// const isLoggedIn = () => {
-//   // 實際應該從你的登入狀態中判斷，比如檢查 Token 是否存在
-//   return localStorage.getItem('authToken') !== null
-// }
+const isLoggedIn = async () => {
+  try {
+    const response = await axios.get('/api/current_user');
+    return response.data.loggedIn;
+  } catch (error) {
+    console.error('檢查登入狀態失敗', error);
+    return false;
+  }
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,6 +31,9 @@ const router = createRouter({
       name: 'admin',
       component: AdminDashboard,
       meta: { requiresAuth: true }, // 需要登入
+      // children: [
+        
+      // ]
     },
     {
       path: '/staff',
@@ -37,17 +46,26 @@ const router = createRouter({
       name: 'customer',
       component: CustomerMenu,
     },
+    {
+      path:"/*",
+      name:"NotFound",
+      component:NotFound
+    }
   ],
 })
 
 // // 全局前置守衛
-// router.beforeEach((to, from, next) => {
-//   // 如果路由需要登入，且未登入，則跳轉到 /login
-//   if (to.meta.requiresAuth && !isLoggedIn()) {
-//     next({ path: '/login' }) // 跳轉到登入頁面
-//   } else {
-//     next() // 繼續導航
-//   }
-// })
+router.beforeEach(async (to, from, next) => {
+  if (to.meta.requiresAuth) {
+    const loggedIn = await isLoggedIn();
+    if (!loggedIn) {
+      return next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      });
+    }
+  }
+  next();
+});
 
 export default router

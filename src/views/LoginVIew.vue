@@ -16,16 +16,48 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref } from 'vue'
+import axios from 'axios'
+import { useRouter, useRoute } from 'vue-router'
 
-const username = ref('');
-const password = ref('');
+const username = ref('')
+const password = ref('')
+const router = useRouter()
+const route = useRoute()
 
-const handleLogin = () => {
-  // Handle login logic here
-  console.log('Username:', username.value);
-  console.log('Password:', password.value);
-};
+// 登入函數
+const handleLogin = async () => {
+  try {
+    const response = await axios.post('/login', {
+      name: username.value,
+      password: password.value
+    })
+
+    if (response.data === 'Login successful') {
+
+      // 讀取 query 中的 redirect 參數，若無則預設跳轉到 /admin
+      const redirectPath = route.query.redirect || '/admin'
+      router.push(redirectPath)
+    }
+  } catch (error) {
+    console.error('Login failed:', error.response ? error.response.data : error)
+    alert('Login failed: ' + (error.response ? error.response.data : error.message))
+  }
+}
+
+// 共用登出函數（也可放在全局，方便其他元件調用）
+const handleLogout = async () => {
+  try {
+    await axios.post('/logout')
+  } catch (error) {
+    console.error('Logout error:', error.response ? error.response.data : error)
+  } finally {
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('loginTime')
+    clearAutoLogout()
+    router.push('/login')
+  }
+}
 </script>
 
 <style scoped>
