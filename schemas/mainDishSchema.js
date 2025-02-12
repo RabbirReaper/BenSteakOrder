@@ -9,9 +9,16 @@ const mainDishSchema = new mongoose.Schema({
   extraPrice: { type: Number }, // 加點價格
   extraOptions: [String], // 額外需求（例如：麵換蛋）
   description: { type: String }, // 餐點說明
-  steakDoneness: { type: [Number], default: [5, 7, 9], required: function () { 
-    return this.category === 'Steak'; 
-  }}, // 熟度選項（僅適用於牛排類）
+  steakDoneness: { // 熟度選項（僅適用於牛排類）
+    type: [String], default: ['5分熟', '7分熟', '9分熟'], required: function () {
+      return this.category === 'Steak';
+    }
+  }, 
+  image: {
+    url: String,        // Picture URL
+    publicId: String,   // Picture ID
+    alt: String         // Picture description
+  }
 });
 
 export default mongoose.model('MainDish', mainDishSchema);
