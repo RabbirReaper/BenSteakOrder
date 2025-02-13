@@ -28,7 +28,7 @@ const route = useRoute()
 // 登入函數
 const handleLogin = async () => {
   try {
-    const response = await axios.post('/login', {
+    const response = await axios.post(`/login`, {
       name: username.value,
       password: password.value
     })
