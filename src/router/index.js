@@ -7,10 +7,15 @@ import StaffOrder from '../views/staff/StaffOrder.vue'
 import CustomerMenu from '../views/customer/CustomerMenu.vue'
 import NotFound from '../views/NotFound.vue'
 import axios from 'axios';
+import DishAdd from '../views/admin/DishAdd.vue'
+import DishShow from '../views/admin/DishShow.vue'
+import MenuAdd from '../views/admin/MenuAdd.vue'
+import MenuShow from '../views/admin/MenuShow.vue'
+import AdminIndex from '../views/admin/Index.vue'
 
 const isLoggedIn = async () => {
   try {
-    const response = await axios.get('/api/current_user');
+    const response = await axios.get(`/api/current_user`);
     return response.data.loggedIn;
   } catch (error) {
     console.error('檢查登入狀態失敗', error);
@@ -29,11 +34,44 @@ const router = createRouter({
     {
       path: '/admin',
       name: 'admin',
-      component: AdminDashboard,
-      meta: { requiresAuth: true }, // 需要登入
-      // children: [
-
-      // ]
+      component: AdminIndex,
+      meta: { requiresAuth: false }, // 需要登入
+      children: [
+        // 餐點新增介面 - 新增、修改、刪除
+        {
+          path: 'dish/add',
+          name: 'admin-dish-add',
+          component: DishAdd,
+        },
+        {
+          path: 'dish/:id',
+          name: 'admin-dish-show',
+          component: DishShow,
+        },
+        // 菜單新增介面
+        {
+          path: 'menu/add',
+          name: 'admin-menu-add',
+          component: MenuAdd,
+        },
+        {
+          path: 'menu/:id',
+          name: 'admin-menu-show',
+          component: MenuShow,
+        },
+        // // 營收及訂單列表與統計
+        // {
+        //   path: 'sales',
+        //   name: 'admin-sales',
+        //   component: SalesOrdersStats,
+        // },
+        // // 訂單列表
+        // {
+        //   path: 'sales/list',
+        //   name: 'admin-order-list',
+        //   component: OrderList,
+        // },
+      ],
     },
     {
       path: '/staff',
