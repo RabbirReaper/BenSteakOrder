@@ -8,6 +8,11 @@ import session from 'express-session'
 import Administrator from './schemas/administratorSchema.js'
 import { fileURLToPath } from 'url'
 import bcrypt from 'bcrypt'
+import MainDish from './schemas/mainDishSchema.js'
+import ElseDishSchema from './schemas/elseDishSchema.js'
+import AddonSchema from './schemas/addonSchema.js'
+
+
 
 dotenv.config()
 const app = express()
@@ -77,7 +82,41 @@ app.get('/api/current_user', (req, res) => {
   }
 });
 
+app.post('/mainDish', async (req, res) => {
+  try {
+    // console.log(req.body)
+    const mainDish = new MainDish(req.body);
+    await mainDish.save();
+    res.send('Main dish created successfully');
+  } catch (error) {
+    console.error('Error creating main dish:', error);
+    res.status(500).send('Internal server error');
+  }
+});
 
+app.post('/elseDish', async (req, res) => {
+  try{
+    // console.log(req.body)
+    const elseDish = new ElseDishSchema(req.body);
+    await elseDish.save();
+    res.send('Else dish created successfully');
+  } catch (error) {
+    console.error('Error creating else dish:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+app.post('/addon', async (req, res) => {
+  try{
+    // console.log(req.body)
+    const addon = new AddonSchema(req.body);
+    await addon.save();
+    res.send('Addon created successfully');
+  } catch (error) {
+    console.error('Error creating addon:', error);
+    res.status(500).send('Internal server error');
+  }
+});
 
 
 // const createAdmin = async () => {
