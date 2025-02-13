@@ -1,7 +1,7 @@
 <template>
     <form class="needs-validation" @submit.prevent="handleSubmit" novalidate>
         <div class="mb-3">
-            <label for="name" class="form-label">Side Dish Name</label>
+            <label for="name" class="form-label">Else Dish Name</label>
             <input type="text" class="form-control" :class="{ 'is-invalid': errors.name }" id="name" v-model="form.name"
                 required>
             <div class="invalid-feedback">

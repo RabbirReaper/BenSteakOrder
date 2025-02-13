@@ -4,14 +4,14 @@
 
         <div class="col-12 col-md-6 offset-md-3 px-2 px-md-0">
             <div class="btn-group w-100 mb-4" role="group">
-                <input type="radio" class="btn-check" name="dishType" id="mainDish" v-model="currentView" value="main"
+                <input type="radio" class="btn-check" name="elseDishType" id="mainDish" v-model="currentView" value="main"
                     checked>
                 <label class="btn btn-outline-primary" for="mainDish">Main Dish</label>
 
-                <input type="radio" class="btn-check" name="dishType" id="elseDish" v-model="currentView" value="else">
-                <label class="btn btn-outline-primary" for="elseDish">Side Dish</label>
+                <input type="radio" class="btn-check" name="elseDishType" id="elseDish" v-model="currentView" value="else">
+                <label class="btn btn-outline-primary" for="elseDish">Else Dish</label>
 
-                <input type="radio" class="btn-check" name="dishType" id="addonDish" v-model="currentView"
+                <input type="radio" class="btn-check" name="elseDishType" id="addonDish" v-model="currentView"
                     value="addon">
                 <label class="btn btn-outline-primary" for="addonDish">Add-on</label>
             </div>
