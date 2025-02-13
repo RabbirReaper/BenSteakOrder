@@ -2,14 +2,8 @@
   <form class="needs-validation" @submit.prevent="handleSubmit" novalidate>
     <div class="mb-3">
       <label for="name" class="form-label">Raw Meat Name</label>
-      <input 
-        type="text" 
-        class="form-control" 
-        :class="{ 'is-invalid': errors.name }" 
-        id="name" 
-        v-model="form.name"
-        required
-      >
+      <input type="text" class="form-control" :class="{ 'is-invalid': errors.name }" id="name" v-model="form.name"
+        required>
       <div class="invalid-feedback">
         Please enter a raw meat name.
       </div>
@@ -17,14 +11,8 @@
 
     <div class="mb-3">
       <label for="imageUrl" class="form-label">Image URL</label>
-      <input 
-        type="url" 
-        class="form-control" 
-        :class="{ 'is-invalid': errors.imageUrl }" 
-        id="imageUrl"
-        v-model="form.image.url" 
-        required
-      >
+      <input type="url" class="form-control" :class="{ 'is-invalid': errors.imageUrl }" id="imageUrl"
+        v-model="form.image.url" required>
       <div class="invalid-feedback">
         Please enter a valid image URL.
       </div>
@@ -32,14 +20,8 @@
 
     <div class="mb-3">
       <label for="publicId" class="form-label">Image Public ID</label>
-      <input 
-        type="text" 
-        class="form-control" 
-        :class="{ 'is-invalid': errors.publicId }" 
-        id="publicId"
-        v-model="form.image.publicId" 
-        required
-      >
+      <input type="text" class="form-control" :class="{ 'is-invalid': errors.publicId }" id="publicId"
+        v-model="form.image.publicId" required>
       <div class="invalid-feedback">
         Please enter an image public ID.
       </div>
@@ -47,14 +29,8 @@
 
     <div class="mb-3">
       <label for="imageAlt" class="form-label">Image Description</label>
-      <input 
-        type="text" 
-        class="form-control" 
-        :class="{ 'is-invalid': errors.imageAlt }" 
-        id="imageAlt"
-        v-model="form.image.alt" 
-        required
-      >
+      <input type="text" class="form-control" :class="{ 'is-invalid': errors.imageAlt }" id="imageAlt"
+        v-model="form.image.alt" required>
       <div class="invalid-feedback">
         Please enter an image description.
       </div>
@@ -64,16 +40,8 @@
       <label for="price" class="form-label">Price</label>
       <div class="input-group">
         <span class="input-group-text">$</span>
-        <input 
-          type="number" 
-          class="form-control" 
-          :class="{ 'is-invalid': errors.price }" 
-          id="price"
-          v-model.number="form.price" 
-          min="0" 
-          step="0.01" 
-          required
-        >
+        <input type="number" class="form-control" :class="{ 'is-invalid': errors.price }" id="price"
+          v-model.number="form.price" min="0" step="0.01" required>
         <div class="invalid-feedback">
           Please enter a valid price (greater than 0).
         </div>
@@ -82,14 +50,8 @@
 
     <div class="mb-3">
       <label for="description" class="form-label">Description</label>
-      <textarea 
-        class="form-control" 
-        id="description" 
-        v-model="form.description" 
-        rows="3"
-        :class="{ 'is-invalid': errors.description }"
-        required
-      ></textarea>
+      <textarea class="form-control" id="description" v-model="form.description" rows="3"
+        :class="{ 'is-invalid': errors.description }" required></textarea>
       <div class="invalid-feedback">
         Please enter a description.
       </div>
