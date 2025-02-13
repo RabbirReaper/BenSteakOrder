@@ -9,9 +9,9 @@ import Administrator from './schemas/administratorSchema.js'
 import { fileURLToPath } from 'url'
 import bcrypt from 'bcrypt'
 import MainDish from './schemas/mainDishSchema.js'
-import ElseDishSchema from './schemas/elseDishSchema.js'
-import AddonSchema from './schemas/addonSchema.js'
-
+import ElseDish from './schemas/elseDishSchema.js'
+import Addon from './schemas/addonSchema.js'
+import RawMeat from './schemas/rawMeatSchema.js'
 
 
 dotenv.config()
@@ -95,9 +95,9 @@ app.post('/mainDish', async (req, res) => {
 });
 
 app.post('/elseDish', async (req, res) => {
-  try{
+  try {
     // console.log(req.body)
-    const elseDish = new ElseDishSchema(req.body);
+    const elseDish = new ElseDish(req.body);
     await elseDish.save();
     res.send('Else dish created successfully');
   } catch (error) {
@@ -107,9 +107,9 @@ app.post('/elseDish', async (req, res) => {
 });
 
 app.post('/addon', async (req, res) => {
-  try{
+  try {
     // console.log(req.body)
-    const addon = new AddonSchema(req.body);
+    const addon = new Addon(req.body);
     await addon.save();
     res.send('Addon created successfully');
   } catch (error) {
@@ -117,6 +117,17 @@ app.post('/addon', async (req, res) => {
     res.status(500).send('Internal server error');
   }
 });
+
+app.post('/rawMeat', async (req, res) => {
+  try {
+    const rawMeat = new RawMeat(req.body);
+    await rawMeat.save();
+    res.send('Raw meat created successfully');
+  } catch (error) {
+    console.error('Error creating raw meat:', error);
+    res.status(500).send('Internal server error');
+  }
+})
 
 
 // const createAdmin = async () => {
