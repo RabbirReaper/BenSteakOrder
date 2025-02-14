@@ -55,8 +55,8 @@ const handleSubmit = async () => {
 	}
 
 	try {
-		await axios.post("/addon", form)
-		router.push('/dishes')
+		await axios.post("/dish/addon", form)
+		router.push('/admin/dish/show')
 	} catch (error) {
 		console.error('Error adding add-on item:', error)
 	}

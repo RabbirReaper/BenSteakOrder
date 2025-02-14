@@ -246,8 +246,8 @@ const handleSubmit = async () => {
   }
 
   try {
-    await axios.post("/mainDish", form)
-    router.push('/dishes')
+    await axios.post("/dish/mainDish", form)
+    router.push('/admin/dish/show')
   } catch (error) {
     console.error('Error adding main dish:', error)
   }

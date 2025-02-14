@@ -106,8 +106,8 @@ const handleSubmit = async () => {
   }
 
   try {
-    await axios.post("/elseDish", form)
-    router.push('/dishes')
+    await axios.post("/dish/elseDish", form)
+    router.push('/admin/dish/show')
   } catch (error) {
     console.error('Error adding side dish:', error)
   }
