@@ -9,7 +9,7 @@ const menuSchema = new mongoose.Schema({
       order: { type: Number, default: 0 }, // 顯示順序
     }
   ],
-}, { timestamps: true });
+});
 
 export default mongoose.model('Menu', menuSchema);
 
