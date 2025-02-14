@@ -12,6 +12,7 @@ import DishShow from '../views/admin/DishShow.vue'
 import MenuAdd from '../views/admin/MenuAdd.vue'
 import MenuShow from '../views/admin/MenuShow.vue'
 import AdminIndex from '../views/admin/Index.vue'
+import DishEdit from '../views/admin/DishEdit.vue'
 
 const isLoggedIn = async () => {
   try {
@@ -44,9 +45,14 @@ const router = createRouter({
           component: DishAdd,
         },
         {
-          path: 'dish/:id',
+          path: 'dish/show',
           name: 'admin-dish-show',
           component: DishShow,
+        },
+        {
+          path: 'dish/:type/:id',
+          name: 'admin-dish-showbyid',
+          component: DishEdit,
         },
         // 菜單新增介面
         {

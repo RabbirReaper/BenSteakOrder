@@ -16,6 +16,11 @@
           </router-link>
         </li>
         <li class="nav-item">
+          <router-link to="/admin/dish/show" class="nav-link text-white">
+            Dish show
+          </router-link>
+        </li>
+        <li class="nav-item">
           <router-link to="/admin/menu/add" class="nav-link text-white">
             Menu add
           </router-link>
