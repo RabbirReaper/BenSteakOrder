@@ -9,7 +9,7 @@ import Administrator from './schemas/administratorSchema.js'
 import { fileURLToPath } from 'url'
 import bcrypt from 'bcrypt'
 import dishRoutes from './routes/dishRoutes.js';
-
+import menuRoutes from './routes/menuRoutes.js';
 
 
 dotenv.config()
@@ -82,7 +82,7 @@ app.get('/api/current_user', (req, res) => {
 
 
 app.use('/dish', dishRoutes);
-
+app.use('/menu', menuRoutes);
 
 
 
