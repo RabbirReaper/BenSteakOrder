@@ -13,6 +13,8 @@ import MenuAdd from '../views/admin/MenuAdd.vue'
 import MenuShow from '../views/admin/MenuShow.vue'
 import AdminIndex from '../views/admin/Index.vue'
 import DishEdit from '../views/admin/DishEdit.vue'
+import MenuEdit from '../views/admin/MenuEdit.vue'
+
 
 const isLoggedIn = async () => {
   try {
@@ -61,9 +63,14 @@ const router = createRouter({
           component: MenuAdd,
         },
         {
-          path: 'menu/:id',
+          path: 'menu/show',
           name: 'admin-menu-show',
           component: MenuShow,
+        },
+        {
+          path: 'menu/:id',
+          name: 'admin-menu-Edit',
+          component: MenuEdit,
         },
         // // 營收及訂單列表與統計
         // {

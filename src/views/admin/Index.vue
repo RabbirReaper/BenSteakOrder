@@ -21,8 +21,8 @@
           </router-link>
         </li>
         <li class="nav-item">
-          <router-link to="/admin/menu/add" class="nav-link text-white">
-            Menu add
+          <router-link to="/admin/menu/show" class="nav-link text-white">
+            Menu show
           </router-link>
         </li>
       </ul>
