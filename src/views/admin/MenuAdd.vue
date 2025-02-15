@@ -1,20 +1,50 @@
 <template>
   <div class="container py-4">
-    <h1 class="mb-4">菜單編輯</h1>
+    <!-- 菜單名稱 -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <label class="form-label">菜單名稱</label>
+        <input 
+          v-model="menuName"
+          type="text"
+          class="form-control"
+          placeholder="輸入菜單名稱"
+        />
+      </div>
+    </div>
     
-    <!-- 菜單列表 -->
+    <!-- 菜單類別列表 -->
     <div class="mb-4">
       <div v-for="(category, categoryIndex) in menuData" :key="categoryIndex" class="card mb-3">
         <div class="card-body">
-          <!-- 類別名稱 -->
-          <div class="mb-3">
-            <label class="form-label">類別名稱</label>
-            <input 
-              v-model="category.categoryName"
-              type="text"
-              class="form-control"
-              placeholder="輸入類別名稱（例如：主餐、附餐）"
-            />
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <!-- 類別名稱 -->
+            <div class="flex-grow-1 me-3">
+              <label class="form-label">類別名稱</label>
+              <input 
+                v-model="category.categoryName"
+                type="text"
+                class="form-control"
+                placeholder="輸入類別名稱（例如：主餐、附餐）"
+              />
+            </div>
+            <!-- 類別排序控制 -->
+            <div class="btn-group">
+              <button 
+                @click="moveCategory(categoryIndex, -1)"
+                class="btn btn-outline-secondary"
+                :disabled="categoryIndex === 0"
+              >
+                ↑
+              </button>
+              <button 
+                @click="moveCategory(categoryIndex, 1)"
+                class="btn btn-outline-secondary"
+                :disabled="categoryIndex === menuData.length - 1"
+              >
+                ↓
+              </button>
+            </div>
           </div>
 
           <!-- 餐點列表 -->
@@ -125,6 +155,7 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
 // 資料狀態
+const menuName = ref('')
 const menuData = ref([])
 const mainDishes = ref([])
 const elseDishes = ref([])
@@ -176,13 +207,15 @@ const initializeDishes = async () => {
 const addCategory = () => {
   menuData.value.push({
     categoryName: '',
-    items: []
+    items: [],
+    order: menuData.value.length
   })
 }
 
 // 刪除類別
 const removeCategory = (index) => {
   menuData.value.splice(index, 1)
+  updateCategoryOrders()
 }
 
 // 新增餐點項目
@@ -197,7 +230,18 @@ const addItem = (category) => {
 // 刪除餐點項目
 const removeItem = (categoryIndex, itemIndex) => {
   menuData.value[categoryIndex].items.splice(itemIndex, 1)
-  updateOrder(categoryIndex)
+  updateItemOrders(categoryIndex)
+}
+
+// 移動類別
+const moveCategory = (categoryIndex, direction) => {
+  const newIndex = categoryIndex + direction
+  if (newIndex >= 0 && newIndex < menuData.value.length) {
+    const temp = menuData.value[categoryIndex]
+    menuData.value[categoryIndex] = menuData.value[newIndex]
+    menuData.value[newIndex] = temp
+    updateCategoryOrders()
+  }
 }
 
 // 移動項目
@@ -208,12 +252,19 @@ const moveItem = (categoryIndex, itemIndex, direction) => {
     const temp = items[itemIndex]
     items[itemIndex] = items[newIndex]
     items[newIndex] = temp
-    updateOrder(categoryIndex)
+    updateItemOrders(categoryIndex)
   }
 }
 
-// 更新排序
-const updateOrder = (categoryIndex) => {
+// 更新類別順序
+const updateCategoryOrders = () => {
+  menuData.value.forEach((category, index) => {
+    category.order = index
+  })
+}
+
+// 更新項目順序
+const updateItemOrders = (categoryIndex) => {
   menuData.value[categoryIndex].items.forEach((item, index) => {
     item.order = index
   })
@@ -221,27 +272,27 @@ const updateOrder = (categoryIndex) => {
 
 // 驗證表單
 const isValid = computed(() => {
-  if(menuData.value.length === 0) {
-    return false
-  }
-  return menuData.value.every(category => 
-    category.categoryName.trim() !== '' &&
-    category.items.every(item => 
-      item.itemModel && item.itemId
+  return menuName.value.trim() !== '' && 
+    menuData.value.every(category => 
+      category.categoryName.trim() !== '' &&
+      category.items.every(item => 
+        item.itemModel && item.itemId
+      )
     )
-  )
 })
 
 // 儲存菜單
 const saveMenu = async () => {
   try {
     const menuToSave = {
-      list: menuData.value.map(category => ({
+      name: menuName.value,
+      list: menuData.value.map((category, categoryIndex) => ({
         categoryName: category.categoryName,
-        items: category.items.map(({ itemModel, itemId, order }) => ({
-          itemModel,
-          itemId,
-          order
+        order: categoryIndex,
+        items: category.items.map((item, itemIndex) => ({
+          itemModel: item.itemModel,
+          itemId: item.itemId,
+          order: itemIndex
         }))
       }))
     }
