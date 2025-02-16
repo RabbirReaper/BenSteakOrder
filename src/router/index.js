@@ -14,7 +14,9 @@ import MenuShow from '../views/admin/MenuShow.vue'
 import AdminIndex from '../views/admin/Index.vue'
 import DishEdit from '../views/admin/DishEdit.vue'
 import MenuEdit from '../views/admin/MenuEdit.vue'
-
+import StoreAdd from '@/views/admin/StoreAdd.vue'
+import StoreShow from '@/views/admin/StoreShow.vue'
+import StoreEdit from '@/views/admin/StoreEdit.vue'
 
 const isLoggedIn = async () => {
   try {
@@ -72,6 +74,22 @@ const router = createRouter({
           name: 'admin-menu-Edit',
           component: MenuEdit,
         },
+        // 店家新增介面
+        {
+          path : 'store/add',
+          name : 'admin-store-add',
+          component : StoreAdd,
+        },
+        {
+          path : 'store/show',
+          name : 'admin-store-show',
+          component : StoreShow,
+        },
+        {
+          path : 'store/:id',
+          name : 'admin-store-edit',
+          component : StoreEdit,
+        }
         // // 營收及訂單列表與統計
         // {
         //   path: 'sales',

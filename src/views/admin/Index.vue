@@ -20,6 +20,11 @@
             Menu show
           </router-link>
         </li>
+        <li class="nav-item">
+          <router-link to="/admin/store/show" class="nav-link text-white">
+            Store show
+          </router-link>
+        </li>
       </ul>
     </div>
 
