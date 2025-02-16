@@ -1,5 +1,11 @@
 <template>
-  <div class="container">
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1>餐點列表</h1>
+      <router-link to="./add" class="btn btn-primary">
+        新增餐點
+      </router-link>
+    </div>
     <div class="row mb-4">
       <div class="col">
         <div class="btn-group w-100" role="group">

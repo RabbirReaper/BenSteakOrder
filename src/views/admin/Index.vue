@@ -11,11 +11,6 @@
       <hr class="text-white" />
       <ul class="nav nav-pills flex-column">
         <li class="nav-item">
-          <router-link to="/admin/dish/add" class="nav-link text-white">
-            Dish add
-          </router-link>
-        </li>
-        <li class="nav-item">
           <router-link to="/admin/dish/show" class="nav-link text-white">
             Dish show
           </router-link>
