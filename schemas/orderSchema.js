@@ -22,11 +22,14 @@ const orderSchema = new mongoose.Schema({
   logisticsCancelled: { type: Boolean, default: false }, // （代理）物流取消
   logisticsPickupTime: { type: Date }, // 物流取件時間
   DDPGOrderNumber: { type: String }, // DDPG 訂單編號
-  items: [{
-    menuItem: { type: mongoose.Schema.Types.ObjectId, ref: 'Menu', required: true }, // 餐點
-    quantity: { type: Number, required: true }, // 數量
-  }], // 訂購餐點
-  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true }, // 客人資料
+  items: [
+    {
+      itemModel: { type: String, required: true }, // 餐點模型名稱（例如：MainDish、SideDish）
+      itemId: { type: mongoose.Schema.Types.ObjectId, required: true, refPath: 'itemModel' }, // 對應的餐點 ID
+      amount: { type: Number, default: 1 }, // 顯示數量
+    }
+  ],
+  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }, // 客人資料
   weekday: { type: String }, // 星期
 }, { timestamps: true });
 
