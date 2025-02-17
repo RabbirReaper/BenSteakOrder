@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, shallowRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import MainDishEdit from '@/components/DishEdit/MainDish.vue';
 import ElseDishEdit from '@/components/DishEdit/ElseDish.vue';
@@ -17,7 +17,7 @@ const componentsMap = {
   rawMeat: RawMeatEdit
 };
 
-const currentComponent = ref(null);
+const currentComponent = shallowRef(null);
 
 onMounted(() => {
   if (componentsMap[type]) {

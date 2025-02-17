@@ -68,7 +68,7 @@
                   <strong>Doneness Options:</strong>
                   <ul>
                     <li v-for="doneness in selectedDish.steakDoneness" :key="doneness">{{ doneness
-                      }}</li>
+                    }}</li>
                   </ul>
                 </div>
 
@@ -180,8 +180,23 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  // 1. 先嘗試正常隱藏模態框
   if (modal.value) {
-    Modal.getInstance(modal.value).hide()
+    const modalInstance = Modal.getInstance(modal.value);
+    if (modalInstance) {
+      modalInstance.hide();
+    }
   }
-})
+
+  // 2. 強制清理背景遮罩
+  const backdrop = document.querySelector('.modal-backdrop');
+  if (backdrop) {
+    backdrop.remove();
+  }
+
+  // 3. 重置 body 樣式
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow = '';
+  document.body.style.paddingRight = '';
+});
 </script>
