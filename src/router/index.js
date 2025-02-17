@@ -111,7 +111,7 @@ const router = createRouter({
       meta: { requiresAuth: true }, // 需要登入
     },
     {
-      path: '/customer',
+      path: '/customer/:store',
       name: 'customer',
       component: CustomerMenu,
     },

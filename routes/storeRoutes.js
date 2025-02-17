@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const store = await Store.findById(id);
+    const store = await Store.findById(id).populate('menuItem');
     if (!store) return res.status(404).json({ error: 'Store not found' });
 
     res.json(store);
