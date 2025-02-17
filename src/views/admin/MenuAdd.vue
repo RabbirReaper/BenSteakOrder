@@ -154,6 +154,8 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+
 // 資料狀態
 const menuName = ref('')
 const menuData = ref([])
@@ -178,7 +180,7 @@ const getDishes = (itemModel) => {
 // 獲取指定類型的餐點
 const fetchDishes = async (endpoint) => {
   try {
-    const response = await axios.get(`/dish${endpoint}`)
+    const response = await axios.get(`${API_BASE_URL}/dish${endpoint}`)
     return response.data
   } catch (error) {
     console.error('Error fetching dishes:', error)
@@ -297,7 +299,7 @@ const saveMenu = async () => {
       }))
     }
     
-    await axios.post('/menu', menuToSave)
+    await axios.post(`${API_BASE_URL}/menu`, menuToSave)
     alert('菜單儲存成功！')
   } catch (error) {
     console.error('Error saving menu:', error)

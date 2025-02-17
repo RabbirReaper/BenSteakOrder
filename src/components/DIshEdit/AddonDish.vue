@@ -46,6 +46,7 @@ import axios from 'axios'
 
 const router = useRouter()
 const route = useRoute()
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const loading = ref(true)
 const error = ref(null)
 
@@ -61,7 +62,7 @@ const errors = reactive({
 
 const fetchAddon = async () => {
   try {
-    const response = await axios.get(`/dish/addon/${route.params.id}`)
+    const response = await axios.get(`${API_BASE_URL}/dish/addon/${route.params.id}`)
     const addon = response.data
     Object.keys(form).forEach(key => {
       form[key] = addon[key]
@@ -87,7 +88,7 @@ const handleSubmit = async () => {
   }
 
   try {
-    await axios.put(`/dish/addon/${route.params.id}`, form)
+    await axios.put(`${API_BASE_URL}/dish/addon/${route.params.id}`, form)
     router.push('/admin/dish/show')
   } catch (error) {
     console.error('Error updating add-on:', error)
@@ -100,7 +101,7 @@ const handleDelete = async () => {
   }
 
   try {
-    await axios.delete(`/dish/addon/${route.params.id}`)
+    await axios.delete(`${API_BASE_URL}/dish/addon/${route.params.id}`)
     router.push('/admin/dish/show')
   } catch (error) {
     console.error('Error deleting add-on:', error)

@@ -73,6 +73,7 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const menus = ref([])
 const loading = ref(true)
 const error = ref(null)
@@ -82,7 +83,7 @@ const fetchMenus = async () => {
   try {
     loading.value = true
     error.value = null
-    const response = await axios.get('/menu')
+    const response = await axios.get(`${API_BASE_URL}/menu`)
     menus.value = response.data
   } catch (err) {
     error.value = '獲取菜單列表失敗，請稍後再試'
@@ -113,7 +114,7 @@ const goToEdit = (id) => {
 const confirmDelete = async (menu) => {
   if (confirm(`確定要刪除菜單 "${menu.name}" 嗎？`)) {
     try {
-      await axios.delete(`/menu/${menu._id}`)
+      await axios.delete(`${API_BASE_URL}/menu/${menu._id}`)
       await fetchMenus() // 重新獲取列表
     } catch (err) {
       alert('刪除失敗，請稍後再試')

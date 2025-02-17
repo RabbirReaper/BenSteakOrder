@@ -82,6 +82,7 @@ import axios from 'axios'
 
 const router = useRouter()
 const route = useRoute()
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const loading = ref(true)
 const error = ref(null)
 
@@ -107,7 +108,7 @@ const errors = reactive({
 
 const fetchRawMeat = async () => {
   try {
-    const response = await axios.get(`/dish/rawMeat/${route.params.id}`)
+    const response = await axios.get(`${API_BASE_URL}/dish/rawMeat/${route.params.id}`)
     const rawMeat = response.data
     
     Object.keys(form).forEach(key => {
@@ -146,7 +147,7 @@ const handleSubmit = async () => {
   }
 
   try {
-    await axios.put(`/dish/rawMeat/${route.params.id}`, form)
+    await axios.put(`${API_BASE_URL}/dish/rawMeat/${route.params.id}`, form)
     router.push('/admin/dish/show')
   } catch (error) {
     console.error('Error updating raw meat:', error)
@@ -159,7 +160,7 @@ const handleDelete = async () => {
   }
 
   try {
-    await axios.delete(`/dish/rawMeat/${route.params.id}`)
+    await axios.delete(`${API_BASE_URL}/dish/rawMeat/${route.params.id}`)
     router.push('/admin/dish/show')
   } catch (error) {
     console.error('Error deleting raw meat:', error)

@@ -67,6 +67,7 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 const form = reactive({
   name: '',
@@ -105,7 +106,7 @@ const handleSubmit = async () => {
   }
 
   try {
-    await axios.post("/dish/rawMeat", form)
+    await axios.post(`${API_BASE_URL}/dish/rawmeat`, form)
     router.push('/admin/dish/show')
   } catch (error) {
     console.error('Error adding raw meat:', error)

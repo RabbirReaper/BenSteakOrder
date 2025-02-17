@@ -31,7 +31,7 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const form = reactive({
 	name: '',
 	price: 0
@@ -55,7 +55,7 @@ const handleSubmit = async () => {
 	}
 
 	try {
-		await axios.post("/dish/addon", form)
+		await axios.post(`${API_BASE_URL}/dish/addon`, form)
 		router.push('/admin/dish/show')
 	} catch (error) {
 		console.error('Error adding add-on item:', error)

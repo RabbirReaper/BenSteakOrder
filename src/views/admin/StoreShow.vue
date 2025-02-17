@@ -64,6 +64,7 @@ import axios from 'axios'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const stores = ref([])
 const loading = ref(true)
 
@@ -71,7 +72,7 @@ const loading = ref(true)
 const fetchStores = async () => {
   try {
     loading.value = true
-    const response = await axios.get('/store')
+    const response = await axios.get(`${API_BASE_URL}/store`)
     stores.value = response.data
   } catch (error) {
     console.error('獲取店家資料失敗:', error)
@@ -86,7 +87,7 @@ const handleDelete = async (storeId) => {
   if (!confirm('確定要刪除這個店家嗎？')) return
 
   try {
-    await axios.delete(`/store/${storeId}`)
+    await axios.delete(`${API_BASE_URL}/store/${storeId}`)
     await fetchStores() // 重新獲取列表
     // alert('刪除成功')
   } catch (error) {

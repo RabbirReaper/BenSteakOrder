@@ -120,6 +120,8 @@ import axios from 'axios'
 import { Modal } from 'bootstrap'
 
 const router = useRouter()
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+
 const currentView = ref('main')
 const dishes = ref([])
 const selectedDish = ref(null)
@@ -134,7 +136,7 @@ const endpoints = {
 
 const fetchDishes = async () => {
   try {
-    const response = await axios.get(`/dish${endpoints[currentView.value]}`)
+    const response = await axios.get(`${API_BASE_URL}/dish${endpoints[currentView.value]}`)
     dishes.value = response.data
   } catch (error) {
     console.error('Error fetching dishes:', error)
@@ -160,7 +162,7 @@ const deleteDish = async () => {
   }
 
   try {
-    await axios.delete(`/dish${endpoints[currentView.value]}/${selectedDish.value._id}`)
+    await axios.delete(`${API_BASE_URL}/dish${endpoints[currentView.value]}/${selectedDish.value._id}`)
     await fetchDishes()
     if (modal.value) {
       Modal.getInstance(modal.value).hide()

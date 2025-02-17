@@ -74,6 +74,7 @@ import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
 const route = useRoute()
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const loading = ref(false)
 const menus = ref([])
 
@@ -85,7 +86,7 @@ const storeForm = ref({
 // 獲取所有菜單
 const fetchMenus = async () => {
   try {
-    const response = await axios.get('/menu')
+    const response = await axios.get(`${API_BASE_URL}/menu`)
     menus.value = response.data
   } catch (error) {
     console.error('獲取菜單失敗:', error)
@@ -98,7 +99,7 @@ const fetchStore = async () => {
   try {
     loading.value = true
     const storeId = route.params.id
-    const { data: storeData } = await axios.get(`/store/${storeId}`)
+    const { data: storeData } = await axios.get(`${API_BASE_URL}/store/${storeId}`)
     
     storeForm.value = {
       name: storeData.name,
@@ -118,7 +119,7 @@ const handleSubmit = async () => {
     loading.value = true
     const storeId = route.params.id
     
-    await axios.put(`/store/${storeId}`, storeForm.value)
+    await axios.put(`${API_BASE_URL}/store/${storeId}`, storeForm.value)
     // alert('更新成功！')
     router.push('./show')
   } catch (error) {
@@ -135,7 +136,7 @@ const handleDelete = async () => {
   try {
     loading.value = true
     const storeId = route.params.id
-    await axios.delete(`/store/${storeId}`)
+    await axios.delete(`${API_BASE_URL}/store/${storeId}`)
     // alert('刪除成功！')
     router.push('./show')
   } catch (error) {

@@ -82,6 +82,7 @@ import axios from 'axios'
 
 const router = useRouter()
 const route = useRoute()
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const loading = ref(true)
 const error = ref(null)
 
@@ -108,7 +109,7 @@ const errors = reactive({
 // Fetch dish data
 const fetchDish = async () => {
   try {
-    const response = await axios.get(`/dish/elseDish/${route.params.id}`)
+    const response = await axios.get(`${API_BASE_URL}/dish/elseDish/${route.params.id}`)
     const dish = response.data
     
     // Populate form with existing data
@@ -148,7 +149,7 @@ const handleSubmit = async () => {
   }
 
   try {
-    await axios.put(`/dish/elseDish/${route.params.id}`, form)
+    await axios.put(`${API_BASE_URL}/dish/elseDish/${route.params.id}`, form)
     router.push('/admin/dish/show')
   } catch (error) {
     console.error('Error updating dish:', error)
@@ -161,7 +162,7 @@ const handleDelete = async () => {
   }
 
   try {
-    await axios.delete(`/dish/elseDish/${route.params.id}`)
+    await axios.delete(`${API_BASE_URL}/dish/elseDish/${route.params.id}`)
     router.push('/admin/dish/show')
   } catch (error) {
     console.error('Error deleting dish:', error)

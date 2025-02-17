@@ -151,6 +151,7 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 const defaultSauceOptions = ['蘑菇醬', '綜合醬', '黑胡椒醬']
 const defaultExtraOptions = ['麵換蛋', '麵換花椰菜', '加麵', '不要麵包']
@@ -246,7 +247,7 @@ const handleSubmit = async () => {
   }
 
   try {
-    await axios.post("/dish/mainDish", form)
+    await axios.post(`${API_BASE_URL}/dish/mainDish`, form)
     router.push('/admin/dish/show')
   } catch (error) {
     console.error('Error adding main dish:', error)

@@ -60,6 +60,8 @@ import axios from 'axios'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+
 const loading = ref(false)
 const menus = ref([])
 
@@ -71,7 +73,7 @@ const storeForm = ref({
 // 獲取所有菜單
 const fetchMenus = async () => {
   try {
-    const response = await axios.get('/menu')
+    const response = await axios.get(`${API_BASE_URL}/menu`)
     menus.value = response.data
   } catch (error) {
     console.error('獲取菜單失敗:', error)
@@ -82,7 +84,7 @@ const fetchMenus = async () => {
 const handleSubmit = async () => {
   try {
     loading.value = true
-    await axios.post('/store', storeForm.value)
+    await axios.post(`${API_BASE_URL}/store`, storeForm.value)
     // alert('新增成功！')
     router.push('./show')
   } catch (error) {

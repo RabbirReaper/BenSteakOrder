@@ -207,6 +207,7 @@ import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const menuId = route.params.id
 
 // 狀態
@@ -224,7 +225,7 @@ const fetchMenu = async () => {
   try {
     loading.value = true
     error.value = null
-    const response = await axios.get(`/menu/${menuId}`)
+    const response = await axios.get(`${API_BASE_URL}/menu/${menuId}`)
     const menu = response.data
     
     menuName.value = menu.name
@@ -240,7 +241,7 @@ const fetchMenu = async () => {
 // 獲取指定類型的餐點
 const fetchDishes = async (endpoint) => {
   try {
-    const response = await axios.get(`/dish${endpoint}`)
+    const response = await axios.get(`${API_BASE_URL}/dish${endpoint}`)
     return response.data
   } catch (error) {
     console.error('Error fetching dishes:', error)
@@ -368,7 +369,7 @@ const saveMenu = async () => {
       }))
     }
     
-    await axios.put(`/menu/${menuId}`, menuToSave)
+    await axios.put(`${API_BASE_URL}/menu/${menuId}`, menuToSave)
     alert('菜單更新成功！')
     isEditing.value = false
   } catch (error) {
@@ -387,7 +388,7 @@ const cancelEdit = async () => {
 const confirmDelete = async () => {
   if (confirm(`確定要刪除菜單 "${menuName.value}" 嗎？`)) {
     try {
-      await axios.delete(`/menu/${menuId}`)
+      await axios.delete(`${API_BASE_URL}/menu/${menuId}`)
       router.push('/menu') // 刪除後返回列表頁
     } catch (err) {
       alert('刪除失敗，請稍後再試')
