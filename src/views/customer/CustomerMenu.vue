@@ -51,15 +51,15 @@
       </div>
     </div>
 
-    <!-- Item Details Modal -->
-    <div v-if="selectedItem" class="modal show d-block" tabindex="-1">
+    <!-- Item Details Modal (Bootstrap standard structure) -->
+    <div class="modal fade" id="itemDetailsModal" tabindex="-1" aria-labelledby="itemDetailsModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">{{ selectedItem.name }}</h5>
-            <button type="button" class="btn-close" @click="closeItemDetails"></button>
+            <h5 class="modal-title" id="itemDetailsModalLabel">{{ selectedItem?.name }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-body">
+          <div class="modal-body" v-if="selectedItem">
             <div class="text-center mb-3">
               <img :src="selectedItem.image?.url || '/placeholder.jpg'" :alt="selectedItem.name"
                 class="img-fluid rounded" style="max-height: 200px; object-fit: cover;">
@@ -135,33 +135,30 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="closeItemDetails">取消</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
             <button type="button" class="btn btn-primary" @click="addToCart">
               加入購物車 - ${{ calculateItemTotal() }}
             </button>
           </div>
         </div>
       </div>
-
     </div>
-    
-    <div v-if="selectedItem" class="modal-backdrop show"></div>
 
     <!-- Shopping Cart Button -->
     <div v-if="cart.length > 0" class="position-fixed bottom-0 start-50 translate-middle-x mb-4" style="z-index: 1030;">
-      <button class="btn btn-primary rounded-pill shadow px-4 py-2" @click="showCart = true">
+      <button class="btn btn-primary rounded-pill shadow px-4 py-2" @click="openCartModal">
         <i class="bi bi-cart-fill me-2"></i>
         {{ getTotalItems() }} 項商品 - ${{ calculateTotal() }}
       </button>
     </div>
 
-    <!-- Shopping Cart Modal -->
-    <div v-if="showCart" class="modal show d-block fade" tabindex="-1">
+    <!-- Shopping Cart Modal (Bootstrap standard structure) -->
+    <div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">購物車</h5>
-            <button type="button" class="btn-close" @click="showCart = false"></button>
+            <h5 class="modal-title" id="cartModalLabel">購物車</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <div v-if="cart.length === 0" class="text-center p-5 text-muted">
@@ -221,21 +218,12 @@
           </div>
         </div>
       </div>
-      <!-- <div class="modal-backdrop show"></div> -->
     </div>
-    <div v-if="showCart" class="modal-backdrop show"></div>
   </div>
 </template>
 
-<style scoped>
-.modal-content {
-  z-index: 1050;
-  /* Higher than the backdrop */
-}
-</style>
-
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 
@@ -258,13 +246,16 @@ const selectedItem = ref(null);
 const quantity = ref(1);
 const remarks = ref('');
 const cart = ref([]);
-const showCart = ref(false);
 
 // Selected options
 const selectedDoneness = ref('');
 const selectedSauce = ref('');
 const selectedAddons = ref([]);
 const selectedExtraOptions = ref([]);
+
+// Bootstrap modal instances
+let itemDetailsModal = null;
+let cartModal = null;
 
 // Computed properties
 const sortedCategories = computed(() => {
@@ -289,7 +280,6 @@ const fetchStoreAndMenu = async () => {
       }
 
       const itemResponses = await Promise.all(itemPromises);
-      // console.log(itemResponses);
       menuItems.value = itemResponses.map(response => ({
         ...response.data,
         itemModel: response.data.constructor.modelName || response.config.url.split('/')[2].charAt(0).toUpperCase() + response.config.url.split('/')[2].slice(1).replace(/s$/, '')
@@ -305,7 +295,6 @@ const fetchStoreAndMenu = async () => {
 };
 
 const getItemsInCategory = (category) => {
-  // console.log(menuItems.value);
   return menuItems.value.filter(item => {
     return category.items.some(catItem => catItem.itemId === item._id);
   }).sort((a, b) => {
@@ -332,10 +321,20 @@ const openItemDetails = (item) => {
   selectedSauce.value = item.sauceOptions ? item.sauceOptions[0] : '';
   selectedAddons.value = [];
   selectedExtraOptions.value = [];
+
+  // Open the modal using Bootstrap's API
+  nextTick(() => {
+    itemDetailsModal.show();
+  });
 };
 
-const closeItemDetails = () => {
-  selectedItem.value = null;
+const closeItemDetailsModal = () => {
+  itemDetailsModal.hide();
+};
+
+// Function to open cart modal
+const openCartModal = () => {
+  cartModal.show();
 };
 
 const increaseQuantity = () => {
@@ -393,7 +392,8 @@ const addToCart = () => {
     remarks: remarks.value
   });
 
-  closeItemDetails();
+  // Close the modal using Bootstrap's API
+  closeItemDetailsModal();
 };
 
 const updateCartItemQuantity = (index, change) => {
@@ -407,6 +407,11 @@ const updateCartItemQuantity = (index, change) => {
 
 const removeFromCart = (index) => {
   cart.value.splice(index, 1);
+  
+  // If cart is empty, close the modal
+  if (cart.value.length === 0) {
+    cartModal.hide();
+  }
 };
 
 const getTotalItems = () => {
@@ -458,7 +463,10 @@ const checkout = async () => {
       remarks: cart.value.some(item => item.remarks) ? cart.value.map(item => item.remarks).filter(Boolean).join(' / ') : null
     };
 
-    const { data: newOrder } = await axios.post(`${API_BASE_URL}/order`, orderData); //
+    const { data: newOrder } = await axios.post(`${API_BASE_URL}/order`, orderData);
+
+    // Close the cart modal before redirecting
+    cartModal.hide();
 
     // Redirect to confirmation page
     router.push(`/customer/confirmation/${newOrder._id}`);
@@ -475,9 +483,38 @@ const generateOrderNumber = () => {
   return `${dateString}-${randomNum}`;
 };
 
+// Initialize Bootstrap modals
+const initModals = () => {
+  // Import Bootstrap's modal JavaScript
+  import('bootstrap/js/dist/modal').then(module => {
+    const Modal = module.default;
+    
+    // Initialize item details modal
+    const itemDetailsElement = document.getElementById('itemDetailsModal');
+    if (itemDetailsElement) {
+      itemDetailsModal = new Modal(itemDetailsElement, {
+        backdrop: 'static',
+        keyboard: false
+      });
+      
+      // Add event listener for when the modal is hidden
+      itemDetailsElement.addEventListener('hidden.bs.modal', () => {
+        selectedItem.value = null;
+      });
+    }
+    
+    // Initialize cart modal
+    const cartModalElement = document.getElementById('cartModal');
+    if (cartModalElement) {
+      cartModal = new Modal(cartModalElement);
+    }
+  });
+};
+
 // Lifecycle hooks
 onMounted(() => {
   fetchStoreAndMenu();
+  initModals();
 });
 
 // Watch for route changes to update store/menu
