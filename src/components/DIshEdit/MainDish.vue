@@ -221,27 +221,27 @@ const newDoneness = ref('')
 const handleImageUpload = async (event) => {
   const file = event.target.files[0]
   if (!file) return
-  
+
   isUploading.value = true
-  
+
   try {
     // 轉換檔案為 base64
     const base64Image = await convertFileToBase64(file)
-    
+
     if (form.image.publicId) {
       // 如果已有圖片，進行修改
       const response = await axios.put(`${API_BASE_URL}/image`, {
         publicId: form.image.publicId,
         newImage: base64Image
       })
-      
+
       updateFormImage(response.data)
     } else {
       // 如果沒有圖片，進行新增
       const response = await axios.post(`${API_BASE_URL}/image`, {
         image: base64Image
       })
-      
+
       updateFormImage(response.data)
     }
   } catch (error) {
