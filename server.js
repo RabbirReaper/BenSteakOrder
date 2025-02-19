@@ -11,6 +11,7 @@ import bcrypt from 'bcrypt'
 import dishRoutes from './routes/dishRoutes.js';
 import menuRoutes from './routes/menuRoutes.js';
 import storeRoutes from './routes/storeRoutes.js';
+import cloudinaryRoutes from './routes/cloudinaryRoutes.js';
 
 dotenv.config()
 const app = express()
@@ -84,6 +85,7 @@ app.get('/api/current_user', (req, res) => {
 app.use('/dish', dishRoutes);
 app.use('/menu', menuRoutes);
 app.use('/store', storeRoutes);
+app.use('/image', cloudinaryRoutes);
 
 
 
