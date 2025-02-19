@@ -40,23 +40,27 @@
           </div>
         </div>
 
-        <!-- 餐點圖片 -->
+        <!-- 餐點圖片上傳 -->
         <div class="mb-3">
-          <label for="imageUrl" class="form-label">Image URL</label>
-          <input type="url" class="form-control" :class="{ 'is-invalid': errors.imageUrl }" id="imageUrl"
-            v-model="form.image.url" required>
-          <div class="invalid-feedback">
-            Please enter a valid image URL.
+          <label for="imageUpload" class="form-label">Update Image</label>
+          <div class="input-group mb-3">
+            <input type="file" class="form-control" id="imageUpload" @change="handleImageUpload" accept="image/*"
+              :disabled="isUploading">
+          </div>
+          <div v-if="isUploading" class="progress mt-2">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%">
+              Uploading...
+            </div>
+          </div>
+          <div v-if="form.image.url" class="mt-2">
+            <img :src="form.image.url" :alt="form.image.alt || 'Preview'" class="img-thumbnail"
+              style="max-height: 200px">
+          </div>
+          <div class="invalid-feedback" v-if="errors.image">
+            Please upload an image.
           </div>
         </div>
-        <div class="mb-3">
-          <label for="publicId" class="form-label">Image Public ID</label>
-          <input type="text" class="form-control" :class="{ 'is-invalid': errors.publicId }" id="publicId"
-            v-model="form.image.publicId" required>
-          <div class="invalid-feedback">
-            Please enter an image public ID.
-          </div>
-        </div>
+
         <div class="mb-3">
           <label for="imageAlt" class="form-label">Image Description</label>
           <input type="text" class="form-control" :class="{ 'is-invalid': errors.imageAlt }" id="imageAlt"
@@ -172,9 +176,9 @@ const route = useRoute()
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const loading = ref(true)
 const error = ref(null)
+const isUploading = ref(false)
 
-
-// Define props first
+// Define props
 const props = defineProps({
   id: {
     type: String,
@@ -205,14 +209,67 @@ const errors = reactive({
   extraPrice: false,
   description: false,
   steakDoneness: false,
-  imageUrl: false,
-  publicId: false,
+  image: false,
   imageAlt: false
 })
 
 const newSauce = ref('')
 const newExtra = ref('')
 const newDoneness = ref('')
+
+// 處理圖片上傳
+const handleImageUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  
+  isUploading.value = true
+  
+  try {
+    // 轉換檔案為 base64
+    const base64Image = await convertFileToBase64(file)
+    
+    if (form.image.publicId) {
+      // 如果已有圖片，進行修改
+      const response = await axios.put(`${API_BASE_URL}/image`, {
+        publicId: form.image.publicId,
+        newImage: base64Image
+      })
+      
+      updateFormImage(response.data)
+    } else {
+      // 如果沒有圖片，進行新增
+      const response = await axios.post(`${API_BASE_URL}/image`, {
+        image: base64Image
+      })
+      
+      updateFormImage(response.data)
+    }
+  } catch (error) {
+    console.error('Error handling image:', error)
+    alert('Image upload failed. Please try again.')
+  } finally {
+    isUploading.value = false
+  }
+}
+
+// 將檔案轉換為 base64
+const convertFileToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+// 更新表單的圖片資訊
+const updateFormImage = (data) => {
+  form.image.url = data.secure_url
+  form.image.publicId = data.public_id
+  if (!form.image.alt) {
+    form.image.alt = form.name || 'Dish image'
+  }
+}
 
 // Fetch dish data
 const fetchDish = async () => {
@@ -240,6 +297,7 @@ const fetchDish = async () => {
 
 onMounted(fetchDish)
 
+// Other methods remain the same...
 const addSauce = () => {
   if (newSauce.value.trim()) {
     form.sauceOptions.push(newSauce.value.trim())
@@ -279,8 +337,7 @@ const validateForm = () => {
   errors.price = !form.price || form.price <= 0
   errors.extraPrice = form.extraPrice < 0
   errors.description = !form.description
-  errors.imageUrl = !form.image.url.trim()
-  errors.publicId = !form.image.publicId.trim()
+  errors.image = !form.image.url
   errors.imageAlt = !form.image.alt.trim()
 
   if (form.category === 'Steak') {
