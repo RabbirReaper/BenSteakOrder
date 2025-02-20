@@ -14,7 +14,7 @@ const orderSchema = new mongoose.Schema({
   pointsDiscount: { type: Number, default: 0 }, // 點數折抵
   deliveryFee: { type: Number, default: 0 }, // 運費
   totalPaid: { type: Number, required: true }, // 實付金額
-  isConfirmed: { type: Boolean, default: false }, // 訂單成立
+  isPaid: { type: Boolean, default: false }, // 訂單成立
   isCancelled: { type: Boolean, default: false }, // 訂單取消
   tableNumber: { type: String }, // 桌號（內用才需要）
   remarks: { type: String }, // 備註
