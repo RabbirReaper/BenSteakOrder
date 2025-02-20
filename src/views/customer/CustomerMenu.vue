@@ -52,7 +52,8 @@
     </div>
 
     <!-- Item Details Modal (Bootstrap standard structure) -->
-    <div class="modal fade" id="itemDetailsModal" tabindex="-1" aria-labelledby="itemDetailsModalLabel" aria-hidden="true">
+    <div class="modal fade" id="itemDetailsModal" tabindex="-1" aria-labelledby="itemDetailsModalLabel"
+      aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
@@ -105,6 +106,7 @@
               </div>
             </div>
 
+            
             <!-- Extra options (if applicable) -->
             <div v-if="selectedItem.extraOptions && selectedItem.extraOptions.length" class="mb-4">
               <h6 class="fw-bold mb-2">額外需求</h6>
@@ -114,7 +116,20 @@
                     :value="option">
                   <label class="form-check-label" :for="'extra-' + option">
                     {{ option }}
-                    <span v-if="selectedItem.extraPrice">(+${{ selectedItem.extraPrice }})</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Additional meat dishes (if applicable for MainDish) -->
+            <div v-if="additionalMeatDishes.length > 0 && selectedItem.itemModel === 'MainDish'" class="mb-4">
+              <h6 class="fw-bold mb-2">加點其他肉食單品</h6>
+              <div class="d-flex flex-wrap">
+                <div v-for="meat in additionalMeatDishes" :key="meat._id" class="form-check me-3 mb-2">
+                  <input class="form-check-input" type="checkbox" :id="'meat-' + meat._id" v-model="selectedMeatDishes"
+                    :value="meat._id">
+                  <label class="form-check-label" :for="'meat-' + meat._id">
+                    {{ meat.name }} (+${{ meat.extraPrice }})
                   </label>
                 </div>
               </div>
@@ -253,6 +268,9 @@ const selectedSauce = ref('');
 const selectedAddons = ref([]);
 const selectedExtraOptions = ref([]);
 
+// Add new ref for selected meat dishes
+const selectedMeatDishes = ref([]);
+
 // Bootstrap modal instances
 let itemDetailsModal = null;
 let cartModal = null;
@@ -278,16 +296,27 @@ const fetchStoreAndMenu = async () => {
           itemPromises.push(axios.get(`${API_BASE_URL}/dish/${item.itemModel.charAt(0).toLowerCase() + item.itemModel.slice(1)}/${item.itemId}`));
         }
       }
-
+      // console.log(menu.value)
+      const dishModelMapping = {};
+      if (menu.value && menu.value.list) {
+        menu.value.list.forEach(category => {
+          category.items.forEach(item => {
+            dishModelMapping[item.itemId] = item.itemModel;
+          });
+        });
+      }
       const itemResponses = await Promise.all(itemPromises);
-      menuItems.value = itemResponses.map(response => ({
-        ...response.data,
-        itemModel: response.data.constructor.modelName || response.config.url.split('/')[2].charAt(0).toUpperCase() + response.config.url.split('/')[2].slice(1).replace(/s$/, '')
-      }));
-
+      menuItems.value = itemResponses.map(response => {
+        return {
+          ...response.data,
+          itemModel: dishModelMapping[response.data._id]
+        };
+      });
+      // console.log('menuItems',menuItems.value);
       // Fetch addon items
-      const { data: addons } = await axios.get(`${API_BASE_URL}/addon`);
+      const { data: addons } = await axios.get(`${API_BASE_URL}/dish/addon`);
       addonItems.value = addons;
+      // console.log(addonItems.value);
     }
   } catch (error) {
     console.error('Error fetching store and menu:', error);
@@ -295,6 +324,7 @@ const fetchStoreAndMenu = async () => {
 };
 
 const getItemsInCategory = (category) => {
+  // console.log("category", category);
   return menuItems.value.filter(item => {
     return category.items.some(catItem => catItem.itemId === item._id);
   }).sort((a, b) => {
@@ -311,6 +341,7 @@ const setOrderType = (type) => {
   }
 };
 
+// Modify openItemDetails to reset selectedMeatDishes
 const openItemDetails = (item) => {
   selectedItem.value = item;
   quantity.value = 1;
@@ -321,8 +352,8 @@ const openItemDetails = (item) => {
   selectedSauce.value = item.sauceOptions ? item.sauceOptions[0] : '';
   selectedAddons.value = [];
   selectedExtraOptions.value = [];
+  selectedMeatDishes.value = [];
 
-  // Open the modal using Bootstrap's API
   nextTick(() => {
     itemDetailsModal.show();
   });
@@ -347,15 +378,11 @@ const decreaseQuantity = () => {
   }
 };
 
+// Modify calculateItemTotal to include additional meat dishes instead of extra options
 const calculateItemTotal = () => {
   if (!selectedItem.value) return 0;
 
   let total = selectedItem.value.price * quantity.value;
-
-  // Add extra price for selected extra options
-  if (selectedExtraOptions.value.length > 0 && selectedItem.value.extraPrice) {
-    total += selectedItem.value.extraPrice * quantity.value;
-  }
 
   // Add price for selected addons
   for (const addonId of selectedAddons.value) {
@@ -365,9 +392,27 @@ const calculateItemTotal = () => {
     }
   }
 
+  // Add price for selected additional meat dishes
+  for (const meatId of selectedMeatDishes.value) {
+    const meat = menuItems.value.find(m => m._id === meatId);
+    if (meat && meat.extraPrice) {
+      total += meat.extraPrice * quantity.value;
+    }
+  }
+
   return total.toFixed(2);
 };
 
+// Add new ref for additional meat dishes
+const additionalMeatDishes = computed(() => {
+  return menuItems.value.filter(item => 
+    item.itemModel === 'MainDish' && 
+    item.extraPrice && 
+    item._id !== selectedItem.value?._id
+  );
+});
+
+// Modify addToCart to include additional meat dishes
 const addToCart = () => {
   // Get selected addon details
   const addons = selectedAddons.value.map(id => {
@@ -376,6 +421,16 @@ const addToCart = () => {
       id: addon._id,
       name: addon.name,
       price: addon.price
+    };
+  });
+
+  // Get selected additional meat dishes
+  const additionalMeats = selectedMeatDishes.value.map(id => {
+    const meat = menuItems.value.find(m => m._id === id);
+    return {
+      id: meat._id,
+      name: meat.name,
+      price: meat.extraPrice
     };
   });
 
@@ -389,10 +444,10 @@ const addToCart = () => {
     sauce: selectedSauce.value,
     addons,
     extraOptions: selectedExtraOptions.value,
+    additionalMeats,
     remarks: remarks.value
   });
 
-  // Close the modal using Bootstrap's API
   closeItemDetailsModal();
 };
 
@@ -407,7 +462,7 @@ const updateCartItemQuantity = (index, change) => {
 
 const removeFromCart = (index) => {
   cart.value.splice(index, 1);
-  
+
   // If cart is empty, close the modal
   if (cart.value.length === 0) {
     cartModal.hide();
@@ -419,13 +474,14 @@ const getTotalItems = () => {
 };
 
 const calculateTotal = () => {
-  return cart.value.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
+  return cart.value.reduce((total, item) => total + (item.price * item.quantity), 0);
 };
 
 const formatAddons = (addons) => {
   return addons.map(addon => addon.name).join(', ');
 };
 
+// Update the checkout function to include additional meat dishes in the order items
 const checkout = async () => {
   if (orderType.value === 'dineIn' && !tableNumber.value) {
     alert('請輸入桌號');
@@ -433,7 +489,6 @@ const checkout = async () => {
   }
 
   try {
-    // Prepare order items in the required format
     const orderItems = cart.value.map(item => ({
       itemModel: item.itemModel,
       itemId: item.id,
@@ -443,32 +498,28 @@ const checkout = async () => {
         sauce: item.sauce,
         addons: item.addons.map(a => a.id),
         extraOptions: item.extraOptions,
+        additionalMeats: item.additionalMeats?.map(m => m.id) || [],
         remarks: item.remarks
       }
     }));
 
-    // Calculate order amount
+    // Rest of the checkout function remains the same
     const orderAmount = parseFloat(calculateTotal());
-
     const orderData = {
       store: storeId,
-      orderNumber: generateOrderNumber(),
+      orderNumber: String(await generateOrderNumber()),
       platform: 'web',
       pickupMethod: orderType.value === 'dineIn' ? '內用' : '外帶',
-      paymentMethod: 'store', // Default to in-store payment
+      paymentMethod: 'store',
       orderAmount,
       totalPaid: orderAmount,
       tableNumber: orderType.value === 'dineIn' ? tableNumber.value : null,
       items: orderItems,
       remarks: cart.value.some(item => item.remarks) ? cart.value.map(item => item.remarks).filter(Boolean).join(' / ') : null
     };
-
+    console.log(orderData)
     const { data: newOrder } = await axios.post(`${API_BASE_URL}/order`, orderData);
-
-    // Close the cart modal before redirecting
     cartModal.hide();
-
-    // Redirect to confirmation page
     router.push(`/customer/confirmation/${newOrder._id}`);
   } catch (error) {
     console.error('Error creating order:', error);
@@ -476,11 +527,9 @@ const checkout = async () => {
   }
 };
 
-const generateOrderNumber = () => {
-  const date = new Date();
-  const dateString = `${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}`;
-  const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return `${dateString}-${randomNum}`;
+const generateOrderNumber = async () => {
+  const number = await axios.get(`${API_BASE_URL}/order/number`);
+  return number.data.number
 };
 
 // Initialize Bootstrap modals
@@ -488,7 +537,7 @@ const initModals = () => {
   // Import Bootstrap's modal JavaScript
   import('bootstrap/js/dist/modal').then(module => {
     const Modal = module.default;
-    
+
     // Initialize item details modal
     const itemDetailsElement = document.getElementById('itemDetailsModal');
     if (itemDetailsElement) {
@@ -496,13 +545,13 @@ const initModals = () => {
         backdrop: 'static',
         keyboard: false
       });
-      
+
       // Add event listener for when the modal is hidden
       itemDetailsElement.addEventListener('hidden.bs.modal', () => {
         selectedItem.value = null;
       });
     }
-    
+
     // Initialize cart modal
     const cartModalElement = document.getElementById('cartModal');
     if (cartModalElement) {
@@ -512,9 +561,10 @@ const initModals = () => {
 };
 
 // Lifecycle hooks
-onMounted(() => {
-  fetchStoreAndMenu();
+onMounted(async () => {
+  await fetchStoreAndMenu();
   initModals();
+  // console.log('Menu:', menu.value);
 });
 
 // Watch for route changes to update store/menu
@@ -524,3 +574,9 @@ watch(() => route.params.store, (newStoreId) => {
   }
 });
 </script>
+
+<style scoped>
+.menu-items .card {
+  cursor: pointer;
+}
+</style>
