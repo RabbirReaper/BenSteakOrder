@@ -12,6 +12,8 @@ import dishRoutes from './routes/dishRoutes.js';
 import menuRoutes from './routes/menuRoutes.js';
 import storeRoutes from './routes/storeRoutes.js';
 import cloudinaryRoutes from './routes/cloudinaryRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
+
 
 dotenv.config()
 const app = express()
@@ -86,7 +88,7 @@ app.use('/dish', dishRoutes);
 app.use('/menu', menuRoutes);
 app.use('/store', storeRoutes);
 app.use('/image', cloudinaryRoutes);
-
+app.use('/order', orderRoutes);
 
 
 
