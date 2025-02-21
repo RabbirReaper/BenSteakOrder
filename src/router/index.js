@@ -17,6 +17,7 @@ import MenuEdit from '../views/admin/MenuEdit.vue'
 import StoreAdd from '@/views/admin/StoreAdd.vue'
 import StoreShow from '@/views/admin/StoreShow.vue'
 import StoreEdit from '@/views/admin/StoreEdit.vue'
+import orgine from '@/views/customer/origin.vue'
 
 const isLoggedIn = async () => {
   try {
