@@ -255,7 +255,7 @@ const menu = ref(null);
 const menuItems = ref([]);
 const addonItems = ref([]);
 const orderType = ref(queryOrderType || 'dineIn');
-const tableNumber = ref(queryTable || '');
+const tableNumber = ref(queryTable || '0');
 const activeCategory = ref('all');
 const selectedItem = ref(null);
 const quantity = ref(1);
@@ -338,6 +338,8 @@ const setOrderType = (type) => {
   orderType.value = type;
   if (type === 'takeout') {
     tableNumber.value = '';
+  }else{
+    tableNumber.value = queryTable || '0'
   }
 };
 
