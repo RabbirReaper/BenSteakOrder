@@ -5,11 +5,7 @@
         <div class="card">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h2 class="mb-0">編輯店家</h2>
-            <button 
-              class="btn btn-danger"
-              @click="handleDelete"
-              :disabled="loading"
-            >
+            <button class="btn btn-danger" @click="handleDelete" :disabled="loading">
               刪除店家
             </button>
           </div>
@@ -23,29 +19,14 @@
             <form v-else @submit.prevent="handleSubmit">
               <div class="mb-3">
                 <label for="storeName" class="form-label">店家名稱</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="storeName"
-                  v-model="storeForm.name"
-                  required
-                />
+                <input type="text" class="form-control" id="storeName" v-model="storeForm.name" required />
               </div>
 
               <div class="mb-3">
                 <label for="menuSelect" class="form-label">選擇菜單</label>
-                <select 
-                  class="form-select"
-                  id="menuSelect"
-                  v-model="storeForm.menuItem"
-                  required
-                >
+                <select class="form-select" id="menuSelect" v-model="storeForm.menuItem._id" required>
                   <option value="">請選擇菜單</option>
-                  <option 
-                    v-for="menu in menus" 
-                    :key="menu._id"
-                    :value="menu._id"
-                  >
+                  <option v-for="menu in menus" :key="menu._id" :value="menu._id">
                     {{ menu.name }}
                   </option>
                 </select>
@@ -100,7 +81,7 @@ const fetchStore = async () => {
     loading.value = true
     const storeId = route.params.id
     const { data: storeData } = await axios.get(`${API_BASE_URL}/store/${storeId}`)
-    
+
     storeForm.value = {
       name: storeData.name,
       menuItem: storeData.menuItem
@@ -118,7 +99,7 @@ const handleSubmit = async () => {
   try {
     loading.value = true
     const storeId = route.params.id
-    
+
     await axios.put(`${API_BASE_URL}/store/${storeId}`, storeForm.value)
     // alert('更新成功！')
     router.push('./show')
