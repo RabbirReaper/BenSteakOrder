@@ -10,7 +10,7 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: { type: String, required: true }, // 付款方式
   onlinePaymentCode: { type: String }, // 線上支付交易碼
   orderAmount: { type: Number, required: true }, // 商品金額
-  discounts: { type: Number, default: 0 }, // 店家優惠
+  discounts: { type: Number, default: 0 }, // 現場折扣
   pointsDiscount: { type: Number, default: 0 }, // 點數折抵
   deliveryFee: { type: Number, default: 0 }, // 運費
   totalPaid: { type: Number, required: true }, // 實付金額
