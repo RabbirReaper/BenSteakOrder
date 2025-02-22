@@ -18,7 +18,7 @@ const orderSchema = new mongoose.Schema({
   isCancelled: { type: Boolean, default: false }, // 訂單取消
   tableNumber: { type: String }, // 桌號（內用才需要）
   remarks: { type: String }, // 備註
-  deliveryRemarks: { type: String }, // 外送備註
+  address: { type: String }, // 外送地址
   logisticsCancelled: { type: Boolean, default: false }, // （代理）物流取消
   logisticsPickupTime: { type: Date }, // 物流取件時間
   DDPGOrderNumber: { type: String }, // DDPG 訂單編號
