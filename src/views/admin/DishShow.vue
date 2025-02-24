@@ -40,6 +40,12 @@
       </div>
     </div>
 
+    <div v-if="dishes.length === 0" class="col-12">
+        <div class="text-center py-5 text-muted">
+          <p>目前沒有餐點</p>
+        </div>
+      </div>
+
     <!-- Details Modal -->
     <div class="modal fade" id="dishModal" tabindex="-1" ref="modal">
       <div class="modal-dialog modal-lg">

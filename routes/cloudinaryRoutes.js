@@ -20,8 +20,10 @@ router.post('/', async (req, res) => {
     // Upload
     const result = await cloudinary.uploader.upload(req.body.image, {
       folder: 'beefpicture',
-      resource_type: 'image'
+      resource_type: 'image',
+      transformation: [{ quality: "auto", fetch_format: "auto" }]
     });
+    
     
     // console.log("Success! Image uploaded.");
     // console.log("- Public ID:", result.public_id);
