@@ -70,7 +70,7 @@
                   </ul>
                 </div>
 
-                <div v-if="selectedDish.steakDoneness?.length">
+                <div v-if="selectedDish.category == 'Steak' && selectedDish.steakDoneness?.length">
                   <strong>Doneness Options:</strong>
                   <ul>
                     <li v-for="doneness in selectedDish.steakDoneness" :key="doneness">{{ doneness
