@@ -64,19 +64,23 @@ import { onMounted, onUnmounted } from 'vue';
 const props = defineProps({
   storeName: {
     type: String,
-    required: true
+    required: true,
+    default: ''
   },
   announcements: {
     type: Array,
-    required: true
+    required: true,
+    default: () => []
   },
   menuList: {
     type: Array,
-    required: true
+    required: true,
+    default: () => []
   },
   menuItems: {
     type: Array,
-    required: true
+    required: true,
+    default: () => []
   }
 });
 
