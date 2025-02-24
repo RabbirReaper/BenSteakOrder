@@ -117,6 +117,11 @@ const router = createRouter({
       component: CustomerMenu,
     },
     {
+      path : '/test/:store',
+      name : 'test',
+      component : orgine,
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: "NotFound",
       component: NotFound

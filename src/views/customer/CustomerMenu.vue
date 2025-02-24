@@ -1,6 +1,6 @@
 <!-- // src/views/CustomerOrderingPage.vue -->
 <template>
-  <div class="container py-4">
+  <div class="container py-4" style="max-width: 768px;">
     <header class="text-center mb-4">
       <h1 class="mb-3">{{ store.name }}</h1>
       <div class="btn-group mb-3">
