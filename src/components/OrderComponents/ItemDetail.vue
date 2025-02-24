@@ -17,7 +17,7 @@
     <div class="p-3 border-bottom">
       <h4 class="mb-2">{{ item.name }}</h4>
       <p class="text-danger fw-bold mb-2">${{ item.price }}</p>
-      <p class="text-muted small">{{ item.description }}</p>
+      <p class="text-muted small" style="white-space: pre-line">{{ item.description }}</p>
     </div>
 
     <!-- Options section -->
