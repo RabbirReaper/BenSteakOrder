@@ -107,7 +107,7 @@ const handleSubmit = async () => {
   }
 
   try {
-    await axios.post(`${API_BASE_URL}/dish/rawmeat`, form)
+    await axios.post(`${API_BASE_URL}/dish/rawMeat`, form)
     router.push('/admin/dish/show')
   } catch (error) {
     console.error('Error adding raw meat:', error)
