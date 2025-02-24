@@ -153,7 +153,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 // 資料狀態
@@ -301,6 +303,7 @@ const saveMenu = async () => {
     
     await axios.post(`${API_BASE_URL}/menu`, menuToSave)
     alert('菜單儲存成功！')
+    router.push('./show')
   } catch (error) {
     console.error('Error saving menu:', error)
     alert('儲存失敗，請稍後再試')
