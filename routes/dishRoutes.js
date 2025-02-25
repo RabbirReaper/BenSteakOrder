@@ -13,6 +13,12 @@ const modelMap = {
   rawMeat: RawMeat
 };
 
+const checkAuth = (req, res, next) => {
+  if (!req.session.user_id) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  next();
+};
 
 // 取得多個 dish
 router.get('/:type', async (req, res) => {
@@ -50,7 +56,7 @@ router.get('/:type/:id', async (req, res) => {
   }
 });
 
-// 創建 dish
+
 router.post('/:type', async (req, res) => {
   try {
     const { type } = req.params;
