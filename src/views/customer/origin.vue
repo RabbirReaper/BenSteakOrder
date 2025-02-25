@@ -14,7 +14,7 @@
       </transition>
 
       <!-- Shopping Cart Button -->
-      <div v-if="cart.length > 0" class="position-fixed bottom-0 start-50 translate-middle-x mb-4"
+      <div v-if="cart.length > 0 && !selectedItem" class="position-fixed bottom-0 start-50 translate-middle-x mb-4"
         style="z-index: 1030;">
         <button class="btn btn-primary rounded-pill shadow px-4 py-2" @click="openCartModal">
           <i class="bi bi-cart-fill me-2"></i>
@@ -46,6 +46,9 @@
                         <p class="card-text small mb-1" v-if="item.sauce">醬料: {{ item.sauce }}</p>
                         <p class="card-text small mb-1" v-if="item.addons && item.addons.length">
                           加點: {{ formatAddons(item.addons) }}
+                        </p>
+                        <p class="card-text small mb-1" v-if="item.additionalMeats && item.additionalMeats.length">
+                          加點肉品: {{ formatAddationMeats(item.additionalMeats) }}
                         </p>
                         <p class="card-text small mb-1" v-if="item.extraOptions && item.extraOptions.length">
                           額外需求: {{ item.extraOptions.join(', ') }}
@@ -208,6 +211,10 @@ const calculateTotal = () => {
 
 const formatAddons = (addons) => {
   return addons.map(addon => addon.name).join(', ');
+};
+
+const formatAddationMeats = (additionalMeats) => {
+  return additionalMeats.map(meat => meat.name).join(', ');
 };
 
 const checkout = async () => {
