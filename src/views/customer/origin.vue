@@ -1,98 +1,31 @@
 <template>
   <div class="main-container">
     <div class="center-container">
-
       <transition name="fade" mode="out-in">
-        <MenuListing v-if="!selectedItem" :store-name="store.name" :announcements="store.announcements"
+        <MenuListing v-if="!selectedItem && !showCart" :store-name="store.name" :announcements="store.announcements"
           :menu-list="menu.list" :menu-items="menuItems" @select-item="openItemDetails" />
       </transition>
 
-      
       <transition name="fade" mode="out-in">
-        <ItemDetail v-if="selectedItem" :item="selectedItem" :addon-items="addonItems" :menu-items="menuItems"
-          @close="closeItemDetails" @add-to-cart="addToCart" />
+        <ItemDetail v-if="selectedItem && !showCart" :item="selectedItem" :addon-items="addonItems"
+          :menu-items="menuItems" @close="closeItemDetails" @add-to-cart="addToCart" />
+      </transition>
+
+      <transition name="fade" mode="out-in">
+        <ShoppingCart v-if="showCart" :cart="cart" :order-type="orderType" :store-id="storeId"
+          :remove-from-cart="removeFromCart" :update-cart-item-quantity="updateCartItemQuantity"
+          @go-back="showCart = false" @edit-item="editCartItem" @order-submitted="handleOrderSubmitted" />
       </transition>
 
       <!-- Shopping Cart Button -->
-      <div v-if="cart.length > 0 && !selectedItem" class="position-fixed bottom-0 start-50 translate-middle-x mb-4"
-        style="z-index: 1030;">
-        <button class="btn btn-primary rounded-pill shadow px-4 py-2" @click="openCartModal">
+      <div v-if="cart.length > 0 && !selectedItem && !showCart"
+        class="position-fixed bottom-0 start-50 translate-middle-x mb-4" style="z-index: 1030;">
+        <button class="btn btn-primary rounded-pill shadow px-4 py-2" @click="showCart = true">
           <i class="bi bi-cart-fill me-2"></i>
           {{ getTotalItems() }} 項商品 - ${{ calculateTotal() }}
         </button>
       </div>
 
-      <!-- Shopping Cart Modal (Bootstrap standard structure) -->
-      <div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="cartModalLabel">購物車</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <div v-if="cart.length === 0" class="text-center p-5 text-muted">
-                <i class="bi bi-cart-x fs-1"></i>
-                <p class="mt-3">購物車是空的</p>
-              </div>
-
-              <div v-else>
-                <div v-for="(item, index) in cart" :key="index" class="card mb-3">
-                  <div class="card-body">
-                    <div class="row">
-                      <div class="col-md-8">
-                        <h5 class="card-title">{{ item.name }}</h5>
-                        <p class="card-text small mb-1" v-if="item.doneness">熟度: {{ item.doneness }}</p>
-                        <p class="card-text small mb-1" v-if="item.sauce">醬料: {{ item.sauce }}</p>
-                        <p class="card-text small mb-1" v-if="item.addons && item.addons.length">
-                          加點: {{ formatAddons(item.addons) }}
-                        </p>
-                        <p class="card-text small mb-1" v-if="item.additionalMeats && item.additionalMeats.length">
-                          加點肉品: {{ formatAddationMeats(item.additionalMeats) }}
-                        </p>
-                        <p class="card-text small mb-1" v-if="item.extraOptions && item.extraOptions.length">
-                          額外需求: {{ item.extraOptions.join(', ') }}
-                        </p>
-                        <p class="card-text small mb-1" v-if="item.remarks">
-                          備註: {{ item.remarks }}
-                        </p>
-                      </div>
-                      <div class="col-md-4 d-flex flex-column align-items-end justify-content-between">
-                        <button class="btn btn-sm btn-outline-danger mb-2" @click="removeFromCart(index)">
-                          <i class="bi bi-trash"></i>
-                        </button>
-                        <div class="d-flex align-items-center">
-                          <div class="input-group input-group-sm me-3" style="width: 100px;">
-                            <button class="btn btn-outline-secondary"
-                              @click="updateCartItemQuantity(index, -1)">-</button>
-                            <span class="form-control text-center">{{ item.quantity }}</span>
-                            <button class="btn btn-outline-secondary"
-                              @click="updateCartItemQuantity(index, 1)">+</button>
-                          </div>
-                          <div class="text-end">
-                            <p class="mb-0 fw-bold">${{ (item.price * item.quantity).toFixed(2) }}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer flex-column">
-              <div class="d-flex justify-content-between w-100">
-                <span class="fw-bold">小計：</span>
-                <span class="fw-bold">${{ calculateTotal() }}</span>
-              </div>
-              <button class="btn btn-primary w-100 mt-3"
-                :disabled="cart.length === 0 || (orderType === 'dineIn' && !tableNumber)" @click="checkout">
-                <span v-if="orderType === 'dineIn' && !tableNumber">請先輸入桌號</span>
-                <span v-else>前往結帳</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -103,6 +36,8 @@ import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import MenuListing from '@/components/OrderComponents/Main.vue';
 import ItemDetail from '@/components/OrderComponents/ItemDetail.vue';
+import ShoppingCart from '@/components/OrderComponents/ShoppingCart.vue';
+
 
 const route = useRoute();
 const router = useRouter();
@@ -120,6 +55,7 @@ const orderType = ref(queryOrderType || 'dineIn');
 const tableNumber = ref(queryTable || '0');
 const selectedItem = ref(null);
 const cart = ref([]);
+const showCart = ref(false);
 
 // Bootstrap modal instance
 let cartModal = null;
@@ -177,6 +113,7 @@ const closeItemDetails = () => {
 
 const addToCart = (item) => {
   cart.value.push(item);
+  console.log(cart.value);
 };
 
 const openCartModal = () => {
@@ -195,18 +132,51 @@ const updateCartItemQuantity = (index, change) => {
 const removeFromCart = (index) => {
   cart.value.splice(index, 1);
 
-  // If cart is empty, close the modal
+  // If cart is empty, go back to menu
   if (cart.value.length === 0) {
-    cartModal.hide();
+    showCart.value = false;
   }
+};
+
+const editCartItem = (index) => {
+  const item = menuItems.value.find(menuItem => menuItem._id === cart.value[index].id);
+  if (item) {
+    // Remove the item from cart first
+    const itemToEdit = cart.value[index];
+    removeFromCart(index);
+
+    // Open the item detail with pre-filled selections
+    selectedItem.value = {
+      ...item,
+      preFilled: {
+        quantity: itemToEdit.quantity,
+        doneness: itemToEdit.doneness,
+        sauce: itemToEdit.sauce,
+        addons: itemToEdit.addons,
+        additionalMeats: itemToEdit.additionalMeats,
+        extraOptions: itemToEdit.extraOptions,
+        remarks: itemToEdit.remarks
+      }
+    };
+
+    showCart.value = false;
+  }
+};
+
+const handleOrderSubmitted = (order) => {
+  // Clear the cart after order is submitted
+  console.log('Order submitted:', order);
+  cart.value = [];
+  showCart.value = false;
 };
 
 const getTotalItems = () => {
   return cart.value.reduce((total, item) => total + item.quantity, 0);
 };
 
+
 const calculateTotal = () => {
-  return cart.value.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
+  return cart.value.reduce((total, item) => total + (item.price * item.quantity), 0);
 };
 
 const formatAddons = (addons) => {
