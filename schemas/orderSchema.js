@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 const orderSchema = new mongoose.Schema({
   store: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true }, // 店家 ID
   orderNumber: { type: String, required: true }, // 流水號／取餐號
-  createdAt: { type: Date, default: Date.now }, // 下單時間
   scheduledPickupTime: { type: Date }, // 預定取餐時間
   pickupTime: { type: Date }, // 實際取餐時間
   platform: { type: String, required: true }, // 訂購平台
@@ -14,8 +13,7 @@ const orderSchema = new mongoose.Schema({
   discounts: { type: Number, default: 0 }, // 現場折扣
   pointsDiscount: { type: Number, default: 0 }, // 點數折抵
   deliveryFee: { type: Number, default: 0 }, // 運費
-  totalPaid: { type: Number }, // 實付金額
-  isPaid: { type: Boolean, default: function () { return this.totalPaid > 0; } }, // 是否已支付
+  totalMoney: { type: Number }, // 實付金額
   isCancelled: { type: Boolean, default: false }, // 訂單取消
   orderStatus: { type: String, enum: ['Unpaid', 'Completed', 'Canceled'], default: 'Unpaid' }, // 訂單狀態
   tableNumber: { type: String }, // 桌號（內用才需要）
@@ -49,6 +47,19 @@ orderSchema.pre('save', function (next) {
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const createdAtDate = this.createdAt || new Date(); // 確保有 createdAt
   this.weekday = daysOfWeek[createdAtDate.getDay()]; // 根據 createdAt 計算星期
+  next();
+});
+
+orderSchema.pre('save', function (next) {
+  const eightHoursInMilliseconds = 8 * 60 * 60 * 1000;
+  
+  // 將 createdAt 和 updatedAt 轉換為 UTC+8
+  if (this.createdAt) {
+    this.createdAt = new Date(this.createdAt.getTime() + eightHoursInMilliseconds);
+  }
+  if (this.updatedAt) {
+    this.updatedAt = new Date(this.updatedAt.getTime() + eightHoursInMilliseconds);
+  }
   next();
 });
 
