@@ -36,4 +36,18 @@ onMounted(async () => {
 </script>
 
 
-<style lang="css"></style>
+<style lang="css">
+.main-container {
+  min-height: 100vh;
+  background-color: #eaeae668;
+}
+
+.center-container {
+  max-width: 768px;
+  margin: 0 auto;
+  position: relative;
+  background-color: #ffffff;
+  min-height: 100vh;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+</style>

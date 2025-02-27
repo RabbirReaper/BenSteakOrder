@@ -405,7 +405,7 @@ const submitOrder = async () => {
       pickupMethod: formatPickupMethod(),
       paymentMethod: paymentMethod.value,
       orderAmount,
-      totalPaid: orderAmount,
+      totalMoney: orderAmount,
       tableNumber: pickupMethod.value === 'dineIn' ? tableNumber.value : null,
       deliveryAddress: pickupMethod.value === 'delivery' ? deliveryAddress.value : null,
       items: orderItems,
