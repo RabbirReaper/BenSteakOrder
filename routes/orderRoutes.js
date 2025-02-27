@@ -29,7 +29,7 @@ router.get('/number', async (req, res) => {
 
     if (!lastOrder) return res.json({ number: 1 });
 
-    res.json({ number: lastOrder.orderNumber + 1 });
+    res.json({ number: Number(lastOrder.orderNumber) + 1 });
   } catch (error) {
     console.error('Error getting order number:', error);
     res.status(500).send('Internal server error');
