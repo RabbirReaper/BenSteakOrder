@@ -14,10 +14,10 @@ const orderSchema = new mongoose.Schema({
   discounts: { type: Number, default: 0 }, // 現場折扣
   pointsDiscount: { type: Number, default: 0 }, // 點數折抵
   deliveryFee: { type: Number, default: 0 }, // 運費
-  totalPaid: { type: Number, required: true }, // 實付金額
+  totalPaid: { type: Number }, // 實付金額
   isPaid: { type: Boolean, default: function () { return this.totalPaid > 0; } }, // 是否已支付
   isCancelled: { type: Boolean, default: false }, // 訂單取消
-  orderStatus: { type: String, enum: ['Unpaid', 'Completed', 'Canceled'], default: 'pending' }, // 訂單狀態
+  orderStatus: { type: String, enum: ['Unpaid', 'Completed', 'Canceled'], default: 'Unpaid' }, // 訂單狀態
   tableNumber: { type: String }, // 桌號（內用才需要）
   remarks: { type: String }, // 備註
   deliveryAddress: { type: String }, // 外送地址

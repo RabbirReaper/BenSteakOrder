@@ -113,7 +113,7 @@ const closeItemDetails = () => {
 
 const addToCart = (item) => {
   cart.value.push(item);
-  console.log(cart.value);
+  // console.log(cart.value);
 };
 
 const openCartModal = () => {
@@ -165,7 +165,7 @@ const editCartItem = (index) => {
 
 const handleOrderSubmitted = (order) => {
   // Clear the cart after order is submitted
-  console.log('Order submitted:', order);
+  // console.log('Order submitted:', order);
   cart.value = [];
   showCart.value = false;
 };

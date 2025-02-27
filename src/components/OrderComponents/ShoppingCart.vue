@@ -423,7 +423,7 @@ const submitOrder = async () => {
     emit('orderSubmitted', newOrder);
 
     // Redirect to confirmation page
-    // router.push(`/customer/confirmation/${newOrder._id}`);
+    router.push(`/confirmation/${newOrder.id}`);
   } catch (error) {
     console.error('Error creating order:', error);
     alert('訂單建立失敗，請重試');
