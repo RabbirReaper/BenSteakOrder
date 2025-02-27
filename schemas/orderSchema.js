@@ -35,7 +35,7 @@ const orderSchema = new mongoose.Schema({
         sauce: { type: String }, // 醬料
         addons: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Addon' }], // 加料（如蛋、起司）
         extraOptions: [{ type: String }], // 額外選項（如加麵）
-        additionalMeats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Meat' }], // 額外加肉
+        additionalMeats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MainDish' }], // 額外加肉
         remarks: { type: String } // 個別餐點的備註
       }
     }
