@@ -1,5 +1,5 @@
 import express from 'express';
-import Order from '../schemas/orderschema.js';
+import Order from '../schemas/orderSchema.js';
 
 const router = express.Router();
 
@@ -53,11 +53,10 @@ router.get('/:id', async (req, res) => {
 // 創建 order
 router.post('/', async (req, res) => {
   try {
-    console.log(req.body);
-    // const newOrder = new Order(req.body);
-    // await newOrder.save();
-
-    res.send('Order created successfully');
+    // console.log(req.body);
+    const newOrder = new Order(req.body);
+    const savedOrder = await newOrder.save();
+    res.json({ id: savedOrder._id });
   } catch (error) {
     console.error('Error creating order:', error);
     res.status(500).send('Internal server error');
