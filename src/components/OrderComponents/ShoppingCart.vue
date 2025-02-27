@@ -26,7 +26,7 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <h6 class="card-title mb-0 fw-bold">{{ item.name }}</h6>
-              <div class="item-price fw-bold">${{ (item.price * item.quantity).toFixed(2) }}</div>
+              <div class="item-price fw-bold">${{ (item.price * item.quantity) }}</div>
             </div>
 
             <div class="item-details mb-3">
@@ -177,11 +177,11 @@
         </div>
         <div class="d-flex justify-content-between mb-2" v-if="couponDiscount > 0">
           <span>優惠折扣</span>
-          <span>-${{ couponDiscount.toFixed(2) }}</span>
+          <span>-${{ couponDiscount }}</span>
         </div>
         <div class="d-flex justify-content-between mb-2" v-if="deliveryFee > 0">
           <span>外送費</span>
-          <span>${{ deliveryFee.toFixed(2) }}</span>
+          <span>${{ deliveryFee }}</span>
         </div>
         <div class="d-flex justify-content-between fw-bold">
           <span>總計</span>
@@ -195,7 +195,7 @@
       class="checkout-button position-fixed bottom-0 start-25 w-100 bg-white p-3 shadow-lg d-flex justify-content-center" style="max-width: 768px;">
       <div class="container-button" style="max-width: 768px;">
         <button class="btn w-100 py-2 checkout-btn" @click="showConfirmation" :disabled="isSubmitDisabled">
-          送出訂單 - ${{ calculateTotal() }}
+          前往結帳 - ${{ calculateTotal() }}
         </button>
       </div>
     </div>
@@ -269,8 +269,11 @@ const route = useRoute();
 const router = useRouter();
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// State
+// Query parameters
+const queryPickupMethod = route.query.pickupMethod;
 const queryTable = route.query.table;
+
+// State
 const orderRemarks = ref('');
 const selectedCoupon = ref('');
 const pickupTime = ref('asap');
@@ -280,7 +283,7 @@ const confirmModal = ref(null);
 const couponDiscount = ref(0);
 
 // Pickup method state
-const pickupMethod = ref('selfPickup'); // Default to self-pickup
+const pickupMethod = ref(queryPickupMethod || 'selfPickup'); // Default to self-pickup
 const tableNumber = ref(queryTable || ''); // For dine-in
 const deliveryAddress = ref(''); // For delivery
 const deliveryFee = ref(0); // Delivery fee
@@ -314,12 +317,12 @@ const isSubmitDisabled = computed(() => {
 });
 
 const calculateSubtotal = () => {
-  return props.cart.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
+  return props.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 };
 
 const calculateTotal = () => {
   const subtotal = parseFloat(calculateSubtotal());
-  return (subtotal - couponDiscount.value + deliveryFee.value).toFixed(2);
+  return (subtotal - couponDiscount.value + deliveryFee.value);
 };
 
 const formatAddons = (addons) => {
@@ -420,7 +423,7 @@ const submitOrder = async () => {
     emit('orderSubmitted', newOrder);
 
     // Redirect to confirmation page
-    router.push(`/customer/confirmation/${newOrder._id}`);
+    // router.push(`/customer/confirmation/${newOrder._id}`);
   } catch (error) {
     console.error('Error creating order:', error);
     alert('訂單建立失敗，請重試');
@@ -491,7 +494,7 @@ onMounted(() => {
   height: 8px;
   background-color: #f0f0f0;
   margin: 0;
-  width: calc(100% + 30px);
+  width: 100%
 }
 
 .cart-item {
