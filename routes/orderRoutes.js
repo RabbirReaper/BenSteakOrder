@@ -25,7 +25,16 @@ router.get('/', async (req, res) => {
 // 取的流水號
 router.get('/number', async (req, res) => {
   try {
-    const lastOrder = await Order.findOne().sort({ _id: -1 });
+    const start = new Date();
+    const eightHoursInMilliseconds = 8 * 60 * 60 * 1000;
+    start.setHours(0, 0, 0, 0); // 設定為今天的 00:00:00
+    start.setTime(start.getTime() + eightHoursInMilliseconds); // 將時間轉換為 UTC+8
+    const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 1);
+    end.setTime(end.getTime() + eightHoursInMilliseconds); // 將時間轉換為 UTC+8
+    // console.log(start, end);
+    const lastOrder = await Order.findOne({
+      createdAt: { $gte: start, $lt: end },
+    }).sort({ _id: -1 });
 
     if (!lastOrder) return res.json({ number: 1 });
 
