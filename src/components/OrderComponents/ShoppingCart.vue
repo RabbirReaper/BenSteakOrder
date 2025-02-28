@@ -96,15 +96,18 @@
         <h6 class="mb-3 fw-bold">取餐方式</h6>
         <div class="d-flex flex-wrap">
           <div class="form-check me-4 mb-3">
-            <input class="form-check-input" type="radio" name="pickupMethod" id="dineIn" value="dineIn" v-model="pickupMethod">
+            <input class="form-check-input" type="radio" name="pickupMethod" id="dineIn" value="dineIn"
+              v-model="pickupMethod">
             <label class="form-check-label" for="dineIn">內用</label>
           </div>
           <div class="form-check me-4 mb-3">
-            <input class="form-check-input" type="radio" name="pickupMethod" id="selfPickup" value="selfPickup" v-model="pickupMethod">
+            <input class="form-check-input" type="radio" name="pickupMethod" id="selfPickup" value="selfPickup"
+              v-model="pickupMethod">
             <label class="form-check-label" for="selfPickup">自取</label>
           </div>
           <div class="form-check mb-3">
-            <input class="form-check-input" type="radio" name="pickupMethod" id="delivery" value="delivery" v-model="pickupMethod">
+            <input class="form-check-input" type="radio" name="pickupMethod" id="delivery" value="delivery"
+              v-model="pickupMethod">
             <label class="form-check-label" for="delivery">外送</label>
           </div>
         </div>
@@ -117,7 +120,8 @@
 
         <div v-if="pickupMethod === 'delivery'" class="mt-3">
           <label for="deliveryAddress" class="form-label">外送地址</label>
-          <textarea class="form-control" id="deliveryAddress" rows="2" v-model="deliveryAddress" placeholder="請輸入詳細外送地址"></textarea>
+          <textarea class="form-control" id="deliveryAddress" rows="2" v-model="deliveryAddress"
+            placeholder="請輸入詳細外送地址"></textarea>
         </div>
       </div>
 
@@ -192,7 +196,8 @@
 
     <!-- Fixed Bottom Button -->
     <div v-if="cart.length > 0"
-      class="checkout-button position-fixed bottom-0 start-25 w-100 bg-white p-3 shadow-lg d-flex justify-content-center" style="max-width: 768px;">
+      class="checkout-button position-fixed bottom-0 start-25 w-100 bg-white p-3 shadow-lg d-flex justify-content-center"
+      style="max-width: 768px;">
       <div class="container-button" style="max-width: 768px;">
         <button class="btn w-100 py-2 checkout-btn" @click="showConfirmation" :disabled="isSubmitDisabled">
           前往結帳 - ${{ calculateTotal() }}
@@ -470,7 +475,7 @@ onMounted(() => {
   if (!scheduledTime.value) {
     scheduledTime.value = minPickupTime.value;
   }
-  
+
   // Watch for coupon changes
   watch(selectedCoupon, updateCouponDiscount);
 });
@@ -544,3 +549,4 @@ input[type="datetime-local"] {
   -moz-appearance: none;
 }
 </style>
+

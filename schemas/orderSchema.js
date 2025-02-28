@@ -40,7 +40,7 @@ const orderSchema = new mongoose.Schema({
   ],
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }, // 客人資料
   weekday: { type: String }, // 星期
-}, { timestamps: true });
+}, { timestamps: true , minimize: true });
 
 // 在儲存之前自動計算星期
 orderSchema.pre('save', function (next) {
