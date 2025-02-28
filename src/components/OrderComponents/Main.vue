@@ -38,16 +38,16 @@
       <h3 class="fw-bold">菜單：</h3>
       <div v-for="category in menuList" :key="category._id">
         <h4 class="fw-bold mt-3">{{ category.categoryName }}</h4>
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
           <div v-for="item in getItemsInCategory(category)" :key="item._id" class="col">
             <div class="card h-100 shadow-sm" @click="$emit('select-item', item)">
               <div class="card-img-top" style="aspect-ratio: 1/1; overflow: hidden;">
                 <img :src="item.image?.url || '/placeholder.jpg'" :alt="item.name" class="w-100 h-100"
                   style="object-fit: cover;">
               </div>
-              <div class="card-body">
-                <h5 class="card-title">{{ item.name }}</h5>
-                <p class="card-text text-danger fw-bold">${{ item.price }}</p>
+              <div class="card-body p-2">
+                <h5 class="card-title fs-6">{{ item.name }}</h5>
+                <p class="card-text text-danger fw-bold mb-0">${{ item.price }}</p>
               </div>
             </div>
           </div>
