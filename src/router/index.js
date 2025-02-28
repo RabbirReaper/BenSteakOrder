@@ -17,7 +17,6 @@ import MenuEdit from '../views/admin/MenuEdit.vue'
 import StoreAdd from '@/views/admin/StoreAdd.vue'
 import StoreShow from '@/views/admin/StoreShow.vue'
 import StoreEdit from '@/views/admin/StoreEdit.vue'
-import orgine from '@/views/customer/origin.vue'
 import Confirmation from '@/views/customer/Confirmation.vue'
 
 const isLoggedIn = async () => {
@@ -121,11 +120,6 @@ const router = createRouter({
       path: '/confirmation/:orderId',
       name: 'confirmation',
       component: Confirmation,
-    },
-    {
-      path : '/test/:store',
-      name : 'test',
-      component : orgine,
     },
     {
       path: '/:pathMatch(.*)*',
