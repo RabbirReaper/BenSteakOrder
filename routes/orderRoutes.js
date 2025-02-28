@@ -49,15 +49,24 @@ router.get('/number', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const order = await Order.findById(id);
-    if (!order) return res.status(404).json({ error: 'Order not found' });
 
+    const order = await Order.findById(id)
+      .populate('store') // 取出店家資訊
+      .populate({
+        path: 'items.itemId',
+      })
+      .populate('items.options.addons') // 展開加料 Addon
+      .populate('items.options.additionalMeats'); // 展開額外加肉
+
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    console.log(order)
     res.json(order);
   } catch (error) {
     console.error('Error getting order:', error);
     res.status(500).send('Internal server error');
   }
 });
+
 
 // 創建 order
 router.post('/', async (req, res) => {
@@ -97,6 +106,7 @@ router.delete('/:id', async (req, res) => {
     res.status(500).send('Internal server error');
   }
 });
+
 
 
 

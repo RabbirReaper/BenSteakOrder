@@ -396,8 +396,9 @@ const submitOrder = async () => {
         addons: item.addons.map(a => a.id),
         extraOptions: item.extraOptions,
         additionalMeats: item.additionalMeats?.map(m => m.id) || [],
-        remarks: item.remarks
-      }
+        remarks: item.remarks,
+      },
+      thisMoney: item.price * item.quantity
     }));
 
     const orderAmount = parseFloat(calculateTotal());
@@ -549,4 +550,3 @@ input[type="datetime-local"] {
   -moz-appearance: none;
 }
 </style>
-

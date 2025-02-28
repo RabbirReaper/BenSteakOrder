@@ -35,12 +35,13 @@ const orderSchema = new mongoose.Schema({
         extraOptions: [{ type: String }], // 額外選項（如加麵）
         additionalMeats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MainDish' }], // 額外加肉
         remarks: { type: String } // 個別餐點的備註
-      }
+      },
+      thisMoney: { type: Number, required: true }
     }
   ],
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }, // 客人資料
   weekday: { type: String }, // 星期
-}, { timestamps: true , minimize: true });
+}, { timestamps: true, minimize: true });
 
 // 在儲存之前自動計算星期
 orderSchema.pre('save', function (next) {
@@ -52,7 +53,7 @@ orderSchema.pre('save', function (next) {
 
 orderSchema.pre('save', function (next) {
   const eightHoursInMilliseconds = 8 * 60 * 60 * 1000;
-  
+
   // 將 createdAt 和 updatedAt 轉換為 UTC+8
   if (this.createdAt) {
     this.createdAt = new Date(this.createdAt.getTime() + eightHoursInMilliseconds);
