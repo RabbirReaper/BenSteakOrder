@@ -3,8 +3,8 @@
     <!-- Header with back button positioned over the image -->
     <div class="header d-flex align-items-center p-3 position-absolute top-0 start-0 w-100 bg-transparent">
       <button class="btn btn-sm rounded-circle shadow" @click="$emit('close')"
-        style="background-color: rgba(255, 255, 255, 0.8); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-        <i class="bi bi-arrow-left fs-4"></i>
+        style="background-color: rgba(255, 255, 255, 0.8); width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;">
+        <i class="bi bi-arrow-left fs-3"></i>
       </button>
     </div>
 
@@ -15,44 +15,44 @@
 
     <!-- Item name and price -->
     <div class="p-3 border-bottom">
-      <h4 class="mb-2">{{ item.name }}</h4>
-      <p class="text-danger fw-bold mb-2">${{ item.price }}</p>
-      <p class="text-muted small" style="white-space: pre-line">{{ item.description }}</p>
+      <h3 class="mb-2">{{ item.name }}</h3>
+      <p class="text-danger fw-bold mb-2 fs-4">${{ item.price }}</p>
+      <p class="text-muted fs-5" style="white-space: pre-line">{{ item.description }}</p>
     </div>
 
     <!-- Options section -->
     <div class="options p-3 border-bottom">
       <!-- Steak Doneness options (if applicable) -->
       <div v-if="item.category === 'Steak'" class="mb-4">
-        <h6 class="fw-bold mb-2">熟度選擇</h6>
+        <h5 class="fw-bold mb-3">熟度選擇</h5>
         <div class="d-flex flex-wrap">
-          <div v-for="doneness in item.steakDoneness" :key="doneness" class="form-check me-3 mb-2">
+          <div v-for="doneness in item.steakDoneness" :key="doneness" class="form-check me-4 mb-3">
             <input class="form-check-input" type="radio" :id="'doneness-' + doneness" v-model="selectedDoneness"
               :value="doneness">
-            <label class="form-check-label" :for="'doneness-' + doneness">{{ doneness }}</label>
+            <label class="form-check-label fs-5" :for="'doneness-' + doneness">{{ doneness }}</label>
           </div>
         </div>
       </div>
 
       <!-- Sauce options (if applicable) -->
       <div v-if="item.sauceOptions && item.sauceOptions.length" class="mb-4">
-        <h6 class="fw-bold mb-2">醬料選擇</h6>
+        <h5 class="fw-bold mb-3">醬料選擇</h5>
         <div class="d-flex flex-wrap">
-          <div v-for="sauce in item.sauceOptions" :key="sauce" class="form-check me-3 mb-2">
+          <div v-for="sauce in item.sauceOptions" :key="sauce" class="form-check me-4 mb-3">
             <input class="form-check-input" type="radio" :id="'sauce-' + sauce" v-model="selectedSauce" :value="sauce">
-            <label class="form-check-label" :for="'sauce-' + sauce">{{ sauce }}</label>
+            <label class="form-check-label fs-5" :for="'sauce-' + sauce">{{ sauce }}</label>
           </div>
         </div>
       </div>
 
       <!-- Add-ons (if applicable for MainDish) -->
       <div v-if="addonItems.length > 0 && item.itemModel === 'MainDish'" class="mb-4">
-        <h6 class="fw-bold mb-2">加點選項</h6>
+        <h5 class="fw-bold mb-3">加點選項</h5>
         <div class="d-flex flex-wrap">
-          <div v-for="addon in addonItems" :key="addon._id" class="form-check me-3 mb-2">
+          <div v-for="addon in addonItems" :key="addon._id" class="form-check me-4 mb-3">
             <input class="form-check-input" type="checkbox" :id="'addon-' + addon._id" v-model="selectedAddons"
               :value="addon._id">
-            <label class="form-check-label" :for="'addon-' + addon._id">
+            <label class="form-check-label fs-5" :for="'addon-' + addon._id">
               {{ addon.name }} (+${{ addon.price }})
             </label>
           </div>
@@ -61,12 +61,12 @@
 
       <!-- Extra options (if applicable) -->
       <div v-if="item.extraOptions && item.extraOptions.length" class="mb-4">
-        <h6 class="fw-bold mb-2">額外需求</h6>
+        <h5 class="fw-bold mb-3">額外需求</h5>
         <div class="d-flex flex-wrap">
-          <div v-for="option in item.extraOptions" :key="option" class="form-check me-3 mb-2">
+          <div v-for="option in item.extraOptions" :key="option" class="form-check me-4 mb-3">
             <input class="form-check-input" type="checkbox" :id="'extra-' + option" v-model="selectedExtraOptions"
               :value="option">
-            <label class="form-check-label" :for="'extra-' + option">
+            <label class="form-check-label fs-5" :for="'extra-' + option">
               {{ option }}
             </label>
           </div>
@@ -75,12 +75,12 @@
 
       <!-- Additional meat dishes (if applicable for MainDish) -->
       <div v-if="additionalMeatDishes.length > 0 && item.itemModel === 'MainDish'" class="mb-4">
-        <h6 class="fw-bold mb-2">加點其他肉食單品</h6>
+        <h5 class="fw-bold mb-3">加點其他肉食單品</h5>
         <div class="d-flex flex-wrap">
-          <div v-for="meat in additionalMeatDishes" :key="meat._id" class="form-check me-3 mb-2">
+          <div v-for="meat in additionalMeatDishes" :key="meat._id" class="form-check me-4 mb-3">
             <input class="form-check-input" type="checkbox" :id="'meat-' + meat._id" v-model="selectedMeatDishes"
               :value="meat._id">
-            <label class="form-check-label" :for="'meat-' + meat._id">
+            <label class="form-check-label fs-5" :for="'meat-' + meat._id">
               {{ meat.name }} (+${{ meat.extraPrice }})
             </label>
           </div>
@@ -90,23 +90,23 @@
 
     <!-- Remarks section -->
     <div class="p-3 border-bottom">
-      <h6 class="fw-bold mb-2">特殊要求</h6>
-      <textarea class="form-control" v-model="remarks" rows="3" placeholder="例如：不要洋蔥..."></textarea>
+      <h5 class="fw-bold mb-3">特殊要求</h5>
+      <textarea class="form-control fs-5" v-model="remarks" rows="3" placeholder="例如：不要洋蔥..."></textarea>
     </div>
 
     <!-- Quantity section -->
     <div class="p-3 d-flex align-items-center justify-content-between">
-      <h6 class="fw-bold mb-0">數量</h6>
-      <div class="input-group" style="width: 140px;">
-        <button class="btn btn-outline-secondary" @click="decreaseQuantity">-</button>
-        <span class="form-control text-center">{{ quantity }}</span>
-        <button class="btn btn-outline-secondary" @click="increaseQuantity">+</button>
+      <h5 class="fw-bold mb-0">數量</h5>
+      <div class="input-group" style="width: 160px;">
+        <button class="btn btn-outline-secondary fs-5" @click="decreaseQuantity">-</button>
+        <span class="form-control text-center fs-5">{{ quantity }}</span>
+        <button class="btn btn-outline-secondary fs-5" @click="increaseQuantity">+</button>
       </div>
     </div>
 
     <!-- Add to cart button -->
     <div class="p-3 position-sticky bottom-0 bg-white border-top">
-      <button type="button" class="btn btn-primary w-100 py-2" @click="addToCart">
+      <button type="button" class="btn btn-primary w-100 py-3 fs-4" @click="addToCart">
         加入購物車 - ${{ calculateItemTotal() }}
       </button>
     </div>
@@ -254,5 +254,35 @@ const addToCart = () => {
 
 .options {
   overflow-y: auto;
+}
+
+.form-check-input {
+  border: 2px solid #495057;
+  box-shadow: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 0.25em;
+}
+
+/* When focused */
+.form-check-input:focus {
+  border-color: #212529;
+  box-shadow: 0 0 0 0.25rem rgba(33, 37, 41, 0.25);
+}
+
+/* When checked */
+.form-check-input:checked {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+/* Increase overall font size */
+.form-control, .btn {
+  font-size: 1.1rem;
+}
+
+/* Increase spacing for better readability */
+.form-check {
+  padding-left: 2em;
 }
 </style>
