@@ -8,7 +8,7 @@
             <div class="order-details">
               <span>訂單編號: {{ order.orderNumber }}</span>
               <span>訂購時間: {{ order.updatedAt }}</span>
-              <span>總金額: ${{ order.totalPaid }}</span>
+              <span>總金額: ${{ order.totalMoney }}</span>
               <span>狀態: {{ order.orderStatus }}</span>
             </div>
           </div>
