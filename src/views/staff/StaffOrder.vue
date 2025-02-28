@@ -7,7 +7,7 @@
           <div v-for="order in todayOrders" :key="order.id" class="order-item">
             <div class="order-details">
               <span>訂單編號: {{ order.orderNumber }}</span>
-              <span>訂購時間: {{ order.updatedAt }}</span>
+              <span>訂購時間: {{ formatDate(order.updatedAt) }}</span>
               <span>總金額: ${{ order.totalMoney }}</span>
               <span>狀態: {{ order.orderStatus }}</span>
             </div>
@@ -31,17 +31,34 @@ const todayOrders = ref([])
 
 
 const getOrder = async () => {
+  // 取得本地時間（台灣時區）
   const start = new Date();
-  start.setHours(0, 0, 0, 0); // 設定為今天的 00:00:00
-  const end = new Date(start.getFullYear(),start.getMonth(),start.getDate()+1);
+  start.setHours(0, 0, 0, 0); // 設定為當地時間的 00:00:00
+
+  // 轉換為 UTC 時間
+  const startUTC = new Date(start.getTime() - 8 * 60 * 60 * 1000);
+
+  // 設定結束時間（當地時間的隔天 00:00:00）
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  // 轉換為 UTC 時間
+  const endUTC = new Date(end.getTime() - 8 * 60 * 60 * 1000);
+
   try {
-    const response = await axios.get(`${API_BASE_URL}/order?start=${start}&end=${end}`)
-    console.log(response.data)
-    todayOrders.value = response.data
+    const response = await axios.get(`${API_BASE_URL}/order?start=${startUTC.toISOString()}&end=${endUTC.toISOString()}`);
+    console.log(response.data);
+    todayOrders.value = response.data;
   } catch (error) {
-    console.error('Failed to fetch orders:', error)
+    console.error("Failed to fetch orders:", error);
   }
-}
+};
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+};
+
 
 onMounted(async () => {
   await getOrder()

@@ -25,15 +25,29 @@ router.get('/', async (req, res) => {
 // 取的流水號
 router.get('/number', async (req, res) => {
   try {
-    const start = new Date();
     const eightHoursInMilliseconds = 8 * 60 * 60 * 1000;
-    start.setHours(0, 0, 0, 0); // 設定為今天的 00:00:00
-    start.setTime(start.getTime() + eightHoursInMilliseconds); // 將時間轉換為 UTC+8
-    const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 1);
-    end.setTime(end.getTime() + eightHoursInMilliseconds); // 將時間轉換為 UTC+8
-    // console.log(start, end);
+
+    // 1. 取得目前 UTC 時間
+    const nowUTC = new Date();
+
+    // 2. 轉換為 UTC+8 時間
+    const nowUTC8 = new Date(nowUTC.getTime() + eightHoursInMilliseconds);
+
+    // 3. 獲取 UTC+8 的今天 00:00:00
+    const startUTC8 = new Date(nowUTC8);
+    startUTC8.setHours(0, 0, 0, 0);
+
+    // 4. 獲取 UTC+8 的明天 00:00:00
+    const endUTC8 = new Date(startUTC8);
+    endUTC8.setDate(endUTC8.getDate() + 1);
+
+    // 5. 轉換回 UTC+0（減去 8 小時）
+    const startUTC = new Date(startUTC8.getTime() - eightHoursInMilliseconds);
+    const endUTC = new Date(endUTC8.getTime() - eightHoursInMilliseconds);
+
+    // 查詢今天範圍內最新的一筆訂單
     const lastOrder = await Order.findOne({
-      createdAt: { $gte: start, $lt: end },
+      createdAt: { $gte: startUTC, $lt: endUTC },
     }).sort({ _id: -1 });
 
     if (!lastOrder) return res.json({ number: 1 });
@@ -44,6 +58,7 @@ router.get('/number', async (req, res) => {
     res.status(500).send('Internal server error');
   }
 });
+
 
 // 取得單個 order
 router.get('/:id', async (req, res) => {
@@ -59,7 +74,7 @@ router.get('/:id', async (req, res) => {
       .populate('items.options.additionalMeats'); // 展開額外加肉
 
     if (!order) return res.status(404).json({ error: 'Order not found' });
-    console.log(order)
+    // console.log(order)
     res.json(order);
   } catch (error) {
     console.error('Error getting order:', error);
@@ -106,6 +121,17 @@ router.delete('/:id', async (req, res) => {
     res.status(500).send('Internal server error');
   }
 });
+
+// const deleteAll = async () => {
+//   try {
+//     await Order.deleteMany({});
+//     console.log('delete all completed')
+//   } catch (error) {
+//     console.error('Error deleting all orders:', error);
+//   }
+// }
+
+// deleteAll()
 
 
 
