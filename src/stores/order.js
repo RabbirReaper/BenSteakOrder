@@ -68,6 +68,31 @@ export const useOrderStore = defineStore('order', {
   actions: {
     // ======= 購物車操作 =======
     
+    // 直接添加菜品到購物車
+    addDishToCart(dish, type) {
+      // 創建新的購物車項目
+      const newItem = {
+        name: dish.name,
+        price: dish.price,
+        itemModel: type,
+        id: dish._id,
+        quantity: 1,
+        doneness: dish.category === 'Steak' && dish.steakDoneness ? dish.steakDoneness[0] : '',
+        sauce: dish.sauceOptions && dish.sauceOptions.length ? '不加醬' : '',
+        addons: [],
+        additionalMeats: [],
+        extraOptions: [],
+        remarks: ''
+      };
+      
+      // 添加到購物車
+      this.cart.push(newItem);
+      
+      // 設置當前項目為新添加的項目
+      this.currentItem = { ...newItem };
+      this.currentItemIndex = this.cart.length - 1;
+    },
+    
     // 添加到購物車
     addToCart(item) {
       if (this.currentItemIndex !== null) {
@@ -84,6 +109,14 @@ export const useOrderStore = defineStore('order', {
     // 從購物車中移除項目
     removeFromCart(index) {
       this.cart.splice(index, 1);
+      
+      // 如果刪除的是當前正在編輯的項目，重置當前項目
+      if (this.currentItemIndex === index) {
+        this.resetCurrentItem();
+      } else if (this.currentItemIndex > index) {
+        // 如果刪除的項目在當前編輯項目之前，需要調整索引
+        this.currentItemIndex--;
+      }
     },
     
     // 更新購物車中項目的數量
@@ -101,6 +134,12 @@ export const useOrderStore = defineStore('order', {
     selectCurrentItem(item, index) {
       this.currentItem = item ? { ...item } : null;
       this.currentItemIndex = index;
+      
+      // 如果選擇了項目進行編輯，立即在購物車中創建臨時版本
+      if (index !== null) {
+        // 創建原始副本用於參考
+        this.cart[index] = { ...item };
+      }
     },
     
     // 重置當前項目
@@ -142,6 +181,7 @@ export const useOrderStore = defineStore('order', {
     selectDoneness(doneness) {
       if (this.currentItem) {
         this.currentItem.doneness = doneness;
+        this.syncCurrentItemToCart();
       }
     },
     
@@ -149,6 +189,7 @@ export const useOrderStore = defineStore('order', {
     selectSauce(sauce) {
       if (this.currentItem) {
         this.currentItem.sauce = sauce;
+        this.syncCurrentItemToCart();
       }
     },
     
@@ -162,6 +203,7 @@ export const useOrderStore = defineStore('order', {
       } else {
         this.currentItem.extraOptions.push(option);
       }
+      this.syncCurrentItemToCart();
     },
     
     // 檢查額外選項是否已選擇
@@ -183,6 +225,7 @@ export const useOrderStore = defineStore('order', {
         this.currentItem.addons.push(addon);
         this.currentItem.price += addon.price;
       }
+      this.syncCurrentItemToCart();
     },
     
     // 檢查加點是否已選擇
@@ -204,11 +247,20 @@ export const useOrderStore = defineStore('order', {
         this.currentItem.additionalMeats.push(meat);
         this.currentItem.price += meat.extraPrice;
       }
+      this.syncCurrentItemToCart();
     },
     
     // 檢查其他肉類單品是否已選擇
     isAdditionalMeatSelected(meat) {
       return this.currentItem && this.currentItem.additionalMeats.some(m => m._id === meat._id);
+    },
+    
+    // 即時同步當前項目到購物車
+    syncCurrentItemToCart() {
+      if (this.currentItemIndex !== null && this.currentItem) {
+        // 直接更新購物車中的項目
+        this.cart[this.currentItemIndex] = { ...this.currentItem };
+      }
     },
     
     // 設置調整金額
@@ -504,8 +556,8 @@ export const useOrderStore = defineStore('order', {
       if (!addons || addons.length === 0) return '';
       
       return addons.map(addon => {
-        if (typeof addon === 'object' && addon.name) {
-          return addon.name;
+        if (typeof addon === 'object' && addon !== null) {
+          return addon.name || "未知加點";
         }
         return "加點項目";
       }).join(', ');

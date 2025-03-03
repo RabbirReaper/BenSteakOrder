@@ -43,7 +43,15 @@
       
       <!-- 下半部：選項設定區域 -->
       <div class="col-12 options-section bg-light p-3" v-if="selectedDish">
-        <h5>{{ selectedDish.name }} - 選項設定 <span class="text-danger">${{ orderStore.currentItem?.price }}</span></h5>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5>{{ selectedDish.name }} - 選項設定</h5>
+          <div class="d-flex align-items-center">
+            <span class="text-danger fs-5 me-2">${{ orderStore.currentItem?.price }}</span>
+            <button class="btn btn-secondary btn-sm" @click="cancelSelection">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        </div>
         
         <!-- 主餐特定選項 -->
         <div v-if="selectedDishType === 'MainDish'" class="mb-3">
@@ -165,19 +173,13 @@
             </div>
           </div>
         </div>
-        
-        <!-- 操作按鈕 -->
-        <div class="actions-section d-flex justify-content-between">
-          <button class="btn btn-secondary" @click="cancelSelection">取消</button>
-          <button class="btn btn-success" @click="addToCart">{{ isEditing ? '更新餐點' : '新增餐點' }}</button>
-        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, watch } from 'vue';
 import { useOrderStore } from '@/stores/order';
 
 const props = defineProps({
@@ -193,22 +195,15 @@ const orderStore = useOrderStore();
 // 內部狀態
 const selectedDish = ref(null);
 const selectedDishType = ref(null);
-const isEditing = ref(false);
 
-// 選擇菜品
+// 選擇菜品 - 直接添加到購物車
 const selectDish = (dish, type) => {
+  // 將菜品添加到購物車
+  orderStore.addDishToCart(dish, type);
+  
+  // 設置選中的菜品用於顯示選項
   selectedDish.value = dish;
   selectedDishType.value = type;
-  
-  // 使用 store 的方法來設置當前項目
-  orderStore.selectDish(dish, type);
-  isEditing.value = false;
-};
-
-// 添加到購物車
-const addToCart = () => {
-  orderStore.addToCart(orderStore.currentItem);
-  resetSelection();
 };
 
 // 取消選擇
@@ -220,17 +215,12 @@ const cancelSelection = () => {
 const resetSelection = () => {
   selectedDish.value = null;
   selectedDishType.value = null;
-  orderStore.resetCurrentItem();
-  isEditing.value = false;
 };
 
 // 監聽 store 中的當前項目變化
 watch(() => orderStore.currentItem, (newItem) => {
   if (newItem && orderStore.currentItemIndex !== null) {
-    // 如果是從購物車編輯，設置為編輯模式
-    isEditing.value = true;
-    
-    // 找到對應的菜品
+    // 如果是從購物車編輯，根據當前項目更新選中的菜品
     const dishType = newItem.itemModel;
     let dish;
     
@@ -248,7 +238,6 @@ watch(() => orderStore.currentItem, (newItem) => {
     // 當 currentItem 被清空時，也清空本地狀態
     selectedDish.value = null;
     selectedDishType.value = null;
-    isEditing.value = false;
   }
 }, { immediate: true });
 </script>

@@ -43,7 +43,15 @@
       
       <!-- 下半部：選項設定區域 -->
       <div class="col-12 options-section bg-light p-3" v-if="selectedDish">
-        <h5>{{ selectedDish.name }} - 選項設定 <span class="text-danger">${{ orderStore.currentItem?.price }}</span></h5>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5>{{ selectedDish.name }} - 選項設定</h5>
+          <div class="d-flex align-items-center">
+            <span class="text-danger fs-5 me-2">${{ orderStore.currentItem?.price }}</span>
+            <button class="btn btn-secondary btn-sm" @click="cancelSelection">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        </div>
         
         <!-- 主餐特定選項 -->
         <div v-if="selectedDishType === 'MainDish'" class="mb-3">
@@ -194,18 +202,6 @@
             </div>
           </div>
         </div>
-        
-        <!-- 備註 -->
-        <div class="remarks-section mb-3">
-          <label class="form-label">備註</label>
-          <textarea class="form-control" rows="2" v-model="orderStore.currentItem.remarks" placeholder="有特殊需求嗎？"></textarea>
-        </div>
-        
-        <!-- 操作按鈕 -->
-        <div class="actions-section d-flex justify-content-between">
-          <button class="btn btn-secondary" @click="cancelSelection">取消</button>
-          <button class="btn btn-success" @click="addToCart">{{ isEditing ? '更新餐點' : '新增餐點' }}</button>
-        </div>
       </div>
     </div>
   </div>
@@ -228,55 +224,68 @@ const orderStore = useOrderStore();
 // 內部狀態
 const selectedDish = ref(null);
 const selectedDishType = ref(null);
-const isEditing = ref(false);
 const takeoutOptions = ref({
   separatePackaging: false,
   noUtensils: false
 });
 
-// 選擇菜品
+// 選擇菜品 - 直接添加到購物車
 const selectDish = (dish, type) => {
+  // 將菜品添加到購物車
+  orderStore.addDishToCart(dish, type);
+  
+  // 設置選中的菜品用於顯示選項
   selectedDish.value = dish;
   selectedDishType.value = type;
-  
-  // 使用 store 的方法來設置當前項目
-  orderStore.selectDish(dish, type);
   
   // 重置外帶選項
   takeoutOptions.value = {
     separatePackaging: false,
     noUtensils: false
   };
-  
-  isEditing.value = false;
 };
 
 // 切換外帶選項
 const toggleTakeoutOption = (option) => {
   takeoutOptions.value[option] = !takeoutOptions.value[option];
+  updateRemarksWithTakeoutOptions();
 };
 
-// 添加到購物車
-const addToCart = () => {
+// 更新備註（包含外帶選項）
+const updateRemarksWithTakeoutOptions = () => {
   if (!orderStore.currentItem) return;
   
-  // 處理外帶選項
-  let remarksWithTakeoutOptions = orderStore.currentItem.remarks || '';
+  // 獲取當前備註
+  let remarks = orderStore.currentItem.remarks || '';
+  
+  // 清除現有的外帶選項
+  remarks = remarks
+    .replace(/,?\s*分開包裝/g, '')
+    .replace(/,?\s*不需餐具/g, '')
+    .trim();
+    
+  // 添加選中的外帶選項
+  const options = [];
   
   if (takeoutOptions.value.separatePackaging) {
-    remarksWithTakeoutOptions += (remarksWithTakeoutOptions ? ', ' : '') + '分開包裝';
+    options.push('分開包裝');
   }
   
   if (takeoutOptions.value.noUtensils) {
-    remarksWithTakeoutOptions += (remarksWithTakeoutOptions ? ', ' : '') + '不需餐具';
+    options.push('不需餐具');
+  }
+  
+  if (options.length > 0) {
+    remarks = remarks ? 
+      `${remarks}, ${options.join(', ')}` : 
+      options.join(', ');
   }
   
   // 更新當前項目的備註
-  orderStore.currentItem.remarks = remarksWithTakeoutOptions;
-  
-  // 添加到購物車
-  orderStore.addToCart(orderStore.currentItem);
-  resetSelection();
+  if (orderStore.currentItem) {
+    orderStore.currentItem.remarks = remarks;
+    orderStore.syncCurrentItemToCart();
+  }
 };
 
 // 取消選擇
@@ -292,16 +301,12 @@ const resetSelection = () => {
     separatePackaging: false,
     noUtensils: false
   };
-  orderStore.resetCurrentItem();
-  isEditing.value = false;
 };
 
 // 監聽 store 中的當前項目變化
 watch(() => orderStore.currentItem, (newItem) => {
   if (newItem && orderStore.currentItemIndex !== null) {
-    // 如果是從購物車編輯，設置為編輯模式
-    isEditing.value = true;
-    
+    // 如果是從購物車編輯，根據當前項目更新選中的菜品
     // 從備註中提取外帶選項
     if (newItem.remarks) {
       takeoutOptions.value.separatePackaging = newItem.remarks.includes('分開包裝');
@@ -330,7 +335,6 @@ watch(() => orderStore.currentItem, (newItem) => {
       separatePackaging: false,
       noUtensils: false
     };
-    isEditing.value = false;
   }
 }, { immediate: true });
 </script>
