@@ -3,6 +3,30 @@ import Order from '../schemas/orderSchema.js';
 
 const router = express.Router();
 
+const getTodayRange = () => {
+  const eightHoursInMilliseconds = 8 * 60 * 60 * 1000;
+
+  // 1. 取得目前 UTC 時間
+  const nowUTC = new Date();
+
+  // 2. 轉換為 UTC+8 時間
+  const nowUTC8 = new Date(nowUTC.getTime() + eightHoursInMilliseconds);
+
+  // 3. 獲取 UTC+8 的今天 00:00:00
+  const startUTC8 = new Date(nowUTC8);
+  startUTC8.setHours(0, 0, 0, 0);
+
+  // 4. 獲取 UTC+8 的明天 00:00:00
+  const endUTC8 = new Date(startUTC8);
+  endUTC8.setDate(endUTC8.getDate() + 1);
+
+  // 5. 轉換回 UTC+0（減去 8 小時）
+  const startUTC = new Date(startUTC8.getTime() - eightHoursInMilliseconds);
+  const endUTC = new Date(endUTC8.getTime() - eightHoursInMilliseconds);
+
+  return { startUTC, endUTC };
+}
+
 // 透過時間取得範圍內的 order
 router.get('/', async (req, res) => {
   try {
@@ -22,28 +46,54 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/order/:storeId', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { start, end } = req.query;
+    
+    // 將UTC+8 轉成 UTC+0
+    start = new Date(start);
+    end = new Date(end);
+
+    const orders = await Order.find({
+      store: id,
+      createdAt: {
+        $gte: start,
+        $lt: end,
+      },
+    });
+
+    // if (!orders || orders.length === 0) return res.status(404).json({ error: 'Orders not found' });
+
+    res.json(orders);
+  } catch (error) {
+    console.error('Error getting orders for store:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+router.get('/today/:storeId', async (req, res) => {
+  const { startUTC, endUTC } = getTodayRange();
+  try{
+    const { storeId } = req.params;
+
+    const orders = await Order.find({
+      store: storeId,
+      createdAt: { $gte: startUTC, $lt: endUTC },
+    });
+
+    res.json(orders);
+
+  } catch (err){
+    console.error('Error getting orders for store:', error);
+    res.status(500).send('Internal server error');
+  }
+})
+
 // 取的流水號
 router.get('/number', async (req, res) => {
   try {
-    const eightHoursInMilliseconds = 8 * 60 * 60 * 1000;
-
-    // 1. 取得目前 UTC 時間
-    const nowUTC = new Date();
-
-    // 2. 轉換為 UTC+8 時間
-    const nowUTC8 = new Date(nowUTC.getTime() + eightHoursInMilliseconds);
-
-    // 3. 獲取 UTC+8 的今天 00:00:00
-    const startUTC8 = new Date(nowUTC8);
-    startUTC8.setHours(0, 0, 0, 0);
-
-    // 4. 獲取 UTC+8 的明天 00:00:00
-    const endUTC8 = new Date(startUTC8);
-    endUTC8.setDate(endUTC8.getDate() + 1);
-
-    // 5. 轉換回 UTC+0（減去 8 小時）
-    const startUTC = new Date(startUTC8.getTime() - eightHoursInMilliseconds);
-    const endUTC = new Date(endUTC8.getTime() - eightHoursInMilliseconds);
+    const { startUTC, endUTC } = getTodayRange();
 
     // 查詢今天範圍內最新的一筆訂單
     const lastOrder = await Order.findOne({
