@@ -40,7 +40,6 @@
             <th>取餐方式</th>
             <th>金額</th>
             <th>狀態</th>
-            <th>操作</th>
           </tr>
         </thead>
         <tbody>
@@ -48,7 +47,7 @@
             v-for="order in filteredOrders" 
             :key="order._id" 
             :class="{ 'table-active': orderStore.selectedOrder && orderStore.selectedOrder._id === order._id }"
-            @click="orderStore.selectOrder(order)"
+            @click="selectAndViewOrder(order)"
           >
             <td>{{ orderStore.formatTime(order.createdAt) }}</td>
             <td>{{ order.orderNumber }}</td>
@@ -64,30 +63,9 @@
                 {{ orderStore.formatStatus(order.orderStatus) }}
               </span>
             </td>
-            <td>
-              <div class="btn-group btn-group-sm">
-                <button class="btn btn-outline-primary" @click.stop="viewOrderDetails(order)">
-                  <i class="bi bi-eye"></i>
-                </button>
-                <button 
-                  class="btn btn-outline-success" 
-                  @click.stop="updateOrderStatus(order._id, 'Completed')"
-                  :disabled="order.orderStatus === 'Completed' || order.orderStatus === 'Canceled'"
-                >
-                  <i class="bi bi-check-circle"></i>
-                </button>
-                <button 
-                  class="btn btn-outline-danger" 
-                  @click.stop="updateOrderStatus(order._id, 'Canceled')"
-                  :disabled="order.orderStatus === 'Canceled'"
-                >
-                  <i class="bi bi-x-circle"></i>
-                </button>
-              </div>
-            </td>
           </tr>
           <tr v-if="filteredOrders.length === 0">
-            <td colspan="6" class="text-center py-4">
+            <td colspan="5" class="text-center py-4">
               <p class="text-muted">沒有符合條件的訂單</p>
             </td>
           </tr>
@@ -231,27 +209,18 @@ const fetchOrders = async () => {
   await orderStore.fetchOrdersByDateRange(props.storeId, selectedDate.value);
 };
 
-// 查看訂單詳情
-const viewOrderDetails = async (order) => {
+// 選擇並查看訂單詳情（顯示在右側面板）
+const selectAndViewOrder = async (order) => {
   try {
     // 獲取訂單的完整詳情
     const orderDetails = await orderStore.fetchOrderDetails(order._id);
     if (orderDetails) {
+      // 設置選中的訂單，這會在右側面板顯示訂單詳情
       orderStore.selectOrder(orderDetails);
-    
-      // 顯示訂單詳情 Modal
-      if (orderDetailsModal.value) {
-        orderDetailsModal.value.show();
-      }
     }
   } catch (error) {
     console.error('獲取訂單詳情失敗:', error);
   }
-};
-
-// 更新訂單狀態
-const updateOrderStatus = async (orderId, status) => {
-  await orderStore.updateOrderStatus(orderId, status);
 };
 
 // 列印訂單
