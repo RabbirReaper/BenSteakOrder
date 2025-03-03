@@ -34,7 +34,7 @@
       </div>
 
       <!-- 右側邊欄 - 使用新元件 -->
-      <div class="col-md-3 p-0">
+      <div class="col-md-3 p-2">
         <OrderCart 
           :active-component="orderStore.activeComponent"
         />
