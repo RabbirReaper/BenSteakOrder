@@ -48,22 +48,27 @@ router.get('/', async (req, res) => {
 
 router.get('/order/:storeId', async (req, res) => {
   try {
-    const { id } = req.params;
-    const { start, end } = req.query;
+    const { storeId } = req.params;
+    let { start, end } = req.query;
     
-    // 將UTC+8 轉成 UTC+0
+    // 明確處理時區差異
+    // 如果前端發送的是 UTC+8 格式，而資料庫儲存的是 UTC+0
     start = new Date(start);
     end = new Date(end);
+    
+    // 不需要額外調整，因為 MongoDB 會自動處理 UTC 轉換
+    // 如果確實需要調整，可以這樣做：
+    // const utcOffset = 8 * 60 * 60 * 1000; // 8小時的毫秒數
+    // start = new Date(start.getTime() - utcOffset);
+    // end = new Date(end.getTime() - utcOffset);
 
     const orders = await Order.find({
-      store: id,
+      store: storeId,
       createdAt: {
         $gte: start,
         $lt: end,
       },
     });
-
-    // if (!orders || orders.length === 0) return res.status(404).json({ error: 'Orders not found' });
 
     res.json(orders);
   } catch (error) {
