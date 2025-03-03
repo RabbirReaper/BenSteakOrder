@@ -1,82 +1,21 @@
 <template>
-  <div class="main-container">
-    <div class="center-container">
-      <div class="orders-container">
-        <h2>今日訂單列表</h2>
-        <div v-if="todayOrders && todayOrders.length > 0" class="order-list">
-          <div v-for="order in todayOrders" :key="order.id" class="order-item">
-            <div class="order-details">
-              <span>訂單編號: {{ order.orderNumber }}</span>
-              <span>訂購時間: {{ formatDate(order.updatedAt) }}</span>
-              <span>總金額: ${{ order.totalMoney }}</span>
-              <span>狀態: {{ order.orderStatus }}</span>
-            </div>
-          </div>
-        </div>
-        <div v-else class="no-orders">
-          今日尚無訂單
-        </div>
-      </div>
-    </div>
+  <div class="staff-order-page">
+    <StaffOrderMain :store-id="storeId" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import StaffOrderMain from '@/components/Staff/StaffOrderMain.vue';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-const todayOrders = ref([])
-
-
-const getOrder = async () => {
-  // 取得本地時間（台灣時區）
-  const start = new Date();
-  start.setHours(0, 0, 0, 0); // 設定為當地時間的 00:00:00
-
-  // 轉換為 UTC 時間
-  const startUTC = new Date(start.getTime() - 8 * 60 * 60 * 1000);
-
-  // 設定結束時間（當地時間的隔天 00:00:00）
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-
-  // 轉換為 UTC 時間
-  const endUTC = new Date(end.getTime() - 8 * 60 * 60 * 1000);
-
-  try {
-    const response = await axios.get(`${API_BASE_URL}/order?start=${startUTC.toISOString()}&end=${endUTC.toISOString()}`);
-    console.log(response.data);
-    todayOrders.value = response.data;
-  } catch (error) {
-    console.error("Failed to fetch orders:", error);
-  }
-};
-
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
-};
-
-
-onMounted(async () => {
-  await getOrder()
-})
+const route = useRoute();
+const storeId = ref(route.params.storeId || '1'); // 預設使用 ID 1 如果沒有提供
 </script>
 
-<style lang="css" scoped>
-.main-container {
-  min-height: 100vh;
-  background-color: #eaeae668;
-}
-
-.center-container {
-  max-width: 768px;
-  margin: 0 auto;
-  position: relative;
-  background-color: #ffffff;
-  min-height: 100vh;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+<style>
+.staff-order-page {
+  height: 100vh;
+  overflow: hidden;
 }
 </style>

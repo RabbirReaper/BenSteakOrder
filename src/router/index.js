@@ -18,6 +18,8 @@ import StoreAdd from '@/views/admin/StoreAdd.vue'
 import StoreShow from '@/views/admin/StoreShow.vue'
 import StoreEdit from '@/views/admin/StoreEdit.vue'
 import Confirmation from '@/views/customer/Confirmation.vue'
+import test from '@/views/staff/stafftest.vue'
+
 
 const isLoggedIn = async () => {
   try {
@@ -77,19 +79,19 @@ const router = createRouter({
         },
         // 店家新增介面
         {
-          path : 'store/add',
-          name : 'admin-store-add',
-          component : StoreAdd,
+          path: 'store/add',
+          name: 'admin-store-add',
+          component: StoreAdd,
         },
         {
-          path : 'store/show',
-          name : 'admin-store-show',
-          component : StoreShow,
+          path: 'store/show',
+          name: 'admin-store-show',
+          component: StoreShow,
         },
         {
-          path : 'store/:id',
-          name : 'admin-store-edit',
-          component : StoreEdit,
+          path: 'store/:id',
+          name: 'admin-store-edit',
+          component: StoreEdit,
         }
         // // 營收及訂單列表與統計
         // {
@@ -106,10 +108,16 @@ const router = createRouter({
       ],
     },
     {
-      path: '/staff',
+      path: '/staff/:storeId',
       name: 'staff',
       component: StaffOrder,
-      meta: { requiresAuth: true }, // 需要登入
+      meta: { requiresAuth: false }, // 需要登入
+    },
+    {
+      path: '/test',
+      name: 'test',
+      component: test
+
     },
     {
       path: '/customer/:store',
