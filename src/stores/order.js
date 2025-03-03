@@ -373,7 +373,7 @@ export const useOrderStore = defineStore('order', {
           totalMoney: this.total,
           tableNumber: this.activeComponent === 'DineIn' ? prompt('請輸入桌號:') : null,
           items: orderItems,
-          remarks: prompt('訂單備註:') || null,
+          remarks: null,
         };
     
         // 創建新訂單
