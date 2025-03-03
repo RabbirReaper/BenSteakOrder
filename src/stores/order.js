@@ -371,7 +371,7 @@ export const useOrderStore = defineStore('order', {
           discounts: this.adjustment,
           pointsDiscount: this.discount,
           totalMoney: this.total,
-          tableNumber: this.activeComponent === 'DineIn' ? prompt('請輸入桌號:') : null,
+          tableNumber: this.activeComponent === 'DineIn' ? 0 : null,
           items: orderItems,
           remarks: null,
         };
