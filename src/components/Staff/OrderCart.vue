@@ -5,27 +5,6 @@
       <template v-if="orderStore.selectedOrder && isOrdersActive">
         <!-- 訂單詳情模式 -->
         <h5 class="mb-3">訂單詳情 #{{ orderStore.selectedOrder.orderNumber }}</h5>
-        <div class="card mb-3">
-          <div class="card-body">
-            <div class="d-flex justify-content-between">
-              <p class="mb-1"><strong>取餐方式: </strong> {{ orderStore.selectedOrder.pickupMethod }}</p>
-              <span :class="orderStore.getStatusClass(orderStore.selectedOrder.orderStatus)">
-                {{ orderStore.formatStatus(orderStore.selectedOrder.orderStatus) }}
-              </span>
-            </div>
-            <p class="mb-1"><strong>訂單時間: </strong> {{ orderStore.formatDateTime(orderStore.selectedOrder.createdAt) }}
-            </p>
-            <p v-if="orderStore.selectedOrder.tableNumber" class="mb-1">
-              <strong>桌號: </strong> {{ orderStore.selectedOrder.tableNumber }}
-            </p>
-            <p v-if="orderStore.selectedOrder.deliveryAddress" class="mb-1">
-              <strong>外送地址: </strong> {{ orderStore.selectedOrder.deliveryAddress }}
-            </p>
-            <p v-if="orderStore.selectedOrder.remarks" class="mb-1">
-              <strong>備註: </strong> {{ orderStore.selectedOrder.remarks }}
-            </p>
-          </div>
-        </div>
 
         <!-- 餐點明細 -->
         <h6 class="fw-bold mb-2">餐點明細</h6>
