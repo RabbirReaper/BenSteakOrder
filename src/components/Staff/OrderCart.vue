@@ -13,7 +13,8 @@
                 {{ orderStore.formatStatus(orderStore.selectedOrder.orderStatus) }}
               </span>
             </div>
-            <p class="mb-1"><strong>訂單時間: </strong> {{ orderStore.formatDateTime(orderStore.selectedOrder.createdAt) }}</p>
+            <p class="mb-1"><strong>訂單時間: </strong> {{ orderStore.formatDateTime(orderStore.selectedOrder.createdAt) }}
+            </p>
             <p v-if="orderStore.selectedOrder.tableNumber" class="mb-1">
               <strong>桌號: </strong> {{ orderStore.selectedOrder.tableNumber }}
             </p>
@@ -25,32 +26,53 @@
             </p>
           </div>
         </div>
-        
+
         <!-- 餐點明細 -->
         <h6 class="fw-bold mb-2">餐點明細</h6>
         <div class="list-group mb-3">
           <div v-for="(item, index) in orderStore.selectedOrder.items" :key="index" class="list-group-item">
             <div class="d-flex justify-content-between">
-              <div>
-                <h6 class="mb-1">{{ item.itemId.name }}</h6>
-                <small v-if="item.options.doneness">熟度: {{ item.options.doneness }}</small><br v-if="item.options.doneness">
-                <small v-if="item.options.sauce">醬料: {{ item.options.sauce }}</small><br v-if="item.options.sauce">
-                <small v-if="item.options.addons && item.options.addons.length">
-                  加點: {{ orderStore.formatAddons(item.options.addons) }}
-                </small><br v-if="item.options.addons && item.options.addons.length">
-                <small v-if="item.options.extraOptions && item.options.extraOptions.length">
-                  額外需求: {{ item.options.extraOptions.join(', ') }}
-                </small>
-                <small v-if="item.options.remarks"><br>備註: {{ item.options.remarks }}</small>
+              <div class="item-details">
+                <!-- 餐點名稱 -->
+                <h6 class="mb-2 fw-bold">{{ orderStore.getItemName(item) }}</h6>
+
+                <!-- 選項列表 -->
+                <div class="options small">
+                  <div v-if="item.options.doneness" class="mb-1">
+                    <span class="text-muted">熟度:</span> {{ item.options.doneness }}
+                  </div>
+
+                  <div v-if="item.options.sauce" class="mb-1">
+                    <span class="text-muted">醬料:</span> {{ item.options.sauce }}
+                  </div>
+
+                  <div v-if="item.options.addons && item.options.addons.length" class="mb-1">
+                    <span class="text-muted">加點:</span> {{ orderStore.formatAddons(item.options.addons) }}
+                  </div>
+
+                  <div v-if="item.options.additionalMeats && item.options.additionalMeats.length" class="mb-1">
+                    <span class="text-muted">加點肉品:</span> {{
+                      orderStore.formatAdditionalMeats(item.options.additionalMeats) }}
+                  </div>
+
+                  <div v-if="item.options.extraOptions && item.options.extraOptions.length" class="mb-1">
+                    <span class="text-muted">額外需求:</span> {{ item.options.extraOptions.join(', ') }}
+                  </div>
+
+                  <div v-if="item.options.remarks" class="mb-1">
+                    <span class="text-muted">備註:</span> {{ item.options.remarks }}
+                  </div>
+                </div>
               </div>
-              <div class="text-end">
-                <small class="d-block">x{{ item.amount }}</small>
-                <span class="fw-bold">${{ item.thisMoney }}</span>
+
+              <div class="text-end d-flex flex-column justify-content-between">
+                <span class="badge bg-secondary mb-2">x{{ item.amount }}</span>
+                <span class="fw-bold text-primary">${{ item.thisMoney }}</span>
               </div>
             </div>
           </div>
         </div>
-        
+
         <!-- 訂單總計 -->
         <div class="card">
           <div class="card-body">
@@ -58,33 +80,36 @@
               <span>小計</span>
               <span>${{ orderStore.selectedOrder.orderAmount }}</span>
             </div>
-            
+
             <!-- 訂單調帳 -->
             <div class="d-flex justify-content-between mb-2">
               <div class="d-flex align-items-center">
                 <span>訂單調帳</span>
-                <button class="btn btn-sm btn-outline-secondary ms-2" @click="openAdjustmentModal(orderStore.selectedOrder)" 
+                <button class="btn btn-sm btn-outline-secondary ms-2"
+                  @click="openAdjustmentModal(orderStore.selectedOrder)"
                   :disabled="orderStore.selectedOrder.orderStatus !== 'Unpaid'">
                   <i class="bi bi-pencil-square"></i>
                 </button>
               </div>
-              <span :class="{'text-success': orderStore.selectedOrder.discounts < 0, 'text-danger': orderStore.selectedOrder.discounts > 0}">
-                {{ orderStore.selectedOrder.discounts < 0 ? '+' : '-' }}${{ Math.abs(orderStore.selectedOrder.discounts || 0) }}
-              </span>
+              <span
+                :class="{ 'text-success': orderStore.selectedOrder.discounts < 0, 'text-danger': orderStore.selectedOrder.discounts > 0 }">
+                {{ orderStore.selectedOrder.discounts < 0 ? '+' : '-' }}${{ Math.abs(orderStore.selectedOrder.discounts
+                  || 0) }} </span>
             </div>
-            
+
             <!-- 訂單折扣 -->
             <div class="d-flex justify-content-between mb-2">
               <div class="d-flex align-items-center">
                 <span>訂單折扣</span>
-                <button class="btn btn-sm btn-outline-secondary ms-2" @click="openDiscountModal(orderStore.selectedOrder)"
+                <button class="btn btn-sm btn-outline-secondary ms-2"
+                  @click="openDiscountModal(orderStore.selectedOrder)"
                   :disabled="orderStore.selectedOrder.orderStatus !== 'Unpaid'">
                   <i class="bi bi-percent"></i>
                 </button>
               </div>
               <span class="text-danger">${{ orderStore.selectedOrder.pointsDiscount || 0 }}</span>
             </div>
-            
+
             <div class="d-flex justify-content-between fw-bold border-top pt-2 mt-2">
               <span>總計</span>
               <span>${{ orderStore.selectedOrder.totalMoney }}</span>
@@ -92,7 +117,7 @@
           </div>
         </div>
       </template>
-      
+
       <template v-else>
         <!-- 購物車模式 -->
         <h5 class="mb-3">訂單詳情</h5>
@@ -135,20 +160,22 @@
                 </button>
 
                 <div class="quantity-control d-flex align-items-center">
-                  <button class="btn btn-sm btn-outline-secondary" @click="orderStore.updateQuantity(index, -1)">-</button>
+                  <button class="btn btn-sm btn-outline-secondary"
+                    @click="orderStore.updateQuantity(index, -1)">-</button>
                   <span class="mx-2">{{ item.quantity }}</span>
-                  <button class="btn btn-sm btn-outline-secondary" @click="orderStore.updateQuantity(index, 1)">+</button>
+                  <button class="btn btn-sm btn-outline-secondary"
+                    @click="orderStore.updateQuantity(index, 1)">+</button>
                 </div>
               </div>
             </div>
           </div>
-          
+
           <div class="order-total mt-3">
             <div class="d-flex justify-content-between mb-2">
               <span>小計</span>
               <span>${{ orderStore.subtotal }}</span>
             </div>
-            
+
             <!-- 訂單調帳 -->
             <div class="d-flex justify-content-between mb-2">
               <div class="d-flex align-items-center">
@@ -157,11 +184,10 @@
                   <i class="bi bi-pencil-square"></i>
                 </button>
               </div>
-              <span :class="{'text-success': orderStore.adjustment < 0, 'text-danger': orderStore.adjustment > 0}">
-                {{ orderStore.adjustment < 0 ? '+' : '' }}${{ Math.abs(orderStore.adjustment) }}
-              </span>
+              <span :class="{ 'text-success': orderStore.adjustment < 0, 'text-danger': orderStore.adjustment > 0 }">
+                {{ orderStore.adjustment < 0 ? '+' : '' }}${{ Math.abs(orderStore.adjustment) }} </span>
             </div>
-            
+
             <!-- 訂單折扣 -->
             <div class="d-flex justify-content-between mb-2">
               <div class="d-flex align-items-center">
@@ -172,7 +198,7 @@
               </div>
               <span class="text-danger">${{ orderStore.discount }}</span>
             </div>
-            
+
             <div class="d-flex justify-content-between fw-bold">
               <span>總計</span>
               <span>${{ orderStore.total }}</span>
@@ -181,24 +207,18 @@
         </div>
       </template>
     </div>
-    
+
     <!-- 操作按鈕 -->
     <div class="action-buttons mt-3 pt-3 border-top">
       <template v-if="isOrdersActive && orderStore.selectedOrder">
         <!-- 訂單管理模式下的按鈕 -->
         <div class="btn-group w-100 mb-2">
-          <button 
-            class="btn btn-success"
-            @click="updateOrderStatus(orderStore.selectedOrder._id, 'Completed')"
-            :disabled="orderStore.selectedOrder.orderStatus === 'Completed' || orderStore.selectedOrder.orderStatus === 'Canceled'"
-          >
+          <button class="btn btn-success" @click="updateOrderStatus(orderStore.selectedOrder._id, 'Completed')"
+            :disabled="orderStore.selectedOrder.orderStatus === 'Completed' || orderStore.selectedOrder.orderStatus === 'Canceled'">
             <i class="bi bi-check-circle me-1"></i> 完成訂單
           </button>
-          <button 
-            class="btn btn-danger"
-            @click="updateOrderStatus(orderStore.selectedOrder._id, 'Canceled')"
-            :disabled="orderStore.selectedOrder.orderStatus === 'Canceled'"
-          >
+          <button class="btn btn-danger" @click="updateOrderStatus(orderStore.selectedOrder._id, 'Canceled')"
+            :disabled="orderStore.selectedOrder.orderStatus === 'Canceled'">
             <i class="bi bi-x-circle me-1"></i> 取消訂單
           </button>
         </div>
@@ -206,27 +226,17 @@
           <i class="bi bi-printer me-1"></i> 列印訂單
         </button>
       </template>
-      
+
       <template v-else>
         <!-- 購物車模式下的按鈕 -->
-        <button 
-          class="btn btn-danger mb-2 w-100" 
-          :disabled="orderStore.cart.length === 0"
-          @click="orderStore.cancelOrder()"
-        >
+        <button class="btn btn-danger mb-2 w-100" :disabled="orderStore.cart.length === 0"
+          @click="orderStore.cancelOrder()">
           取消訂單
         </button>
-        <button 
-          class="btn btn-secondary mb-2 w-100" 
-          disabled
-        >
+        <button class="btn btn-secondary mb-2 w-100" disabled>
           重印訂單
         </button>
-        <button 
-          class="btn btn-success w-100" 
-          :disabled="orderStore.cart.length === 0"
-          @click="submitOrder"
-        >
+        <button class="btn btn-success w-100" :disabled="orderStore.cart.length === 0" @click="submitOrder">
           提交訂單
         </button>
       </template>
@@ -278,7 +288,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- 折扣 Modal -->
   <div v-if="showDiscountModal" class="custom-modal-container">
     <div class="custom-modal-overlay" @click="showDiscountModal = false"></div>
@@ -367,10 +377,10 @@ const updateOrderStatus = async (orderId, status) => {
 // 列印訂單
 const printOrder = () => {
   if (!orderStore.selectedOrder) return;
-  
+
   // 創建列印窗口
   const printWindow = window.open('', '_blank');
-  
+
   // 創建列印內容
   const order = orderStore.selectedOrder;
   let printContent = `
@@ -407,7 +417,7 @@ const printOrder = () => {
           </thead>
           <tbody>
   `;
-  
+
   // 添加餐點明細
   order.items.forEach(item => {
     printContent += `
@@ -425,7 +435,7 @@ const printOrder = () => {
       </tr>
     `;
   });
-  
+
   // 添加總計
   printContent += `
           </tbody>
@@ -443,12 +453,12 @@ const printOrder = () => {
       </body>
     </html>
   `;
-  
+
   // 寫入並列印
   printWindow.document.open();
   printWindow.document.write(printContent);
   printWindow.document.close();
-  
+
   // 等待圖片載入
   setTimeout(() => {
     printWindow.print();
@@ -498,7 +508,7 @@ const clearAdjustment = () => {
 const confirmAdjustment = async () => {
   // 修正：add 表示增加價格（折扣為負數），subtract 表示減少價格（折扣為正數）
   const newAdjustment = adjustmentType.value === 'add' ? -tempAdjustment.value : tempAdjustment.value;
-  
+
   if (editingOrder.value) {
     // 更新訂單調帳
     try {
@@ -507,13 +517,13 @@ const confirmAdjustment = async () => {
         // 重新計算總金額
         totalMoney: editingOrder.value.orderAmount - newAdjustment - (editingOrder.value.pointsDiscount || 0)
       };
-      
+
       await axios.put(`${API_BASE_URL}/order/${editingOrder.value._id}`, orderUpdate);
-      
+
       // 更新本地訂單資料
       editingOrder.value.discounts = newAdjustment;
       editingOrder.value.totalMoney = orderUpdate.totalMoney;
-      
+
       // 刷新選中的訂單資料
       if (orderStore.selectedOrder && orderStore.selectedOrder._id === editingOrder.value._id) {
         // 獲取完整訂單詳情
@@ -530,7 +540,7 @@ const confirmAdjustment = async () => {
     // 更新購物車調帳
     orderStore.setAdjustment(newAdjustment);
   }
-  
+
   showAdjustmentModal.value = false;
 };
 
@@ -569,13 +579,13 @@ const confirmDiscount = async () => {
         // 重新計算總金額
         totalMoney: editingOrder.value.orderAmount - (editingOrder.value.discounts || 0) - tempDiscount.value
       };
-      
+
       await axios.put(`${API_BASE_URL}/order/${editingOrder.value._id}`, orderUpdate);
-      
+
       // 更新本地訂單資料
       editingOrder.value.pointsDiscount = tempDiscount.value;
       editingOrder.value.totalMoney = orderUpdate.totalMoney;
-      
+
       // 刷新選中的訂單資料
       if (orderStore.selectedOrder && orderStore.selectedOrder._id === editingOrder.value._id) {
         // 獲取完整訂單詳情
@@ -592,7 +602,7 @@ const confirmDiscount = async () => {
     // 更新購物車折扣
     orderStore.setDiscount(tempDiscount.value);
   }
-  
+
   showDiscountModal.value = false;
 };
 </script>

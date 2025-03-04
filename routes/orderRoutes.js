@@ -86,7 +86,11 @@ router.get('/today/:storeId', async (req, res) => {
     const orders = await Order.find({
       store: storeId,
       createdAt: { $gte: startUTC, $lt: endUTC },
-    });
+    }).populate({
+      path: 'items.itemId',
+    })
+    .populate('items.options.addons') // 展開加料 Addon
+    .populate('items.options.additionalMeats'); // 展開額外加肉
 
     res.json(orders);
 
