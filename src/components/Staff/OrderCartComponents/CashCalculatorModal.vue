@@ -120,15 +120,15 @@ const changeToAdd = computed(() => {
   // 找出應付金額的個位數
   const unitDigit = props.total % 10;
   // 找出應付金額的十位數
-  const tenthDigit = (props.total % 100) - unitDigit;
+  const tenthDigit = props.total % 100;
   
   // 如果個位數不是0，補到整十
   if (unitDigit !== 0) {
-    return 10 - unitDigit;
+    return unitDigit;
   }
   // 如果十位數不是0，補到整百
   else if (tenthDigit !== 0) {
-    return 100 - tenthDigit;
+    return tenthDigit;
   }
   
   // 已經是整百了，不需要補零錢
