@@ -4,28 +4,28 @@ import Order from '../schemas/orderSchema.js';
 const router = express.Router();
 
 const getTodayRange = () => {
-  const eightHoursInMilliseconds = 8 * 60 * 60 * 1000;
-
-  // 1. 取得目前 UTC 時間
+  // Constants
+  const HOURS_OFFSET = 8; // UTC+8
+  const MS_PER_HOUR = 60 * 60 * 1000;
+  
+  // Get current time in UTC+8
   const nowUTC = new Date();
-
-  // 2. 轉換為 UTC+8 時間
-  const nowUTC8 = new Date(nowUTC.getTime() + eightHoursInMilliseconds);
-
-  // 3. 獲取 UTC+8 的今天 00:00:00
-  const startUTC8 = new Date(nowUTC8);
-  startUTC8.setHours(0, 0, 0, 0);
-
-  // 4. 獲取 UTC+8 的明天 00:00:00
-  const endUTC8 = new Date(startUTC8);
-  endUTC8.setDate(endUTC8.getDate() + 1);
-
-  // 5. 轉換回 UTC+0（減去 8 小時）
-  const startUTC = new Date(startUTC8.getTime() - eightHoursInMilliseconds);
-  const endUTC = new Date(endUTC8.getTime() - eightHoursInMilliseconds);
-
+  const nowUTC8 = new Date(nowUTC.getTime() + HOURS_OFFSET * MS_PER_HOUR);
+  
+  // Extract date components from UTC+8 time
+  const year8 = nowUTC8.getUTCFullYear();
+  const month8 = nowUTC8.getUTCMonth();
+  const day8 = nowUTC8.getUTCDate();
+  
+  // Create the start time (00:00:00 UTC+8, expressed in UTC)
+  const startUTC = new Date(Date.UTC(year8, month8, day8, 0, 0, 0, 0));
+  startUTC.setUTCHours(startUTC.getUTCHours() - HOURS_OFFSET);
+  
+  // Create the end time (00:00:00 next day UTC+8, expressed in UTC)
+  const endUTC = new Date(startUTC.getTime() + 24 * MS_PER_HOUR);
+  
   return { startUTC, endUTC };
-}
+};
 
 // 透過時間取得範圍內的 order
 router.get('/', async (req, res) => {
@@ -79,6 +79,7 @@ router.get('/order/:storeId', async (req, res) => {
 
 router.get('/today/:storeId', async (req, res) => {
   const { startUTC, endUTC } = getTodayRange();
+  
   try{
     const { storeId } = req.params;
 
