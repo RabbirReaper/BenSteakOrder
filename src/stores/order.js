@@ -57,20 +57,8 @@ export const useOrderStore = defineStore('order', {
     additionalMeatDishes: (state) => {
       if (!state.menuData || !state.menuData.mainDishes) return [];
 
-<<<<<<< HEAD
-      // 如果沒有當前選擇的餐點，返回所有有 extraPrice 的主餐
-      if (!state.currentItem || !state.currentItem.id) {
-        return state.menuData.mainDishes.filter(dish => dish.extraPrice);
-      }
-
-      // 否則，返回除當前餐點外的所有有 extraPrice 的主餐
-      return state.menuData.mainDishes.filter(dish =>
-        dish.extraPrice && dish._id !== state.currentItem.id
-      );
-=======
       // 返回 extraPrice != 0 的肉類單品
       return state.menuData.mainDishes.filter(dish => dish.extraPrice != 0);
->>>>>>> 0902311d0ad1eaa202352edea4b1e243110774c5
     }
   },
 
@@ -86,14 +74,8 @@ export const useOrderStore = defineStore('order', {
         itemModel: type,
         id: dish._id,
         quantity: 1,
-<<<<<<< HEAD
-        // 只有對主餐（MainDish）設置熟度和醬料選項
-        doneness: type === 'MainDish' && dish.category === 'Steak' && dish.steakDoneness ? dish.steakDoneness[0] : '',
-        sauce: type === 'MainDish' && dish.sauceOptions && dish.sauceOptions.length ? '不加醬' : '',
-=======
         doneness: dish.category === 'Steak' && dish.steakDoneness ? dish.steakDoneness[0] : '',
         sauce: dish.sauceOptions && dish.sauceOptions.length ? '蘑菇醬' : '',
->>>>>>> 0902311d0ad1eaa202352edea4b1e243110774c5
         addons: [],
         additionalMeats: [],
         extraOptions: [],
@@ -109,19 +91,6 @@ export const useOrderStore = defineStore('order', {
     },
 
     // 添加到購物車
-<<<<<<< HEAD
-    addToCart(item) {
-      if (this.currentItemIndex !== null) {
-        // 更新現有項目
-        this.cart[this.currentItemIndex] = { ...item };
-      } else {
-        // 添加新項目
-        this.cart.push({ ...item });
-      }
-      // 重置當前項目和索引
-      this.resetCurrentItem();
-    },
-=======
     // addToCart(item) {
     //   if (this.currentItemIndex !== null) {
     //     // 更新現有項目
@@ -133,7 +102,6 @@ export const useOrderStore = defineStore('order', {
     //   // 重置當前項目和索引
     //   this.resetCurrentItem();
     // },
->>>>>>> 0902311d0ad1eaa202352edea4b1e243110774c5
 
     // 從購物車中移除項目
     removeFromCart(index) {
@@ -315,11 +283,7 @@ export const useOrderStore = defineStore('order', {
       // 更新當前活動組件
       this.activeComponent = component;
 
-<<<<<<< HEAD
-      // 如果切換到訂單頁面，清空購物車和選中訂單
-=======
       // 切換到訂單頁面時清空購物車
->>>>>>> 0902311d0ad1eaa202352edea4b1e243110774c5
       if (component === 'Orders') {
         this.clearCart();
       }
@@ -609,7 +573,6 @@ export const useOrderStore = defineStore('order', {
       }).join(', ');
     },
 
-<<<<<<< HEAD
     // 格式化額外肉品
     formatAdditionalMeats(meats) {
       if (!meats || meats.length === 0) return '';
@@ -653,8 +616,6 @@ export const useOrderStore = defineStore('order', {
       return "餐點 #" + item.itemId;
     },
 
-=======
->>>>>>> 0902311d0ad1eaa202352edea4b1e243110774c5
     // 計算總價格
     calculateTotalPrice(dish, addons, additionalMeats) {
       let totalPrice = dish.price;
