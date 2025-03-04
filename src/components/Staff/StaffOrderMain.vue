@@ -2,8 +2,7 @@
   <div class="container-fluid h-100">
     <div class="row h-100">
       <!-- 左側邊欄 -->
-      <div class="col-md-2 bg-dark text-white sidebar py-3 d-flex flex-column">
-        <h5 class="text-center mb-4">{{ orderStore.currentDate }}</h5>
+      <div class="col-md-1 bg-dark text-white sidebar py-3 d-flex flex-column">
         <button 
           class="btn mb-3" 
           :class="orderStore.activeComponent === 'DineIn' ? 'btn-primary' : 'btn-outline-light'" 
@@ -26,7 +25,7 @@
       </div>
 
       <!-- 中間內容區 -->
-      <div class="col-md-7 p-0 main-content">
+      <div class="col-md-8 p-0 main-content">
         <component 
           :is="currentActiveComponent" 
           :store-id="storeId"
