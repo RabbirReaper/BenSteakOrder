@@ -5,12 +5,7 @@
       <div class="d-flex justify-content-between align-items-center mt-2">
         <div class="d-flex align-items-center">
           <div class="input-group input-group-sm me-2" style="max-width: 200px;">
-            <input 
-              type="date" 
-              class="form-control" 
-              v-model="selectedDate"
-              :max="orderStore.maxDate"
-            >
+            <input type="date" class="form-control" v-model="selectedDate" :max="orderStore.maxDate">
           </div>
           <button class="btn btn-light btn-sm me-2" @click="fetchOrders">搜尋</button>
         </div>
@@ -30,7 +25,8 @@
         </div>
       </div>
     </div>
-    
+
+    <!-- 修改表格部分的程式碼 -->
     <div class="table-responsive">
       <table class="table table-striped table-hover">
         <thead class="table-dark">
@@ -43,12 +39,9 @@
           </tr>
         </thead>
         <tbody>
-          <tr 
-            v-for="order in filteredOrders" 
-            :key="order._id" 
+          <tr v-for="order in filteredOrders" :key="order._id"
             :class="{ 'table-active': orderStore.selectedOrder && orderStore.selectedOrder._id === order._id }"
-            @click="selectAndViewOrder(order)"
-          >
+            @click="selectAndViewOrder(order)">
             <td>{{ orderStore.formatTime(order.createdAt) }}</td>
             <td>{{ order.orderNumber }}</td>
             <td>
@@ -62,6 +55,10 @@
               <span :class="orderStore.getStatusClass(order.orderStatus)">
                 {{ orderStore.formatStatus(order.orderStatus) }}
               </span>
+              <!-- 新增付款方式 badge，僅在狀態為「已完成」時顯示 -->
+              <span v-if="order.orderStatus === 'Completed'" class="ms-1 badge bg-secondary">
+                {{ order.paymentMethod }}
+              </span>
             </td>
           </tr>
           <tr v-if="filteredOrders.length === 0">
@@ -72,13 +69,15 @@
         </tbody>
       </table>
     </div>
-    
+
     <!-- 訂單詳情 Modal -->
-    <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel"
+      aria-hidden="true">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="orderDetailsModalLabel">訂單詳情 #{{ orderStore.selectedOrder ? orderStore.selectedOrder.orderNumber : '' }}</h5>
+            <h5 class="modal-title" id="orderDetailsModalLabel">訂單詳情 #{{ orderStore.selectedOrder ?
+              orderStore.selectedOrder.orderNumber : '' }}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body" v-if="orderStore.selectedOrder">
@@ -86,16 +85,19 @@
               <div class="col-md-6">
                 <p><strong>訂單時間：</strong> {{ orderStore.formatDateTime(orderStore.selectedOrder.createdAt) }}</p>
                 <p><strong>取餐方式：</strong> {{ orderStore.selectedOrder.pickupMethod }}</p>
-                <p v-if="orderStore.selectedOrder.tableNumber"><strong>桌號：</strong> {{ orderStore.selectedOrder.tableNumber }}</p>
-                <p v-if="orderStore.selectedOrder.deliveryAddress"><strong>外送地址：</strong> {{ orderStore.selectedOrder.deliveryAddress }}</p>
+                <p v-if="orderStore.selectedOrder.tableNumber"><strong>桌號：</strong> {{
+                  orderStore.selectedOrder.tableNumber }}</p>
+                <p v-if="orderStore.selectedOrder.deliveryAddress"><strong>外送地址：</strong> {{
+                  orderStore.selectedOrder.deliveryAddress }}</p>
               </div>
               <div class="col-md-6">
                 <p><strong>付款方式：</strong> {{ orderStore.selectedOrder.paymentMethod }}</p>
                 <p><strong>狀態：</strong> {{ orderStore.formatStatus(orderStore.selectedOrder.orderStatus) }}</p>
-                <p v-if="orderStore.selectedOrder.remarks"><strong>備註：</strong> {{ orderStore.selectedOrder.remarks }}</p>
+                <p v-if="orderStore.selectedOrder.remarks"><strong>備註：</strong> {{ orderStore.selectedOrder.remarks }}
+                </p>
               </div>
             </div>
-            
+
             <h6 class="mb-3">餐點明細</h6>
             <div class="table-responsive">
               <table class="table table-sm">
@@ -136,12 +138,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
-            <button 
-              type="button" 
-              class="btn btn-success"
-              @click="printOrder"
-              :disabled="!orderStore.selectedOrder"
-            >
+            <button type="button" class="btn btn-success" @click="printOrder" :disabled="!orderStore.selectedOrder">
               列印訂單
             </button>
           </div>
@@ -175,7 +172,7 @@ const orderDetailsModal = ref(null);
 onMounted(() => {
   selectedDate.value = new Date().toISOString().split('T')[0];
   fetchOrders();
-  
+
   // 初始化 Bootstrap Modal
   import('bootstrap/js/dist/modal').then(module => {
     const Modal = module.default;
@@ -189,17 +186,17 @@ onMounted(() => {
 // 過濾訂單
 const filteredOrders = computed(() => {
   let filtered = [...orderStore.todayOrders];
-  
+
   // 過濾取餐方式
   if (filterType.value !== 'all') {
     filtered = filtered.filter(order => order.pickupMethod === filterType.value);
   }
-  
+
   // 過濾訂單狀態
   if (filterStatus.value !== 'all') {
     filtered = filtered.filter(order => order.orderStatus === filterStatus.value);
   }
-  
+
   // 按時間排序（最新的在前）
   return filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 });
@@ -226,10 +223,10 @@ const selectAndViewOrder = async (order) => {
 // 列印訂單
 const printOrder = () => {
   if (!orderStore.selectedOrder) return;
-  
+
   // 創建列印窗口
   const printWindow = window.open('', '_blank');
-  
+
   // 創建列印內容
   const order = orderStore.selectedOrder;
   let printContent = `
@@ -266,7 +263,7 @@ const printOrder = () => {
           </thead>
           <tbody>
   `;
-  
+
   // 添加餐點明細
   order.items.forEach(item => {
     printContent += `
@@ -284,7 +281,7 @@ const printOrder = () => {
       </tr>
     `;
   });
-  
+
   // 添加總計
   printContent += `
           </tbody>
@@ -302,12 +299,12 @@ const printOrder = () => {
       </body>
     </html>
   `;
-  
+
   // 寫入並列印
   printWindow.document.open();
   printWindow.document.write(printContent);
   printWindow.document.close();
-  
+
   // 等待圖片載入
   setTimeout(() => {
     printWindow.print();
