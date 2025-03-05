@@ -204,7 +204,7 @@ const filteredOrders = computed(() => {
 
 // 查詢訂單
 const fetchOrders = async () => {
-  console.log('!')
+  // console.log('!')
   await orderStore.fetchOrdersByDateRange(props.storeId, selectedDate.value);
 };
 
