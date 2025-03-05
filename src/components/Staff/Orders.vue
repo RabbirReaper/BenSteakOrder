@@ -170,8 +170,9 @@ const orderDetailsModal = ref(null);
 
 // 初始化日期為今天
 onMounted(() => {
-  selectedDate.value = new Date().toISOString().split('T')[0];
-  fetchOrders();
+  const today = new Date();
+  selectedDate.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  // fetchOrders();
 
   // 初始化 Bootstrap Modal
   import('bootstrap/js/dist/modal').then(module => {
@@ -203,6 +204,7 @@ const filteredOrders = computed(() => {
 
 // 查詢訂單
 const fetchOrders = async () => {
+  console.log('!')
   await orderStore.fetchOrdersByDateRange(props.storeId, selectedDate.value);
 };
 
