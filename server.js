@@ -110,6 +110,12 @@ app.use('/order', orderRoutes);
 // };
 
 
+// 全局錯誤處理
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
 })
