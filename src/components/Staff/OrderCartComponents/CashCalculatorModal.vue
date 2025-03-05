@@ -71,6 +71,9 @@
                   補零錢 <small v-if="changeToAdd > 0">+${{ changeToAdd }}</small>
                 </button>
               </div>
+              <div class="col-4"> 
+                <button class="btn btn-outline-primary w-100" @click="addInputAmount(total)"> 剛好 </button>
+              </div>
             </div>
           </div>
         </div>
