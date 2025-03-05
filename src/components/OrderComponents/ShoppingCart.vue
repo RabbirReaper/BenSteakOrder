@@ -154,7 +154,7 @@
         <h6 class="mb-3 fw-bold">付款方式</h6>
         <div class="d-flex flex-wrap">
           <div class="form-check me-4 mb-2">
-            <input class="form-check-input" type="radio" name="paymentMethod" id="cash" value="cash"
+            <input class="form-check-input" type="radio" name="paymentMethod" id="cash" value="現金"
               v-model="paymentMethod">
             <label class="form-check-label" for="cash">現金支付</label>
           </div>
@@ -283,7 +283,7 @@ const orderRemarks = ref('');
 const selectedCoupon = ref('');
 const pickupTime = ref('asap');
 const scheduledTime = ref('');
-const paymentMethod = ref('cash');
+const paymentMethod = ref('現金');
 const confirmModal = ref(null);
 const couponDiscount = ref(0);
 
