@@ -51,17 +51,4 @@ orderSchema.pre('save', function (next) {
   next();
 });
 
-// orderSchema.pre('save', function (next) {
-//   const eightHoursInMilliseconds = 8 * 60 * 60 * 1000;
-
-//   // 將 createdAt 和 updatedAt 轉換為 UTC+8
-//   if (this.createdAt) {
-//     this.createdAt = new Date(this.createdAt.getTime() + eightHoursInMilliseconds);
-//   }
-//   if (this.updatedAt) {
-//     this.updatedAt = new Date(this.updatedAt.getTime() + eightHoursInMilliseconds);
-//   }
-//   next();
-// });
-
 export default mongoose.model('Order', orderSchema);
