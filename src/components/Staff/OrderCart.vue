@@ -154,7 +154,7 @@ const handleOnlinePayment = async () => {
       }
     }
     
-    alert('線上付款完成，訂單已結帳');
+    // alert('線上付款完成，訂單已結帳');
   } catch (error) {
     console.error('線上付款處理失敗:', error);
     alert('付款處理失敗，請重試');
@@ -183,7 +183,7 @@ const handleCashPayment = async () => {
       }
     }
     
-    alert('現金付款完成，訂單已結帳');
+    // alert('現金付款完成，訂單已結帳');
   } catch (error) {
     console.error('現金付款處理失敗:', error);
     alert('付款處理失敗，請重試');
