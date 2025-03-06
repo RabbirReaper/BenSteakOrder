@@ -29,6 +29,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
+  rolling: true, // 每次請求都會重置過期時間
   cookie: {
     maxAge: 30 * 60 * 1000 // 30 分鐘後過期
   }
