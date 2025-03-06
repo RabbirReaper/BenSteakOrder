@@ -3,6 +3,13 @@ import Store from '../schemas/storeSchema.js';
 
 const router = express.Router();
 
+const checkAuth = (req, res, next) => {
+  if (!req.session.user_id) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  next();
+};
+
 // 取得 store
 router.get('/', async (req, res) => {
   try {
@@ -31,7 +38,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // 創建 store
-router.post('/', async (req, res) => {
+router.post('/', checkAuth, async (req, res) => {
   try {
     const newStore = new Store(req.body);
     await newStore.save();
@@ -44,7 +51,7 @@ router.post('/', async (req, res) => {
 });
 
 // 更新 store
-router.put('/:id', async (req, res) => {
+router.put('/:id', checkAuth, async (req, res) => {
   try {
     const { id } = req.params;
     await Store.findByIdAndUpdate(id, req.body);
@@ -57,7 +64,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // 刪除 store
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', checkAuth, async (req, res) => {
   try {
     const { id } = req.params;
     await Store.findByIdAndDelete(id);
