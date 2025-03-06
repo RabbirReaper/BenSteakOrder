@@ -38,8 +38,7 @@ router.post('/', async (req, res) => {
 // modify an image
 router.put('/', async (req, res) => {
   try {
-    const { publicId } = req.params;
-    const { newImage } = req.body;
+    const { publicId, newImage } = req.body;
     const result = await cloudinary.uploader.upload(newImage, {
       public_id: publicId,
       resource_type: 'image'
