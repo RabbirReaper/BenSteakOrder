@@ -32,19 +32,11 @@
     <div class="mb-3">
       <label for="imageUpload" class="form-label">Upload Image</label>
       <div class="input-group mb-3">
-        <input 
-          type="file" 
-          class="form-control" 
-          id="imageUpload" 
-          @change="handleImageUpload" 
-          accept="image/*"
-          :disabled="isUploading"
-        >
+        <input type="file" class="form-control" id="imageUpload" @change="handleImageUpload" accept="image/*"
+          :disabled="isUploading">
       </div>
       <div v-if="isUploading" class="progress mt-2">
-        <div class="progress-bar progress-bar-striped progress-bar-animated" 
-             role="progressbar" 
-             style="width: 100%">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%">
           Uploading...
         </div>
       </div>
@@ -55,7 +47,7 @@
         Please upload an image.
       </div>
     </div>
-    
+
     <div class="mb-3">
       <label for="imageAlt" class="form-label">Image Description</label>
       <input type="text" class="form-control" :class="{ 'is-invalid': errors.imageAlt }" id="imageAlt"
@@ -155,7 +147,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
@@ -202,36 +194,48 @@ const isUploading = ref(false)
 const handleImageUpload = async (event) => {
   const file = event.target.files[0]
   if (!file) return
-  
+
   isUploading.value = true
-  
+
+  // 保存舊圖片的 publicId
+  const oldPublicId = form.image.publicId
+
   try {
     // 轉換檔案為 base64
     const base64Image = await convertFileToBase64(file)
-    
+
     if (form.image.publicId) {
       // 如果已有圖片，進行修改
       const response = await axios.put(`${API_BASE_URL}/image`, {
         publicId: form.image.publicId,
         newImage: base64Image
       })
-      
+
       updateFormImage(response.data)
     } else {
       // 如果沒有圖片，進行新增
       const response = await axios.post(`${API_BASE_URL}/image`, {
         image: base64Image
       })
-      
+
       updateFormImage(response.data)
+
+      // 將新上傳的圖片ID保存到元件實例上，以便在表單未提交時能夠刪除
+      window.temporaryImageId = response.data.public_id
     }
   } catch (error) {
     console.error('Error handling image:', error)
     alert('Image upload failed. Please try again.')
+
+    // 如果上傳失敗，恢復原來的圖片資訊
+    if (oldPublicId) {
+      form.image.publicId = oldPublicId
+    }
   } finally {
     isUploading.value = false
   }
 }
+
 
 // 將檔案轉換為 base64
 const convertFileToBase64 = (file) => {
@@ -303,15 +307,37 @@ const validateForm = () => {
 
 const handleSubmit = async () => {
   if (validateForm()) {
-    console.log('Invalid form')
     return
   }
 
   try {
-    await axios.post(`${API_BASE_URL}/dish/mainDish`, form)
+    await axios.post(`${API_BASE_URL}/dish/elseDish`, form)
+
+    // 提交成功後，清除臨時圖片標記
+    window.temporaryImageId = null
+
     router.push('/admin/dish/show')
   } catch (error) {
-    console.error('Error adding main dish:', error)
+    console.error('Error adding side dish:', error)
   }
 }
+
+onBeforeUnmount(async () => {
+  // 如果有臨時上傳的圖片但未提交表單，刪除該圖片
+  console.log('onBeforeUnmount')
+  if (window.temporaryImageId) {
+    try {
+      await axios.delete(`${API_BASE_URL}/image`, {
+        data: {
+          publicId: window.temporaryImageId
+        }
+      });
+
+      console.log('臨時圖片已刪除:', window.temporaryImageId)
+      window.temporaryImageId = null
+    } catch (error) {
+      console.error('刪除臨時圖片失敗:', error)
+    }
+  }
+})
 </script>

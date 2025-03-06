@@ -64,7 +64,7 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
@@ -108,11 +108,34 @@ const handleSubmit = async () => {
 
   try {
     await axios.post(`${API_BASE_URL}/dish/elseDish`, form)
+
+    // 提交成功後，清除臨時圖片標記
+    window.temporaryImageId = null
+
     router.push('/admin/dish/show')
   } catch (error) {
     console.error('Error adding side dish:', error)
   }
 }
+
+onBeforeUnmount(async () => {
+  // 如果有臨時上傳的圖片但未提交表單，刪除該圖片
+  console.log('else:', window.temporaryImageId)
+  if (window.temporaryImageId) {
+    try {
+      await axios.delete(`${API_BASE_URL}/image`, {
+        data: {
+          publicId: window.temporaryImageId
+        }
+      });
+
+      console.log('臨時圖片已刪除:', window.temporaryImageId)
+      window.temporaryImageId = null
+    } catch (error) {
+      console.error('刪除臨時圖片失敗:', error)
+    }
+  }
+})
 
 // 處理圖片上傳
 const handleImageUpload = async (event) => {
@@ -120,6 +143,9 @@ const handleImageUpload = async (event) => {
   if (!file) return
 
   isUploading.value = true
+
+  // 保存舊圖片的 publicId
+  const oldPublicId = form.image.publicId
 
   try {
     // 轉換檔案為 base64
@@ -140,10 +166,18 @@ const handleImageUpload = async (event) => {
       })
 
       updateFormImage(response.data)
+
+      // 將新上傳的圖片ID保存到元件實例上，以便在表單未提交時能夠刪除
+      window.temporaryImageId = response.data.public_id
     }
   } catch (error) {
     console.error('Error handling image:', error)
     alert('Image upload failed. Please try again.')
+
+    // 如果上傳失敗，恢復原來的圖片資訊
+    if (oldPublicId) {
+      form.image.publicId = oldPublicId
+    }
   } finally {
     isUploading.value = false
   }
