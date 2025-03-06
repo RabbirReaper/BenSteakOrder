@@ -57,7 +57,7 @@ router.get('/:type/:id', async (req, res) => {
 });
 
 
-router.post('/:type', checkAuth,async (req, res) => {
+router.post('/:type', checkAuth, async (req, res) => {
   try {
     const { type } = req.params;
     const model = modelMap[type];
@@ -75,7 +75,7 @@ router.post('/:type', checkAuth,async (req, res) => {
 });
 
 // 更新 dish
-router.put('/:type/:id', checkAuth,async (req, res) => {
+router.put('/:type/:id', checkAuth, async (req, res) => {
   try {
     const { type, id } = req.params;
     const model = modelMap[type];
@@ -93,7 +93,7 @@ router.put('/:type/:id', checkAuth,async (req, res) => {
 });
 
 // 刪除 dish
-router.delete('/:type/:id', checkAuth,async (req, res) => {
+router.delete('/:type/:id', checkAuth, async (req, res) => {
   try {
     const { type, id } = req.params;
     const model = modelMap[type];

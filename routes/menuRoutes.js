@@ -3,6 +3,14 @@ import Menu from '../schemas/menuSchema.js';
 
 const router = express.Router();
 
+
+const checkAuth = (req, res, next) => {
+  if (!req.session.user_id) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  next();
+};
+
 // 取得 menu
 router.get('/', async (req, res) => {
   try {
@@ -32,7 +40,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // 創建 menu
-router.post('/', async (req, res) => {
+router.post('/', checkAuth, async (req, res) => {
   try {
     const newMenu = new Menu(req.body);
     await newMenu.save();
@@ -45,7 +53,7 @@ router.post('/', async (req, res) => {
 });
 
 // 更新 menu
-router.put('/:id', async (req, res) => {
+router.put('/:id', checkAuth, async (req, res) => {
   try {
     const { id } = req.params;
     await Menu.findByIdAndUpdate(id, req.body);
@@ -58,7 +66,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // 刪除 menu
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', checkAuth, async (req, res) => {
   try {
     const { id } = req.params;
     await Menu.findByIdAndDelete(id);
