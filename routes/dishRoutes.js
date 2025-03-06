@@ -103,12 +103,11 @@ router.delete('/:type/:id', checkAuth, async (req, res) => {
     // 先找到餐點，檢查是否有圖片
     const dish = await model.findById(id);
     if (!dish) return res.status(404).json({ error: 'Dish not found' });
-    console.log('dish.image:',dish.image)
     // 如果餐點有圖片，先刪除雲端上的圖片
     if (dish.image && dish.image.publicId) {
       try {
         await cloudinary.uploader.destroy(dish.image.publicId);
-        console.log("圖片已從雲端刪除:", dish.image.publicId);
+        // console.log("圖片已從雲端刪除:", dish.image.publicId);
       } catch (cloudinaryError) {
         console.error("刪除雲端圖片時發生錯誤:", cloudinaryError);
         // 即使刪除圖片失敗，仍然繼續刪除餐點資料
