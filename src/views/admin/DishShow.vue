@@ -169,6 +169,7 @@ const deleteDish = async () => {
 
   try {
     await axios.delete(`${API_BASE_URL}/dish${endpoints[currentView.value]}/${selectedDish.value._id}`)
+    console.log('delete front')
     await fetchDishes()
     if (modal.value) {
       Modal.getInstance(modal.value).hide()

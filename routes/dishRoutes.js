@@ -3,7 +3,7 @@ import MainDish from '../schemas/mainDishSchema.js';
 import ElseDish from '../schemas/elseDishSchema.js';
 import Addon from '../schemas/addonSchema.js';
 import RawMeat from '../schemas/rawMeatSchema.js';
-
+import { v2 as cloudinary } from 'cloudinary';
 
 const router = express.Router();
 const modelMap = {
@@ -100,9 +100,24 @@ router.delete('/:type/:id', checkAuth, async (req, res) => {
 
     if (!model) return res.status(400).json({ error: 'Invalid dish type' });
 
-    const deletedDish = await model.findByIdAndDelete(id);
-    if (!deletedDish) return res.status(404).json({ error: 'Dish not found' });
+    // 先找到餐點，檢查是否有圖片
+    const dish = await model.findById(id);
+    if (!dish) return res.status(404).json({ error: 'Dish not found' });
+    console.log('dish.image:',dish.image)
+    // 如果餐點有圖片，先刪除雲端上的圖片
+    if (dish.image && dish.image.publicId) {
+      try {
+        await cloudinary.uploader.destroy(dish.image.publicId);
+        console.log("圖片已從雲端刪除:", dish.image.publicId);
+      } catch (cloudinaryError) {
+        console.error("刪除雲端圖片時發生錯誤:", cloudinaryError);
+        // 即使刪除圖片失敗，仍然繼續刪除餐點資料
+      }
+    }
 
+    // 刪除餐點資料
+    const deletedDish = await model.findByIdAndDelete(id);
+    
     res.send('Dish deleted successfully');
   } catch (error) {
     console.error('Error deleting dish:', error);
