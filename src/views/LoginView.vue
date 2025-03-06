@@ -24,11 +24,13 @@ const username = ref('')
 const password = ref('')
 const router = useRouter()
 const route = useRoute()
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+
 
 // 登入函數
 const handleLogin = async () => {
   try {
-    const response = await axios.post(`/login`, {
+    const response = await axios.post(`${API_BASE_URL}/authentication/login`, {
       name: username.value,
       password: password.value
     })
@@ -48,7 +50,7 @@ const handleLogin = async () => {
 // 共用登出函數（也可放在全局，方便其他元件調用）
 const handleLogout = async () => {
   try {
-    await axios.post('/logout')
+    await axios.post(`${API_BASE_URL}/authentication/logout`)
   } catch (error) {
     console.error('Logout error:', error.response ? error.response.data : error)
   } finally {

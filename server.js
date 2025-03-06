@@ -13,7 +13,7 @@ import menuRoutes from './routes/menuRoutes.js';
 import storeRoutes from './routes/storeRoutes.js';
 import cloudinaryRoutes from './routes/cloudinaryRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
-
+import authentication from './routes/authentication.js'
 
 dotenv.config()
 const app = express()
@@ -50,43 +50,43 @@ mongoose.connect(`${process.env.MongoDB_url}`)
     console.log(err)
   })
 
-app.post('/login', async (req, res) => {
-  try {
-    const { name, password } = req.body;
-    const admin = await Administrator.findOne({ name });
+// app.post('/login', async (req, res) => {
+//   try {
+//     const { name, password } = req.body;
+//     const admin = await Administrator.findOne({ name });
 
-    if (!admin) { // adminname not found
-      return res.status(401).send('adminname or password arrors');
-    }
+//     if (!admin) { // adminname not found
+//       return res.status(401).send('adminname or password arrors');
+//     }
 
-    const validPassword = await bcrypt.compare(password, admin.password);
-    if (validPassword) {
-      req.session.user_id = admin._id;
-      return res.send('Login successful');
-    } else { // invalid password
-      return res.status(401).send('adminname or password arrors');
-    }
-  } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).send('Internal server error');
-  }
-});
+//     const validPassword = await bcrypt.compare(password, admin.password);
+//     if (validPassword) {
+//       req.session.user_id = admin._id;
+//       return res.send('Login successful');
+//     } else { // invalid password
+//       return res.status(401).send('adminname or password arrors');
+//     }
+//   } catch (error) {
+//     console.error('Login error:', error);
+//     return res.status(500).send('Internal server error');
+//   }
+// });
 
-app.post('/logout', (req, res) => {
-  req.session.user_id = null;
-  res.send('Logout successful');
-});
+// app.post('/logout', (req, res) => {
+//   req.session.user_id = null;
+//   res.send('Logout successful');
+// });
 
-app.get('/api/current_user', (req, res) => {
-  if (req.session.user_id) {
-    // 根據需要回傳更多使用者資料
-    res.json({ loggedIn: true, user_id: req.session.user_id });
-  } else {
-    res.json({ loggedIn: false });
-  }
-});
+// app.get('/api/current_user', (req, res) => {
+//   if (req.session.user_id) {
+//     // 根據需要回傳更多使用者資料
+//     res.json({ loggedIn: true, user_id: req.session.user_id });
+//   } else {
+//     res.json({ loggedIn: false });
+//   }
+// });
 
-
+app.use('/authentication',authentication)
 app.use('/dish', dishRoutes);
 app.use('/menu', menuRoutes);
 app.use('/store', storeRoutes);

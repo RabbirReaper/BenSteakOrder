@@ -1,21 +1,20 @@
 import express from "express";
 import bcrypt from 'bcrypt';
 import session from 'express-session';
-import Administrator from '../schemas/administratorSchema';
+import Administrator from '../schemas/administratorSchema.js';
 
-
-const app = express();
-app.use(express.json());
-app.use(session({
-  secret: 'your_secret_key',
+const router = express.Router();
+router.use(express.json());
+router.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false } // Set to true if using HTTPS
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 30 * 60 * 1000 // 30 分鐘後過期
+  }
 }));
 
-
-
-app.post('/login', async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { name, password } = req.body;
     const admin = await Administrator.findOne({ name });
@@ -37,13 +36,21 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.post('/logout', (req, res) => {
+router.post('/logout', (req, res) => {
   req.session.user_id = null;
   res.send('Logout successful');
 });
 
+router.get('/current_user', (req, res) => {
+  if (req.session.user_id) {
+    // 根據需要回傳更多使用者資料
+    res.json({ loggedIn: true, user_id: req.session.user_id });
+  } else {
+    res.json({ loggedIn: false });
+  }
+});
 
-app.post('/createUser', async (req, res) => {
+router.post('/createUser', async (req, res) => {
   try {
     const { name, password } = req.body;
 
@@ -67,7 +74,7 @@ app.post('/createUser', async (req, res) => {
   }
 });
 
-app.delete('/deleteUser/:id', async (req, res) => {
+router.delete('/deleteUser/:id', async (req, res) => {
   try {
     if (!req.session.user_id) {
       return res.status(401).send('Unauthorized');

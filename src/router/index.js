@@ -23,7 +23,7 @@ import test from '@/views/staff/stafftest.vue'
 
 const isLoggedIn = async () => {
   try {
-    const response = await axios.get(`/api/current_user`);
+    const response = await axios.get(`/authentication/current_user`);
     return response.data.loggedIn;
   } catch (error) {
     console.error('檢查登入狀態失敗', error);
@@ -43,7 +43,7 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: AdminIndex,
-      meta: { requiresAuth: false }, // 需要登入
+      meta: { requiresAuth: true }, // 需要登入
       children: [
         // 餐點新增介面 - 新增、修改、刪除
         {
