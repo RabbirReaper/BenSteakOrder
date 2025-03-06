@@ -119,7 +119,7 @@ const handleSubmit = async () => {
 }
 
 onBeforeUnmount(async () => {
-  console.log('Raw:', window.temporaryImageId)
+  // console.log('Raw:', window.temporaryImageId)
   // 如果有臨時上傳的圖片但未提交表單，刪除該圖片
   if (window.temporaryImageId) {
     try {
@@ -129,7 +129,7 @@ onBeforeUnmount(async () => {
         }
       });
 
-      console.log('臨時圖片已刪除:', window.temporaryImageId)
+      // console.log('臨時圖片已刪除:', window.temporaryImageId)
       window.temporaryImageId = null
     } catch (error) {
       console.error('刪除臨時圖片失敗:', error)
