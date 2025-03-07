@@ -1,9 +1,9 @@
 <script setup>
-import { ref, onMounted, shallowRef } from 'vue';
+import { onMounted, shallowRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import MainDishEdit from '@/components/DishEdit/MainDish.vue';
 import ElseDishEdit from '@/components/DishEdit/ElseDish.vue';
-import AddonEdit from '@/components/DishEdit/AddonDish.vue';
+import AddonDishEdit from '@/components/DishEdit/AddonDish.vue';
 import RawMeatEdit from '@/components/DishEdit/RawMeat.vue';
 
 const route = useRoute();
@@ -13,7 +13,7 @@ const { type, id } = route.params;
 const componentsMap = {
   mainDish: MainDishEdit,
   elseDish: ElseDishEdit,
-  addon: AddonEdit,
+  addon: AddonDishEdit,
   rawMeat: RawMeatEdit
 };
 
@@ -30,6 +30,6 @@ onMounted(() => {
 
 <template>
   <div class="col-12 col-md-6 offset-md-3 px-2 px-md-0">
-    <component v-if="currentComponent" :is="currentComponent" :id="id" />
+    <component v-if="currentComponent" :is="currentComponent" />
   </div>
 </template>

@@ -4,17 +4,17 @@
 
     <div class="col-12 col-md-6 offset-md-3 px-2 px-md-0">
       <div class="btn-group w-100 mb-4" role="group">
-        <input type="radio" class="btn-check" name="elseDishType" id="mainDish" v-model="currentView" value="main"
+        <input type="radio" class="btn-check" name="dishType" id="mainDish" v-model="currentView" value="main"
           checked>
         <label class="btn btn-outline-primary" for="mainDish">Main Dish</label>
 
-        <input type="radio" class="btn-check" name="elseDishType" id="elseDish" v-model="currentView" value="else">
+        <input type="radio" class="btn-check" name="dishType" id="elseDish" v-model="currentView" value="else">
         <label class="btn btn-outline-primary" for="elseDish">Else Dish</label>
 
-        <input type="radio" class="btn-check" name="elseDishType" id="addonDish" v-model="currentView" value="addon">
+        <input type="radio" class="btn-check" name="dishType" id="addonDish" v-model="currentView" value="addon">
         <label class="btn btn-outline-primary" for="addonDish">Add-on</label>
 
-        <input type="radio" class="btn-check" name="elseDishType" id="rawMeat" v-model="currentView" value="raw">
+        <input type="radio" class="btn-check" name="dishType" id="rawMeat" v-model="currentView" value="raw">
         <label for="rawMeat" class="btn btn-outline-primary"> Raw Meat</label>
       </div>
 
@@ -25,25 +25,25 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import MainDish from '@/components/DishAdd/MainDish.vue'
-import ElseDish from '@/components/DishAdd/ElseDish.vue'
-import AddonDish from '@/components/DishAdd/AddonDish.vue'
-import RawMeat from '@/components/DishAdd/RawMeat.vue'
+import MainDishAdd from '@/components/DishAdd/MainDish.vue'
+import ElseDishAdd from '@/components/DishAdd/ElseDish.vue'
+import AddonDishAdd from '@/components/DishAdd/AddonDish.vue'
+import RawMeatAdd from '@/components/DishAdd/RawMeat.vue'
 
 const currentView = ref('main')
 
 const currentComponent = computed(() => {
   switch (currentView.value) {
     case 'main':
-      return MainDish
+      return MainDishAdd
     case 'else':
-      return ElseDish
+      return ElseDishAdd
     case 'addon':
-      return AddonDish
+      return AddonDishAdd
     case 'raw':
-      return RawMeat
+      return RawMeatAdd
     default:
-      return MainDish
+      return MainDishAdd
   }
 })
 </script>

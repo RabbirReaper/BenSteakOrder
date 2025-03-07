@@ -1,6 +1,5 @@
 <template>
   <BaseDishEdit
-    :id="id"
     form-title="Else Dish"
     api-endpoint="elseDish"
     :requires-image="true"
@@ -10,11 +9,4 @@
 
 <script setup>
 import BaseDishEdit from './BaseDishEdit.vue';
-
-const props = defineProps({
-  id: {
-    type: String,
-    required: true
-  }
-});
 </script>

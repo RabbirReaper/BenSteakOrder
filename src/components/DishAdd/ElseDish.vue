@@ -1,7 +1,7 @@
 <template>
   <BaseDishForm
-    formTitle="Else Dish"
-    apiEndpoint="elseDish"
+    form-title="Else Dish"
+    api-endpoint="elseDish"
     :requires-image="true"
     :requires-description="true"
     :is-edit="false"

@@ -1,7 +1,7 @@
 <template>
   <BaseDishForm
-    formTitle="Add-on"
-    apiEndpoint="addon"
+    form-title="Add-on"
+    api-endpoint="addon"
     :requires-image="false"
     :requires-description="false"
     :is-edit="false"

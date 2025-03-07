@@ -16,6 +16,24 @@
       </div>
     </div>
 
+    <!-- 牛排類別選擇（如果是主餐）-->
+    <div v-if="apiEndpoint === 'mainDish'" class="mb-3">
+      <label class="form-label">Category</label>
+      <div class="d-flex gap-3">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" id="steak" value="Steak" v-model="form.category" required>
+          <label class="form-check-label" for="steak">Steak</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" id="nonSteak" value="Non-Steak" v-model="form.category" required>
+          <label class="form-check-label" for="nonSteak">Non-Steak</label>
+        </div>
+      </div>
+      <div class="invalid-feedback" v-if="errors.category">
+        Please select a category.
+      </div>
+    </div>
+
     <!-- 圖片上傳區塊 (僅當需要圖片時) -->
     <template v-if="requiresImage">
       <div class="mb-3">
@@ -37,7 +55,7 @@
             Uploading...
           </div>
         </div>
-        <div v-if="form.image.url" class="mt-2">
+        <div v-if="form.image && form.image.url" class="mt-2">
           <img :src="form.image.url" :alt="form.image.alt || 'Preview'" class="img-thumbnail" style="max-height: 200px">
         </div>
         <div class="invalid-feedback" v-if="errors.image">
@@ -73,7 +91,7 @@
           id="price"
           v-model.number="form.price" 
           min="0" 
-          step="0.01" 
+          step="1" 
           required
         >
         <div class="invalid-feedback">
@@ -82,8 +100,72 @@
       </div>
     </div>
 
-    <!-- 插槽位置：允許各種表單插入自己的特定字段 -->
-    <slot name="additional-fields"></slot>
+    <!-- 主餐特殊選項 -->
+    <template v-if="apiEndpoint === 'mainDish'">
+      <!-- 醬料選項 -->
+      <div class="mb-3">
+        <label class="form-label">Sauce Options</label>
+        <div class="d-flex gap-2 mb-2">
+          <input type="text" class="form-control" v-model="newSauce" placeholder="Add new sauce">
+          <button type="button" class="btn btn-outline-primary" @click="addSauce">Add</button>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <span v-for="(sauce, index) in form.sauceOptions" :key="index"
+            class="badge bg-primary d-flex align-items-center">
+            {{ sauce }}
+            <button type="button" class="btn-close btn-close-white ms-2" @click="removeSauce(index)"></button>
+          </span>
+        </div>
+      </div>
+
+      <!-- 牛排熟度選項 -->
+      <div class="mb-3" v-if="form.category === 'Steak'">
+        <label class="form-label">Steak Doneness Options</label>
+        <div class="d-flex gap-2 mb-2">
+          <input type="text" class="form-control" v-model="newDoneness" placeholder="Add steak doneness">
+          <button type="button" class="btn btn-outline-primary" @click="addDoneness">Add</button>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <span v-for="(doneness, index) in form.steakDoneness" :key="index"
+            class="badge bg-primary d-flex align-items-center">
+            {{ doneness }}
+            <button type="button" class="btn-close btn-close-white ms-2" @click="removeDoneness(index)"></button>
+          </span>
+        </div>
+        <div class="invalid-feedback" v-if="errors.steakDoneness">
+          Please add at least one doneness option.
+        </div>
+      </div>
+
+      <!-- 額外選項 -->
+      <div class="mb-3">
+        <label class="form-label">Extra Options</label>
+        <div class="d-flex gap-2 mb-2">
+          <input type="text" class="form-control" v-model="newExtra" placeholder="Add new option">
+          <button type="button" class="btn btn-outline-primary" @click="addExtra">Add</button>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <span v-for="(option, index) in form.extraOptions" :key="index"
+            class="badge bg-primary d-flex align-items-center">
+            {{ option }}
+            <button type="button" class="btn-close btn-close-white ms-2" @click="removeExtra(index)"></button>
+          </span>
+        </div>
+      </div>
+
+      <!-- 加點價格 -->
+      <div class="mb-3">
+        <label for="extraPrice" class="form-label">Extra Price (如果為0代表不開放加點)</label>
+        <div class="input-group">
+          <span class="input-group-text">$</span>
+          <input type="number" class="form-control" :class="{ 'is-invalid': errors.extraPrice }" id="extraPrice"
+            v-model.number="form.extraPrice" min="0" step="1">
+          <div class="invalid-feedback">
+            Extra price cannot be negative.
+          </div>
+        </div>
+      </div>
+    </template>
 
     <!-- 描述字段 (僅當需要描述時) -->
     <div v-if="requiresDescription" class="mb-3">
@@ -139,12 +221,20 @@ const emit = defineEmits(['cancel', 'delete']);
 const router = useRouter();
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+// 預設值設定
+const defaultSauceOptions = ['蘑菇醬', '綜合醬', '黑胡椒醬'];
+const defaultExtraOptions = ['麵換蛋', '麵換花椰菜', '加麵', '不要麵包'];
+const defaultSteakDoneness = ['5分熟', '7分熟', '9分熟'];
+
 // 狀態變數
 const isUploading = ref(false);
 const isSubmitting = ref(false);
 const selectedImage = ref(null);
+const newSauce = ref('');
+const newExtra = ref('');
+const newDoneness = ref('');
 
-// 基本表單數據
+// 基本表單數據 - 不同類型的表單有不同的初始值
 const form = ref({
   name: '',
   price: 0,
@@ -156,22 +246,65 @@ const form = ref({
   }
 });
 
+// 僅當是主餐時才添加這些欄位
+if (props.apiEndpoint === 'mainDish') {
+  form.value.category = 'Steak';
+  form.value.sauceOptions = [...defaultSauceOptions];
+  form.value.steakDoneness = [...defaultSteakDoneness];
+  form.value.extraOptions = [...defaultExtraOptions];
+  form.value.extraPrice = 0;
+}
+
+// 表單驗證錯誤
+const errors = ref({
+  name: false,
+  price: false,
+  description: false,
+  image: false,
+  imageAlt: false,
+  category: false,
+  steakDoneness: false,
+  extraPrice: false
+});
+
 // 初始化表單資料
-// 在 BaseDishForm.vue 的初始化函數中
 const initFormData = () => {
-  if (props.initialData) {
-    // 確保複製所有欄位，包括 category
-    Object.keys(props.initialData).forEach(key => {
-      if (key === 'image' && props.initialData.image) {
-        form.value.image = {
-          url: props.initialData.image.url || '',
-          publicId: props.initialData.image.publicId || '',
-          alt: props.initialData.image.alt || ''
-        };
-      } else {
-        form.value[key] = props.initialData[key];
-      }
-    });
+  if (props.initialData && Object.keys(props.initialData).length > 0) {
+    // 對於主餐，確保所有特殊欄位都被初始化
+    if (props.apiEndpoint === 'mainDish') {
+      // 深拷貝初始數據以避免修改原始對象
+      const initialDataCopy = JSON.parse(JSON.stringify(props.initialData));
+      
+      // 設置預設值
+      form.value = {
+        name: initialDataCopy.name || '',
+        price: initialDataCopy.price || 0,
+        description: initialDataCopy.description || '',
+        category: initialDataCopy.category || 'Steak',
+        sauceOptions: Array.isArray(initialDataCopy.sauceOptions) ? [...initialDataCopy.sauceOptions] : [...defaultSauceOptions],
+        steakDoneness: Array.isArray(initialDataCopy.steakDoneness) ? [...initialDataCopy.steakDoneness] : [...defaultSteakDoneness],
+        extraOptions: Array.isArray(initialDataCopy.extraOptions) ? [...initialDataCopy.extraOptions] : [...defaultExtraOptions],
+        extraPrice: initialDataCopy.extraPrice || 0,
+        image: {
+          url: initialDataCopy.image?.url || '',
+          publicId: initialDataCopy.image?.publicId || '',
+          alt: initialDataCopy.image?.alt || ''
+        }
+      };
+    } else {
+      // 對於其他餐點類型，只複製基本欄位
+      const { name, price, description, image } = props.initialData;
+      form.value = {
+        name: name || '',
+        price: price || 0,
+        description: description || '',
+        image: {
+          url: image?.url || '',
+          publicId: image?.publicId || '',
+          alt: image?.alt || ''
+        }
+      };
+    }
   }
 };
 
@@ -180,14 +313,39 @@ const nameId = computed(() => {
   return `${props.apiEndpoint}-name-${Math.random().toString(36).substring(2, 9)}`;
 });
 
-// 表單驗證錯誤
-const errors = ref({
-  name: false,
-  price: false,
-  description: false,
-  image: false,
-  imageAlt: false
-});
+// 主餐特殊方法
+const addSauce = () => {
+  if (newSauce.value.trim()) {
+    form.value.sauceOptions.push(newSauce.value.trim());
+    newSauce.value = '';
+  }
+};
+
+const removeSauce = (index) => {
+  form.value.sauceOptions.splice(index, 1);
+};
+
+const addDoneness = () => {
+  if (newDoneness.value.trim()) {
+    form.value.steakDoneness.push(newDoneness.value.trim());
+    newDoneness.value = '';
+  }
+};
+
+const removeDoneness = (index) => {
+  form.value.steakDoneness.splice(index, 1);
+};
+
+const addExtra = () => {
+  if (newExtra.value.trim()) {
+    form.value.extraOptions.push(newExtra.value.trim());
+    newExtra.value = '';
+  }
+};
+
+const removeExtra = (index) => {
+  form.value.extraOptions.splice(index, 1);
+};
 
 // 表單驗證邏輯
 const validateForm = () => {
@@ -201,6 +359,15 @@ const validateForm = () => {
   if (props.requiresImage) {
     errors.value.image = !form.value.image.url;
     errors.value.imageAlt = !form.value.image.alt?.trim();
+  }
+
+  // 主餐特殊驗證
+  if (props.apiEndpoint === 'mainDish') {
+    errors.value.category = !form.value.category;
+    if (form.value.category === 'Steak') {
+      errors.value.steakDoneness = form.value.steakDoneness.length === 0;
+    }
+    errors.value.extraPrice = form.value.extraPrice < 0;
   }
 
   return !Object.values(errors.value).some(error => error);
@@ -272,7 +439,7 @@ const uploadImage = async () => {
   }
 };
 
-// 在 BaseDishForm.vue 的 handleSubmit 函數中
+// 表單提交處理
 const handleSubmit = async () => {
   if (!validateForm()) {
     return;
@@ -287,14 +454,9 @@ const handleSubmit = async () => {
       if (!uploadSuccess) return;
     }
     
-    // 確保表單數據包含所有必要欄位
-    const formData = { ...form.value };
+    // 準備表單數據 - 深拷貝避免引用問題
+    const formData = JSON.parse(JSON.stringify(form.value));
     
-    // 如果是 MainDish 且未設置 category，設置預設值
-    if (props.apiEndpoint === 'mainDish' && !formData.category) {
-      formData.category = 'Steak';
-    }
-    // console.log(formData)
     // 編輯模式
     if (props.isEdit && props.itemId) {
       await axios.put(`${API_BASE_URL}/dish/${props.apiEndpoint}/${props.itemId}`, formData);

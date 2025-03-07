@@ -1,7 +1,7 @@
 <template>
   <BaseDishForm
-    formTitle="Raw Meat"
-    apiEndpoint="rawMeat"
+    form-title="Raw Meat"
+    api-endpoint="rawMeat"
     :requires-image="true"
     :requires-description="true"
     :is-edit="false"
