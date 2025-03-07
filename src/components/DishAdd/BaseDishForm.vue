@@ -157,24 +157,21 @@ const form = ref({
 });
 
 // 初始化表單資料
+// 在 BaseDishForm.vue 的初始化函數中
 const initFormData = () => {
   if (props.initialData) {
-    // 先填充基本字段
-    form.value.name = props.initialData.name || '';
-    form.value.price = props.initialData.price || 0;
-    
-    if (props.requiresDescription) {
-      form.value.description = props.initialData.description || '';
-    }
-    
-    // 處理圖片數據
-    if (props.requiresImage && props.initialData.image) {
-      form.value.image = {
-        url: props.initialData.image.url || '',
-        publicId: props.initialData.image.publicId || '',
-        alt: props.initialData.image.alt || ''
-      };
-    }
+    // 確保複製所有欄位，包括 category
+    Object.keys(props.initialData).forEach(key => {
+      if (key === 'image' && props.initialData.image) {
+        form.value.image = {
+          url: props.initialData.image.url || '',
+          publicId: props.initialData.image.publicId || '',
+          alt: props.initialData.image.alt || ''
+        };
+      } else {
+        form.value[key] = props.initialData[key];
+      }
+    });
   }
 };
 
@@ -275,7 +272,7 @@ const uploadImage = async () => {
   }
 };
 
-// 處理表單提交
+// 在 BaseDishForm.vue 的 handleSubmit 函數中
 const handleSubmit = async () => {
   if (!validateForm()) {
     return;
@@ -290,13 +287,21 @@ const handleSubmit = async () => {
       if (!uploadSuccess) return;
     }
     
+    // 確保表單數據包含所有必要欄位
+    const formData = { ...form.value };
+    
+    // 如果是 MainDish 且未設置 category，設置預設值
+    if (props.apiEndpoint === 'mainDish' && !formData.category) {
+      formData.category = 'Steak';
+    }
+    // console.log(formData)
     // 編輯模式
     if (props.isEdit && props.itemId) {
-      await axios.put(`${API_BASE_URL}/dish/${props.apiEndpoint}/${props.itemId}`, form.value);
+      await axios.put(`${API_BASE_URL}/dish/${props.apiEndpoint}/${props.itemId}`, formData);
     } 
     // 新增模式
     else {
-      await axios.post(`${API_BASE_URL}/dish/${props.apiEndpoint}`, form.value);
+      await axios.post(`${API_BASE_URL}/dish/${props.apiEndpoint}`, formData);
     }
     
     // 重定向回列表頁
