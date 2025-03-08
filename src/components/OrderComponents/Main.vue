@@ -22,7 +22,7 @@
       <p>營業時間： 早上：11:30 ~ 13:30 晚上：5:00 ~ 8:30</p>
     </div>
     <div class="nav-border"></div>
-    <div class="content-wrapper mt-4">
+    <div v-if="announcements" class="content-wrapper mt-4">
       <h3 class="fw-bold">公告：</h3>
       <div v-for="(announcement, index) in announcements" :key="announcement._id">
         <div class="mt-3">
@@ -34,7 +34,7 @@
     </div>
 
     <div class="nav-border mt-4"></div>
-    <div class="content-wrapper mt-4">
+    <div v-if="menuList" class="content-wrapper mt-4">
       <h3 class="fw-bold">菜單：</h3>
       <div v-for="category in menuList" :key="category._id">
         <h4 class="fw-bold mt-3">{{ category.categoryName }}</h4>
