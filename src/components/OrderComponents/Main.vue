@@ -14,8 +14,8 @@
     </div>
     <div class="content-wrapper" style="padding: 0;">
       <img style="max-height: 200px; width: 100%; padding: 0;"
-        src="https://media.discordapp.net/attachments/1180694061573750784/1343283614644699166/dsa95wawd9_Shinkai_Makoto_dark_city_ocean_mountain_Sword_Art_On_6bf493b4-a797-4e49-b8e8-6f026f259430.png?ex=67bcb5da&is=67bb645a&hm=526a63515c6780ee1600c34b89182880d9457752e869138f9dec2dc96477b88c&=&format=webp&quality=lossless&width=1202&height=676"
-        alt="pic">
+        :src="storeImage && storeImage.url ? storeImage.url : defaultStoreImage"
+        :alt="storeImage && storeImage.alt ? storeImage.alt : '店家圖片'">
     </div>
     <div class="content-wrapper mt-4">
       <h3 class="fw-bold">奔野牛排 {{ storeName }}</h3>
@@ -81,6 +81,10 @@ const props = defineProps({
     type: Array,
     required: true,
     default: () => []
+  },
+  storeImage: {
+    type: Object,
+    default: () => null
   }
 });
 

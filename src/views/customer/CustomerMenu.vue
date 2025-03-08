@@ -3,7 +3,7 @@
     <div class="center-container">
       <transition name="fade" mode="out-in">
         <MenuListing v-if="!selectedItem && !showCart" :store-name="store.name" :announcements="store.announcements"
-          :menu-list="menu.list" :menu-items="menuItems" @select-item="openItemDetails" />
+          :menu-list="menu.list" :menu-items="menuItems" :store-image="store.image" @select-item="openItemDetails" />
       </transition>
 
       <transition name="fade" mode="out-in">
