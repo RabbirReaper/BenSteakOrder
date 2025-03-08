@@ -46,6 +46,16 @@ mongoose.connect(`${process.env.MongoDB_url}`)
   .then(() => {
     console.log("MongoDB connected")
   })
+  .then(async () => {
+    // 取得 native db 實例
+    const db = mongoose.connection.db;
+    if (!db) {
+      throw new Error('資料庫連線尚未建立');
+    }
+    // 使用 collStats 指令取得 orders 集合統計資訊
+    const stats = await db.command({ collStats: 'orders' });
+    console.log(`orders 平均大小 :${(stats.avgObjSize/1024).toFixed(2)} KB`);
+  })
   .catch((err) => {
     console.log("MongoDB connection failed")
     console.log(err)
@@ -87,7 +97,7 @@ mongoose.connect(`${process.env.MongoDB_url}`)
 //   }
 // });
 
-app.use('/authentication',authentication)
+app.use('/authentication', authentication)
 app.use('/dish', dishRoutes);
 app.use('/menu', menuRoutes);
 app.use('/store', storeRoutes);
