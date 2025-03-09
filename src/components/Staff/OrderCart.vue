@@ -138,7 +138,7 @@ const handleOnlinePayment = async () => {
   try {
     await axios.put(`${API_BASE_URL}/order/${checkoutOrderId.value}`, {
       orderStatus: 'Completed',
-      paymentMethod: '線上付款'
+      paymentMethod: 'linepay'
     });
     
     showCheckoutModal.value = false;

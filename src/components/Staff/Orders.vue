@@ -57,7 +57,8 @@
               </span>
               <!-- 新增付款方式 badge，僅在狀態為「已完成」時顯示 -->
               <span v-if="order.orderStatus === 'Completed'" class="ms-1 badge bg-secondary">
-                {{ order.paymentMethod }}
+                <div v-if="key_value[order.paymentMethod]">{{ key_value[order.paymentMethod] }}</div>
+                <div v-else>{{ order.paymentMethod }}</div>
               </span>
             </td>
           </tr>
@@ -68,6 +69,7 @@
           </tr>
         </tbody>
       </table>
+      
     </div>
 
     <!-- 訂單詳情 Modal -->
@@ -167,6 +169,10 @@ const selectedDate = ref('');
 const filterType = ref('all');
 const filterStatus = ref('all');
 const orderDetailsModal = ref(null);
+
+const key_value = {
+  'linepay': 'Line pay'
+}
 
 // 初始化日期為今天
 onMounted(() => {
@@ -317,6 +323,11 @@ const printOrder = () => {
 watch(selectedDate, () => {
   fetchOrders();
 });
+
+// onMounted(async () => {
+//   await fetchOrders();
+//   console.log(filteredOrders.value);
+// }); 
 </script>
 
 <style scoped>
