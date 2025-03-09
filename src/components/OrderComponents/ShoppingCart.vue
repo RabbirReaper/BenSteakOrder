@@ -156,17 +156,7 @@
           <div class="form-check me-4 mb-2">
             <input class="form-check-input" type="radio" name="paymentMethod" id="cash" value="現金"
               v-model="paymentMethod">
-            <label class="form-check-label" for="cash">現金支付</label>
-          </div>
-          <div class="form-check me-4 mb-2">
-            <input class="form-check-input" type="radio" name="paymentMethod" id="creditCard" value="creditCard"
-              v-model="paymentMethod">
-            <label class="form-check-label" for="creditCard">信用卡</label>
-          </div>
-          <div class="form-check mb-2">
-            <input class="form-check-input" type="radio" name="paymentMethod" id="linePay" value="linePay"
-              v-model="paymentMethod">
-            <label class="form-check-label" for="linePay">LINE Pay</label>
+            <label class="form-check-label" for="cash">現場支付</label>
           </div>
         </div>
       </div>
@@ -339,12 +329,7 @@ const formatAdditionalMeats = (additionalMeats) => {
 };
 
 const formatPaymentMethod = () => {
-  const methods = {
-    'cash': '現金支付',
-    'creditCard': '信用卡',
-    'linePay': 'LINE Pay'
-  };
-  return methods[paymentMethod.value] || paymentMethod.value;
+  return '現場支付'
 };
 
 const formatPickupMethod = () => {

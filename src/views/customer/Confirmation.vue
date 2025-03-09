@@ -12,7 +12,7 @@
             <div class="col-md-6" v-if="orderItem.pickupMethod === '內用'">
               <span class="fw-bold">桌號:</span> {{ orderItem.tableNumber }}
             </div>
-            <div class="col-md-6"><span class="fw-bold">付款方式:</span> {{ orderItem.paymentMethod }}</div>
+            <div class="col-md-6"><span class="fw-bold">付款方式:</span> 現場支付</div>
             <div class="col-md-6"><span class="fw-bold">訂單日期:</span> {{ formatDate(orderItem.createdAt) }}</div>
             <div class="col-md-6"><span class="fw-bold">訂單狀態:</span> {{ getOrderStatusText(orderItem.orderStatus) }}
             </div>
