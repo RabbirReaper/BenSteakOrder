@@ -14,7 +14,7 @@
     </div>
     <div class="content-wrapper" style="padding: 0;">
       <img style="max-height: 200px; width: 100%; padding: 0;"
-        :src="storeImage && storeImage.url ? storeImage.url : defaultStoreImage"
+        :src="storeImage && storeImage.url"
         :alt="storeImage && storeImage.alt ? storeImage.alt : '店家圖片'">
     </div>
     <div class="content-wrapper mt-4">
