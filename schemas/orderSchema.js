@@ -25,7 +25,7 @@ const orderSchema = new mongoose.Schema({
   items: [
     {
       itemModel: { type: String, required: true }, // 餐點模型名稱（例如：MainDish、SideDish）
-      itemId: { type: mongoose.Schema.Types.ObjectId, required: true, refPath: 'itemModel' }, // 對應的餐點 ID
+      itemId: { type: mongoose.Schema.Types.ObjectId, required: true, refPath: 'items.itemModel' }, // 對應的餐點 ID
       amount: { type: Number, default: 1 }, // 顯示數量
       options: {
         doneness: { type: String }, // 熟度
