@@ -43,7 +43,7 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: AdminIndex,
-      meta: { requiresAuth: true }, // 需要登入
+      meta: { requiresAuth: false }, // 需要登入
       children: [
         // 餐點新增介面 - 新增、修改、刪除
         {
@@ -92,6 +92,17 @@ const router = createRouter({
           path: 'store/:id',
           name: 'admin-store-edit',
           component: StoreEdit,
+        },
+        // 訂單列表相關路由
+        {
+          path: 'orders',
+          name: 'admin-orders',
+          component: () => import('../views/admin/OrdersList.vue'),
+        },
+        {
+          path: 'orders/:date',
+          name: 'admin-orders-detail',
+          component: () => import('../views/admin/OrdersDetail.vue'),
         }
         // // 營收及訂單列表與統計
         // {
