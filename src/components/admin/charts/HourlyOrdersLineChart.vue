@@ -15,13 +15,23 @@ import {
   LineElement,
   PointElement,
   CategoryScale,
-  LinearScale
+  LinearScale,
+  Filler  // 添加 Filler 插件
 } from 'chart.js';
 
-ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale);
+ChartJS.register(
+  Title, 
+  Tooltip, 
+  Legend, 
+  LineElement, 
+  PointElement, 
+  CategoryScale, 
+  LinearScale,
+  Filler  // 註冊 Filler 插件
+);
 
 const props = defineProps({
-  dishSales: {
+  hourlyData: {  // 確保這裡使用 hourlyData 而非 dishSales
     type: Array,
     required: true
   },
@@ -36,7 +46,7 @@ const props = defineProps({
 });
 
 const chartData = computed(() => {
-  if (!props.dishSales || props.dishSales.length === 0) {
+  if (!props.hourlyData || props.hourlyData.length === 0) {
     return {
       labels: ['無數據'],
       datasets: [{
@@ -52,10 +62,10 @@ const chartData = computed(() => {
   }
 
   return {
-    labels: props.dishSales.map(item => item.time),
+    labels: props.hourlyData.map(item => item.time),
     datasets: [{
       label: '銷售量',
-      data: props.dishSales.map(item => item.count),
+      data: props.hourlyData.map(item => item.count),
       backgroundColor: 'rgba(54, 162, 235, 0.2)',
       borderColor: 'rgba(54, 162, 235, 1)',
       borderWidth: 2,

@@ -323,7 +323,7 @@ const hourlyOrdersData = computed(() => {
   }
 
   dayOrders.value.forEach(order => {
-    if (!order.createdAt) return;
+    if (!order.createdAt || !order.items) return;
 
     const orderTime = new Date(order.createdAt);
     const hour = orderTime.getHours();
@@ -331,7 +331,18 @@ const hourlyOrdersData = computed(() => {
     const half = minute < 30 ? 0 : 1;
 
     const timeKey = `${hour.toString().padStart(2, '0')}:${half === 0 ? '00' : '30'}`;
-    hourlyData[timeKey]++;
+    
+    // 計算主餐數量而不是訂單數量
+    const mainDishCount = order.items.reduce((count, item) => {
+      // 判斷是否為主餐，增加相應數量
+      if (item.itemModel === 'MainDish') {
+        return count + (item.amount || 1) + (item.options?.additionalMeats?.length || 0);
+      }
+      return count;
+    }, 0);
+    
+    // 如果沒有主餐，至少計為 1，表示這個時段有訂單
+    hourlyData[timeKey] += mainDishCount > 0 ? mainDishCount : 1;
   });
 
   // 轉換為陣列格式
