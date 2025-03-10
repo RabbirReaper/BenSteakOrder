@@ -8,11 +8,6 @@ const couponSchema = new mongoose.Schema({
   discount: {
     type: Number,
     required: true
-  },
-  isUsed:{
-    type: Boolean,
-    default: false,
-    required: true
   }
 });
 
