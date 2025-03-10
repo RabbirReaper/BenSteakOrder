@@ -21,7 +21,6 @@ const orderSchema = new mongoose.Schema({
   deliveryAddress: { type: String }, // 外送地址
   logisticsCancelled: { type: Boolean, default: false }, // 物流取消
   logisticsPickupTime: { type: Date }, // 物流取件時間
-  DDPGOrderNumber: { type: String }, // DDPG 訂單編號
   couponId: { type: mongoose.Schema.Types.ObjectId, ref: 'Coupon' }, // 優惠券 ID
   items: [
     {
