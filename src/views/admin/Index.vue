@@ -25,6 +25,11 @@
             Store show
           </router-link>
         </li>
+        <li class="nav-item">
+          <router-link to="/admin/orders" class="nav-link text-white">
+            訂單列表
+          </router-link>
+        </li>
       </ul>
     </div>
 

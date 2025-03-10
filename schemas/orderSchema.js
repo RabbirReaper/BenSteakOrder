@@ -7,7 +7,7 @@ const orderSchema = new mongoose.Schema({
   pickupTime: { type: Date }, // 實際取餐時間
   platform: { type: String, required: true }, // 訂購平台
   pickupMethod: { type: String, enum: ['內用', '自取', '外送'], required: true }, // 取餐方式
-  paymentMethod: { type: String, enum: ['現金','linepay','FoodPanda','UberEat','信用卡'], required: true }, // 付款方式
+  paymentMethod: { type: String, enum: ['現金','linepay','FoodPanda','UberEat'], required: true }, // 付款方式
   onlinePaymentCode: { type: String }, // 線上支付交易碼
   orderAmount: { type: Number, required: true }, // 商品金額
   discounts: { type: Number, default: 0 }, // 現場折扣
