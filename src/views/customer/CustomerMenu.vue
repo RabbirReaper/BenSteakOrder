@@ -179,62 +179,6 @@ const calculateTotal = () => {
   return cart.value.reduce((total, item) => total + (item.price * item.quantity), 0);
 };
 
-const formatAddons = (addons) => {
-  return addons.map(addon => addon.name).join(', ');
-};
-
-const formatAddationMeats = (additionalMeats) => {
-  return additionalMeats.map(meat => meat.name).join(', ');
-};
-
-const checkout = async () => {
-  if (orderType.value === 'dineIn' && !tableNumber.value) {
-    alert('請輸入桌號');
-    return;
-  }
-
-  try {
-    const orderItems = cart.value.map(item => ({
-      itemModel: item.itemModel,
-      itemId: item.id,
-      amount: item.quantity,
-      options: {
-        doneness: item.doneness,
-        sauce: item.sauce,
-        addons: item.addons.map(a => a.id),
-        extraOptions: item.extraOptions,
-        additionalMeats: item.additionalMeats?.map(m => m.id) || [],
-        remarks: item.remarks
-      }
-    }));
-
-    const orderAmount = parseFloat(calculateTotal());
-    const orderData = {
-      store: storeId,
-      orderNumber: String(await generateOrderNumber()),
-      platform: 'web',
-      pickupMethod: orderType.value === 'dineIn' ? '內用' : '外帶',
-      paymentMethod: 'store',
-      orderAmount,
-      totalPaid: orderAmount,
-      tableNumber: orderType.value === 'dineIn' ? tableNumber.value : null,
-      items: orderItems,
-      remarks: cart.value.some(item => item.remarks) ? cart.value.map(item => item.remarks).filter(Boolean).join(' / ') : null
-    };
-
-    const { data: newOrder } = await axios.post(`${API_BASE_URL}/order`, orderData);
-    cartModal.hide();
-    router.push(`/customer/confirmation/${newOrder._id}`);
-  } catch (error) {
-    console.error('Error creating order:', error);
-    alert('訂單建立失敗，請重試');
-  }
-};
-
-const generateOrderNumber = async () => {
-  const number = await axios.get(`${API_BASE_URL}/order/number`);
-  return number.data.number;
-};
 
 // Initialize Bootstrap modal
 const initModal = () => {
