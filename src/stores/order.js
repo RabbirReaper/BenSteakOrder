@@ -376,7 +376,7 @@ export const useOrderStore = defineStore('order', {
           orderNumber: String(orderNumber),
           platform: 'pos',
           pickupMethod: pickupMethod || this.activeComponent === 'DineIn' ? '內用' : '自取',
-          paymentMethod: 'cash', // 預設為現金
+          paymentMethod: '現金', // 預設為現金
           orderAmount: this.subtotal,
           discounts: this.adjustment,
           pointsDiscount: this.discount,
