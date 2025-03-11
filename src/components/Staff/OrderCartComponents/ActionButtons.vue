@@ -8,7 +8,7 @@
           <i class="bi bi-credit-card me-1"></i> 結帳
         </button>
         <button class="btn btn-danger" @click="$emit('updateOrderStatus', selectedOrder._id, 'Canceled')"
-          :disabled="selectedOrder.orderStatus === 'Canceled'">
+          :disabled="selectedOrder.orderStatus === 'Completed' || selectedOrder.orderStatus === 'Canceled'">
           <i class="bi bi-x-circle me-1"></i> 取消訂單
         </button>
       </div>
