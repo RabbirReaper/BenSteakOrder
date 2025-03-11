@@ -588,32 +588,8 @@ export const useOrderStore = defineStore('order', {
     // 獲取餐點名稱
     getItemName(item) {
       if (!item || !item.itemId) return "未知餐點";
-
-      // 根據 itemModel 和 itemId 查找對應的餐點
-      if (item.itemModel) {
-        let foundItem = null;
-
-        // 根據不同的餐點類型查找對應的菜單數據
-        switch (item.itemModel) {
-          case 'MainDish':
-            foundItem = this.menuData.mainDishes.find(dish => dish._id === item.itemId);
-            break;
-          case 'ElseDish':
-            foundItem = this.menuData.elseDishes.find(dish => dish._id === item.itemId);
-            break;
-          case 'RawMeat':
-            foundItem = this.menuData.rawMeats.find(dish => dish._id === item.itemId);
-            break;
-          // 可以根據需要添加其他類型的餐點
-        }
-
-        if (foundItem && foundItem.name) {
-          return foundItem.name;
-        }
-      }
-
-      // 如果找不到對應的餐點
-      return "餐點 #" + item.itemId;
+      
+      return item.itemId.name
     },
 
     // 計算總價格
