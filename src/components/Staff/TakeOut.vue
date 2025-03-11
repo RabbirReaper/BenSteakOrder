@@ -18,7 +18,7 @@
           >
             <div class="card h-100">
               <div class="card-body">
-                <h6 class="card-title">{{ dish.name }}</h6>
+                <h6 class="card-title fs-5">{{ dish.name }}</h6>
                 <p class="card-text price">${{ dish.price }}</p>
               </div>
             </div>
@@ -33,7 +33,7 @@
           >
             <div class="card h-100">
               <div class="card-body">
-                <h6 class="card-title">{{ dish.name }}</h6>
+                <h6 class="card-title fs-5">{{ dish.name }}</h6>
                 <p class="card-text price">${{ dish.price }}</p>
               </div>
             </div>
@@ -56,7 +56,7 @@
         <!-- 主餐特定選項 -->
         <div v-if="selectedDishType === 'MainDish'" class="mb-3">
           <!-- 熟度選擇 (只適用於牛排類) - 改為按鈕 -->
-          <div class="mb-3" v-if="selectedDish.category === 'Steak' && selectedDish.steakDoneness">
+          <div class="mb-4 doneness-section" v-if="selectedDish.category === 'Steak' && selectedDish.steakDoneness">
             <div class="row g-2">
               <div 
                 v-for="doneness in selectedDish.steakDoneness" 
@@ -69,7 +69,7 @@
                   @click="orderStore.selectDoneness(doneness)"
                 >
                   <div class="card-body p-1">
-                    <p class="mb-0">{{ doneness }}</p>
+                    <p class="fs-5 fw-bold mb-0">{{ doneness }}</p>
                   </div>
                 </div>
               </div>
@@ -77,7 +77,7 @@
           </div>
           
           <!-- 醬料選擇 - 改為按鈕 -->
-          <div class="mb-3" v-if="selectedDish.sauceOptions && selectedDish.sauceOptions.length">
+          <div class="mb-4 sauce-section" v-if="selectedDish.sauceOptions && selectedDish.sauceOptions.length">
             <div class="row g-2">
               <div 
                 v-for="sauce in selectedDish.sauceOptions" 
@@ -90,7 +90,7 @@
                   @click="orderStore.selectSauce(sauce)"
                 >
                   <div class="card-body p-1">
-                    <p class="mb-0">{{ sauce }}</p>
+                    <p class="fs-5 fw-bold mb-0">{{ sauce }}</p>
                   </div>
                 </div>
               </div>
@@ -101,7 +101,7 @@
                   @click="orderStore.selectSauce('不加醬')"
                 >
                   <div class="card-body p-1">
-                    <p class="mb-0">不加醬</p>
+                    <p class="fs-5 fw-bold mb-0">不加醬</p>
                   </div>
                 </div>
               </div>
@@ -109,7 +109,7 @@
           </div>
           
           <!-- 額外需求 - 改為按鈕 -->
-          <div class="mb-3" v-if="selectedDish.extraOptions && selectedDish.extraOptions.length">
+          <div class="mb-4 extra-section" v-if="selectedDish.extraOptions && selectedDish.extraOptions.length">
             <div class="row g-2">
               <div 
                 v-for="option in selectedDish.extraOptions" 
@@ -122,7 +122,7 @@
                   @click="orderStore.toggleExtraOption(option)"
                 >
                   <div class="card-body p-1">
-                    <p class="mb-0">{{ option }}</p>
+                    <p class="fs-5 fw-bold mb-0">{{ option }}</p>
                   </div>
                 </div>
               </div>
@@ -130,7 +130,7 @@
           </div>
           
           <!-- 加點配料 -->
-          <div class="mb-3">
+          <div class="mb-4 addon-section">
             <div class="row g-2">
               <div 
                 v-for="addon in orderStore.menuData.addons" 
@@ -143,8 +143,8 @@
                   @click="orderStore.toggleAddon(addon)"
                 >
                   <div class="card-body p-1">
-                    <p class="mb-0">{{ addon.name }}</p>
-                    <small>${{ addon.price }}</small>
+                    <p class="fs-5 fw-bold mb-0">{{ addon.name }}</p>
+                    <small class="fs-6">${{ addon.price }}</small>
                   </div>
                 </div>
               </div>
@@ -152,7 +152,7 @@
           </div>
           
           <!-- 加點其他肉類單品 -->
-          <div class="mb-3" v-if="orderStore.additionalMeatDishes.length > 0">
+          <div class="mb-4 meat-section" v-if="orderStore.additionalMeatDishes.length > 0">
             <div class="row g-2">
               <div 
                 v-for="meat in orderStore.additionalMeatDishes" 
@@ -165,8 +165,8 @@
                   @click="orderStore.toggleAdditionalMeat(meat)"
                 >
                   <div class="card-body p-1">
-                    <p class="mb-0">{{ meat.name }}</p>
-                    <small>${{ meat.extraPrice }}</small>
+                    <p class="fs-5 fw-bold mb-0">{{ meat.name }}</p>
+                    <small class="fs-6">${{ meat.extraPrice }}</small>
                   </div>
                 </div>
               </div>
@@ -285,6 +285,7 @@ watch(() => orderStore.currentItem, (newItem) => {
   transition: all 0.2s;
   height: 100%;
   font-size: 0.85rem;
+  border-width: 2px;
 }
 
 .card-body {
@@ -293,14 +294,62 @@ watch(() => orderStore.currentItem, (newItem) => {
 
 .doneness-card:hover, .sauce-card:hover, .extra-option-card:hover, .addon-card:hover, .meat-card:hover {
   background-color: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.doneness-card.selected, .sauce-card.selected, .extra-option-card.selected, .addon-card.selected, .meat-card.selected {
-  background-color: #e2f3f5;
-  border-color: #0d6efd;
+.doneness-card.selected {
+  background-color: #ffebee;
+  border-color: #dc3545;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
 }
 
-.card-body p.mb-0 {
-  margin-bottom: 0;
+.sauce-card.selected {
+  background-color: #e8f5e9;
+  border-color: #28a745;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.extra-option-card.selected {
+  background-color: #e3f2fd;
+  border-color: #17a2b8;
+  box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+}
+
+.addon-card.selected {
+  background-color: #fff8e1;
+  border-color: #ffc107;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+}
+
+.meat-card.selected {
+  background-color: #eceff1;
+  border-color: #6c757d;
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+}
+
+.doneness-section {
+  border-left: 6px solid #dc3545;
+  padding-left: 10px;
+}
+
+.sauce-section {
+  border-left: 6px solid #28a745;
+  padding-left: 10px;
+}
+
+.extra-section {
+  border-left: 6px solid #17a2b8;
+  padding-left: 10px;
+}
+
+.addon-section {
+  border-left: 6px solid #ffc107;
+  padding-left: 10px;
+}
+
+.meat-section {
+  border-left: 6px solid #6c757d;
+  padding-left: 10px;
 }
 </style>
