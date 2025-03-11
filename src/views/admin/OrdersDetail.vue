@@ -133,38 +133,6 @@ const loading = ref(true);
 const selectedOrder = ref(null);
 const showOrderModal = ref(false);
 
-const dishIdToNameMap = ref({});
-
-// 函數用於獲取所有餐點資料並建立映射
-const fetchAllDishes = async () => {
-  try {
-    // 獲取主餐
-    const mainDishRes = await axios.get(`${API_BASE_URL}/dish/mainDish`);
-    // 獲取其他餐點
-    const elseDishRes = await axios.get(`${API_BASE_URL}/dish/elseDish`);
-    // 獲取食材
-    const rawMeatRes = await axios.get(`${API_BASE_URL}/dish/rawMeat`);
-    // 獲取加點
-    const addonRes = await axios.get(`${API_BASE_URL}/dish/addon`);
-
-    // 將所有餐點的 ID 和名稱添加到映射物件中
-    const allDishes = [
-      ...mainDishRes.data,
-      ...elseDishRes.data,
-      ...rawMeatRes.data,
-      ...addonRes.data
-    ];
-
-    const idToNameMapping = {};
-    allDishes.forEach(dish => {
-      idToNameMapping[dish._id] = dish.name;
-    });
-
-    dishIdToNameMap.value = idToNameMapping;
-  } catch (error) {
-    console.error('獲取餐點資料失敗:', error);
-  }
-};
 
 
 // 獲取當天訂單資料
@@ -273,8 +241,8 @@ const dishSalesData = computed(() => {
     if (!order.items) return;
 
     order.items.forEach(item => {
-      // 使用映射獲取餐點名稱
-      const dishName = dishIdToNameMap.value[item.itemId] || `未知餐點 ${item.itemId}`;
+      
+      const dishName = item.itemId.name
 
       if (!dishSales[dishName]) {
         dishSales[dishName] = 0;
@@ -285,9 +253,8 @@ const dishSalesData = computed(() => {
       // 加點肉品需加到那個肉品的銷量統計
       if (item.options?.additionalMeats && item.options.additionalMeats.length > 0) {
         item.options.additionalMeats.forEach(meat => {
-          // 判斷 meat 是 ID 字串還是物件
-          const meatId = typeof meat === 'string' ? meat : meat._id;
-          const meatName = dishIdToNameMap.value[meatId] || `未知肉品 ${meatId}`;
+          // // 判斷 meat 是 ID 字串還是物件
+          const meatName = meat.name ;
 
           if (!dishSales[meatName]) {
             dishSales[meatName] = 0;
@@ -408,7 +375,7 @@ const viewOrderDetails = (order) => {
 
 // 組件掛載時初始化
 onMounted(async () => {
-  await fetchAllDishes();
+  // await fetchAllDishes();
   await fetchDayOrders();
   // console.log(profitInfo.value.profit)
 });
