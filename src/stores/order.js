@@ -465,8 +465,15 @@ export const useOrderStore = defineStore('order', {
     // 獲取訂單詳情
     async fetchOrderDetails(orderId) {
       try {
-        const response = await axios.get(`${API_BASE_URL}/order/${orderId}`);
-        return response.data;
+        // 直接從本地數據中查找訂單，而不是發送 API 請求
+        const foundOrder = this.todayOrders.find(order => order._id === orderId);
+
+        if (foundOrder) {
+          return foundOrder;
+        } else {
+          console.error('訂單在本地數據中找不到:', orderId);
+          return null;
+        }
       } catch (error) {
         console.error('獲取訂單詳情失敗:', error);
         return null;
@@ -588,7 +595,7 @@ export const useOrderStore = defineStore('order', {
     // 獲取餐點名稱
     getItemName(item) {
       if (!item || !item.itemId) return "未知餐點";
-      
+
       return item.itemId.name
     },
 
