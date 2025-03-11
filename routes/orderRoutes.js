@@ -126,7 +126,7 @@ router.get('/today/:storeId', async (req, res) => {
     res.json(orders);
 
   } catch (err) {
-    console.error('Error getting orders for store:', error);
+    console.error('Error getting orders for store:', err);
     res.status(500).send('Internal server error');
   }
 })
