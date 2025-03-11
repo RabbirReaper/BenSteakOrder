@@ -307,9 +307,9 @@ const hourlyOrdersData = computed(() => {
     const mainDishCount = order.items.reduce((count, item) => {
       // 判斷是否為主餐，增加相應數量
       if (item.itemModel === 'MainDish') {
-        return count + (item.amount || 1) + (item.options?.additionalMeats?.length || 0);
+        return count + item.amount + item.amount*(item.options?.additionalMeats?.length || 0);
       }
-      return count;
+      return count + 1;
     }, 0);
     
     // 如果沒有主餐，至少計為 1，表示這個時段有訂單
