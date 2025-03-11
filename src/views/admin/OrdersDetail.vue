@@ -89,7 +89,7 @@
                     </span>
                   </td>
                   <td>{{ order.paymentMethod }}</td>
-                  <td>${{ order.totalMoney }}</td>
+                  <td>${{ order.totalMoney.toLocaleString('en-US') }}</td>
                   <td>
                     <span :class="getOrderStatusClass(order.orderStatus)">
                       {{ formatOrderStatus(order.orderStatus) }}
