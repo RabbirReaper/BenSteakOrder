@@ -174,6 +174,7 @@ const profitInfo = computed(() => {
   let totalFees = 0;
 
   dayOrders.value.forEach(order => {
+    if(order.orderStatus === 'Canceled') return;
     totalIncome += order.totalMoney || 0;
     let feeRate = 0;
     switch (order.paymentMethod) {
@@ -215,6 +216,7 @@ const orderTypeCounts = computed(() => {
   }
 
   dayOrders.value.forEach(order => {
+    if(order.orderStatus === 'Canceled') return;
     if (order.pickupMethod === '內用') {
       typeCounts['內用']++;
     } else if (order.pickupMethod === '自取') {
@@ -239,6 +241,7 @@ const dishSalesData = computed(() => {
 
   dayOrders.value.forEach(order => {
     if (!order.items) return;
+    if(order.orderStatus === 'Canceled') return;
 
     order.items.forEach(item => {
       
@@ -291,6 +294,7 @@ const hourlyOrdersData = computed(() => {
 
   dayOrders.value.forEach(order => {
     if (!order.createdAt || !order.items) return;
+    if(order.orderStatus === 'Canceled') return;
 
     const orderTime = new Date(order.createdAt);
     const hour = orderTime.getHours();
