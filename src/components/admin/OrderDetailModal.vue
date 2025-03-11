@@ -118,36 +118,34 @@
               </div>
               <div class="card-body">
                 <div class="row">
-                  <div class="col-md-6 offset-md-6">
-                    <div class="d-flex justify-content-between mb-2">
-                      <span>商品金額:</span>
-                      <span>${{ order.orderAmount }}</span>
-                    </div>
-                    <div v-if="order.discounts" class="d-flex justify-content-between mb-2">
-                      <span>現場折扣:</span>
-                      <span>{{ order.discounts > 0 ? '-' : '+' }}${{ Math.abs(order.discounts)
-                      }}</span>
-                    </div>
-                    <div v-if="order.pointsDiscount" class="d-flex justify-content-between mb-2">
-                      <span>點數折抵:</span>
-                      <span>-${{ order.pointsDiscount }}</span>
-                    </div>
-                    <div v-if="order.deliveryFee" class="d-flex justify-content-between mb-2">
-                      <span>外送費:</span>
-                      <span>${{ order.deliveryFee }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between fw-bold border-top pt-2 mt-2">
-                      <span>實付金額:</span>
-                      <span>${{ order.totalMoney }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between text-danger mt-2">
-                      <span>手續費 ({{ calculateFeeRate(order) * 100 }}%):</span>
-                      <span>${{ calculateFee(order) }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between text-success fw-bold mt-2">
-                      <span>實際利潤:</span>
-                      <span>${{ order.totalMoney - calculateFee(order) }}</span>
-                    </div>
+                  <div class="d-flex justify-content-between mb-2">
+                    <span>商品金額:</span>
+                    <span>${{ order.orderAmount }}</span>
+                  </div>
+                  <div v-if="order.discounts" class="d-flex justify-content-between mb-2">
+                    <span>現場折扣:</span>
+                    <span>{{ order.discounts > 0 ? '-' : '+' }}${{ Math.abs(order.discounts)
+                    }}</span>
+                  </div>
+                  <div v-if="order.pointsDiscount" class="d-flex justify-content-between mb-2">
+                    <span>點數折抵:</span>
+                    <span>-${{ order.pointsDiscount }}</span>
+                  </div>
+                  <div v-if="order.deliveryFee" class="d-flex justify-content-between mb-2">
+                    <span>外送費:</span>
+                    <span>${{ order.deliveryFee }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between fw-bold border-top pt-2 mt-2">
+                    <span>實付金額:</span>
+                    <span>${{ order.totalMoney }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between text-danger mt-2">
+                    <span>手續費 ({{ calculateFeeRate(order) * 100 }}%):</span>
+                    <span>${{ calculateFee(order) }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between text-success fw-bold mt-2">
+                    <span>實際利潤:</span>
+                    <span>${{ order.totalMoney - calculateFee(order) }}</span>
                   </div>
                 </div>
               </div>
