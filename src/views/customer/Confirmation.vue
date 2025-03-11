@@ -30,7 +30,7 @@
         <div class="card mb-4">
           <div class="list-group list-group-flush">
             <div v-for="(item, index) in orderItem.items" :key="index" class="list-group-item">
-              <h4 class="mb-2 fw-bold" v-if="itemDetail[item.itemId]">{{ itemDetail[item.itemId].name }}</h4>
+              <h4 class="mb-2 fw-bold" v-if="item.itemId.name">{{ item.itemId.name }}</h4>
               <h4 class="mb-2 fw-bold text-muted" v-else>未知商品</h4>
 
               <!-- 主餐顯示所有選項 -->
@@ -111,7 +111,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const orderId = route.params.orderId;
 const orderItem = ref(null);
-const itemDetail = ref([])
+// const itemDetail = ref([])
 
 const getOrder = async () => {
   try {
@@ -138,28 +138,6 @@ const getOrderStatusText = (status) => {
   return statusMap[status] || status;
 };
 
-// 獲取項目名稱，處理對象或字符串 ID
-// const getItemName = async (itemModel,itemId) => {
-//   try{
-//     const res = await axios.get(`${API_BASE_URL}/dish/${itemModel.charAt(0).toLowerCase() + itemModel.slice(1)}/${itemId}`);
-//     console.log(res.data.name) // 輸出正確
-//     return res.data.name;
-//   }catch(err){
-//     console.log('error',err)
-//   }
-// };
-// orderItem.items
-
-const getItemDetail = async (items) => {
-  for (const item of items) {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/dish/${item.itemModel.charAt(0).toLowerCase() + item.itemModel.slice(1)}/${item.itemId}`);
-      itemDetail.value[res.data._id] = res.data;
-    } catch (err) {
-      console.error('Error fetching item name:', err);
-    }
-  }
-};
 
 // 從加點數組獲取名稱，支持對象數組或 ID 數組
 const getAddonNames = (addons) => {
@@ -188,9 +166,6 @@ const getMeatNames = (meats) => {
 
 onMounted(async () => {
   await getOrder();
-  await getItemDetail(orderItem.value.items)
-  console.log('orderItem', orderItem.value)
-  console.log('ItemDetail:', itemDetail.value)
 });
 </script>
 
