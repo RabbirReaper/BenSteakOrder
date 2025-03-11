@@ -142,6 +142,8 @@ const ordersByDate = computed(() => {
   const groupedByDate = {};
 
   orders.value.forEach(order => {
+    if(order.orderStatus === 'Canceled') return;
+
     const orderDate = new Date(order.createdAt);
     const dateKey = orderDate.toISOString().split('T')[0];
 
