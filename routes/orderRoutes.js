@@ -69,7 +69,7 @@ router.get('/', async (req, res) => {
       .populate('items.options.additionalMeats');
 
     if (!orders) return res.status(404).json({ error: 'Order not found' });
-    console.log(JSON.stringify(orders[0], null, 2)); // 查看第一筆訂單的完整結構
+    // console.log(JSON.stringify(orders[0], null, 2)); // 查看第一筆訂單的完整結構
     res.json(orders);
   } catch (error) {
     console.error('Error getting orders:', error);
