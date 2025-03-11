@@ -128,7 +128,7 @@ const updateOrderStatus = async (orderId, status) => {
     checkoutOrderId.value = orderId;
     checkoutTotal.value = orderStore.selectedOrder.totalMoney;
     showCheckoutModal.value = true;
-  } else if (confirm(`確定要將訂單狀態更新為${orderStore.formatStatus(status)}嗎？`)) {
+  } else {
     await orderStore.updateOrderStatus(orderId, status);
   }
 };
