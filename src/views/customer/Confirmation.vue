@@ -58,7 +58,7 @@
               <!-- 共同顯示的信息 -->
               <div class="row mt-2">
                 <div class="col-6"><span class="fw-medium">數量:</span> {{ item.amount }}</div>
-                <div class="col-6"><span class="fw-medium">金額:</span> {{ item.thisMoney }} 元</div>
+                <div class="col-6"><span class="fw-medium">金額:</span> {{ item.thisMoney.toLocaleString('en-US') }} 元</div>
               </div>
             </div>
           </div>
@@ -69,7 +69,7 @@
           <div class="card-body bg-light">
             <div class="d-flex justify-content-between mb-2">
               <span>餐點金額</span>
-              <span>{{ orderItem.orderAmount }} 元</span>
+              <span>{{ orderItem.orderAmount.toLocaleString('en-US') }} 元</span>
             </div>
             <div v-if="orderItem.discounts > 0" class="d-flex justify-content-between mb-2">
               <span>折扣</span>
@@ -85,7 +85,7 @@
             </div>
             <div class="d-flex justify-content-between fw-bold fs-5 border-top pt-2 mt-2">
               <span>總計</span>
-              <span>{{ orderItem.totalMoney }} 元</span>
+              <span>{{ orderItem.totalMoney.toLocaleString('en-US') }} 元</span>
             </div>
           </div>
         </div>

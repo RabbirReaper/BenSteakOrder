@@ -41,7 +41,7 @@
 
           <div class="text-end d-flex flex-column justify-content-between">
             <span class="badge bg-secondary mb-2">x{{ item.amount }}</span>
-            <span class="fw-bold text-primary">${{ item.thisMoney }}</span>
+            <span class="fw-bold text-primary">${{ item.thisMoney.toLocaleString('en-US') }}</span>
           </div>
         </div>
       </div>
@@ -52,7 +52,7 @@
       <div class="card-body">
         <div class="d-flex justify-content-between mb-2">
           <span>小計</span>
-          <span>${{ selectedOrder.orderAmount }}</span>
+          <span>${{ selectedOrder.orderAmount.toLocaleString('en-US') }}</span>
         </div>
 
         <!-- 訂單調帳 -->
@@ -86,7 +86,7 @@
 
         <div class="d-flex justify-content-between fw-bold border-top pt-2 mt-2">
           <span>總計</span>
-          <span>${{ selectedOrder.totalMoney }}</span>
+          <span>${{ selectedOrder.totalMoney.toLocaleString('en-US') }}</span>
         </div>
       </div>
     </div>

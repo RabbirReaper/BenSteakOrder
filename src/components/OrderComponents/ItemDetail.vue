@@ -194,7 +194,7 @@ const calculateItemTotal = () => {
     }
   }
 
-  return total.toFixed(2);
+  return total;
 };
 
 const addToCart = () => {

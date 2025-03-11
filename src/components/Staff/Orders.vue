@@ -50,7 +50,7 @@
               </span>
               <span v-if="order.tableNumber" class="ms-1 badge bg-info">桌號: {{ order.tableNumber }}</span>
             </td>
-            <td>${{ order.totalMoney }}</td>
+            <td>${{ order.totalMoney.toLocaleString('en-US') }}</td>
             <td>
               <span :class="orderStore.getStatusClass(order.orderStatus)">
                 {{ orderStore.formatStatus(order.orderStatus) }}
