@@ -1,11 +1,6 @@
 <template>
   <div>
-    <Pie 
-      :data="chartData" 
-      :options="chartOptions" 
-      :height="height"
-      :width="width"
-    />
+    <Pie :data="chartData" :options="chartOptions" :height="height" :width="width" />
   </div>
 </template>
 
@@ -73,14 +68,19 @@ const chartOptions = computed(() => {
             const percentage = Math.round((value / safeTotal) * 100);
             return `${label}: $${value} (${percentage}%)`;
           }
-        }
+        },
+
       },
       legend: {
         position: 'bottom'
       },
       title: {
         display: true,
-        text: `總金額: $${total}`
+        text: `總金額: ${total.toLocaleString('en-US')}`,
+        font: {
+          size: 20,
+          weight: 'bold'
+        }
       }
     }
   };
