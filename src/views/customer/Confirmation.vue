@@ -133,7 +133,7 @@ const getOrderStatusText = (status) => {
   const statusMap = {
     'Unpaid': '未付款',
     'Completed': '已完成',
-    'Cancelled': '已取消'
+    'Canceled': '已取消'
   };
   return statusMap[status] || status;
 };

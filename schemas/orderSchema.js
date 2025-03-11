@@ -14,7 +14,6 @@ const orderSchema = new mongoose.Schema({
   pointsDiscount: { type: Number, default: 0 }, // 點數折抵
   deliveryFee: { type: Number, default: 0 }, // 運費
   totalMoney: { type: Number }, // 實付金額
-  isCancelled: { type: Boolean, default: false }, // 訂單取消
   orderStatus: { type: String, enum: ['Unpaid', 'Completed', 'Canceled'], default: 'Unpaid' }, // 訂單狀態
   tableNumber: { type: String }, // 桌號（內用才需要）
   remarks: { type: String }, // 備註

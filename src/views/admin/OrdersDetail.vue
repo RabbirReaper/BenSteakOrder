@@ -21,7 +21,7 @@
       <span>當天沒有訂單資料</span>
     </div>
 
-    <template v-else>
+    <template v-else> 
       <!-- 圖表區域 -->
       <div class="row mb-4">
         <div class="col-md-6 mb-3">
