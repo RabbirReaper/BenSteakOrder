@@ -48,8 +48,8 @@ const createGradient = (ctx, count) => {
   
   for (let i = 0; i < count; i++) {
     // 色調略微變化以創建視覺差異
-    const shade = Math.max(0.7, 1 - (i * 0.05));
-    colors.push(`rgba(${baseColor[0]}, ${baseColor[1] * shade}, ${baseColor[2] * shade}, 0.8)`);
+    const shade = Math.max(0, 1 - (i * 0.05));
+    colors.push(`rgba(${baseColor[0]}, ${baseColor[1] * shade}, ${baseColor[2] * shade}, 0.7)`);
   }
   
   return colors;
@@ -82,7 +82,7 @@ const chartData = computed(() => {
       borderColor: 'rgba(75, 192, 192, 1)',
       borderWidth: 1,
       borderRadius: 4,
-      barPercentage: 0.7,
+      barPercentage: 0.8,
       maxBarThickness: 30,
       minBarLength: 2
     }]
@@ -95,7 +95,7 @@ const chartOptions = computed(() => {
   const maxValue = props.dishSales?.length > 0 
     ? Math.max(...props.dishSales.map(item => item.count))
     : 0;
-  const suggestedMax = Math.ceil(maxValue * 1.2); // 增加20%空間
+  const suggestedMax = Math.ceil(maxValue * 1.10); // 增加10%空間
 
   return {
     responsive: true,
