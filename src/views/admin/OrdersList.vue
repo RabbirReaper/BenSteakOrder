@@ -142,10 +142,13 @@ const ordersByDate = computed(() => {
   const groupedByDate = {};
 
   orders.value.forEach(order => {
-    if(order.orderStatus === 'Canceled') return;
+    if (order.orderStatus === 'Canceled') return;
 
+    // 修改後
     const orderDate = new Date(order.createdAt);
-    const dateKey = orderDate.toISOString().split('T')[0];
+    // 加上8小時的時區偏移
+    const taiwanDate = new Date(orderDate.getTime() + 8 * 60 * 60 * 1000);
+    const dateKey = taiwanDate.toISOString().split('T')[0];
 
     if (!groupedByDate[dateKey]) {
       groupedByDate[dateKey] = {
@@ -206,8 +209,8 @@ const fetchOrdersData = async () => {
   try {
     const response = await axios.get(`${API_BASE_URL}/order`, {
       params: {
-        start: startDate.value.toISOString(),
-        end: endDate.value.toISOString()
+        start: startDate.value,
+        end: endDate.value
       }
     });
 
