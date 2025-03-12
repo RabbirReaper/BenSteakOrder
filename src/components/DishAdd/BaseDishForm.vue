@@ -222,7 +222,7 @@ const router = useRouter();
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // 預設值設定
-const defaultSauceOptions = ['蘑菇醬', '綜合醬', '黑胡椒醬'];
+const defaultSauceOptions = ['蘑菇醬', '綜合醬', '黑胡椒醬','不加醬'];
 const defaultExtraOptions = ['麵換蛋', '麵換花椰菜', '加麵', '不要麵包'];
 const defaultSteakDoneness = ['5分熟', '7分熟', '9分熟'];
 
