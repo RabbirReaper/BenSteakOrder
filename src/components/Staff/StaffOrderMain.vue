@@ -3,21 +3,15 @@
     <div class="row h-100">
       <!-- 左側邊欄 -->
       <div class="col-md-1 bg-dark text-white sidebar py-3 d-flex flex-column">
-        <button 
-          class="btn mb-3" 
-          :class="orderStore.activeComponent === 'DineIn' ? 'btn-primary' : 'btn-outline-light'" 
+        <button class="btn mb-3" :class="orderStore.activeComponent === 'DineIn' ? 'btn-primary' : 'btn-outline-light'"
           @click="orderStore.setActiveComponent('DineIn')">
           內用
         </button>
-        <button 
-          class="btn mb-3" 
-          :class="orderStore.activeComponent === 'TakeOut' ? 'btn-primary' : 'btn-outline-light'" 
+        <button class="btn mb-3" :class="orderStore.activeComponent === 'TakeOut' ? 'btn-primary' : 'btn-outline-light'"
           @click="orderStore.setActiveComponent('TakeOut')">
           外帶
         </button>
-        <button 
-          class="btn mb-3" 
-          :class="orderStore.activeComponent === 'Orders' ? 'btn-primary' : 'btn-outline-light'" 
+        <button class="btn mb-3" :class="orderStore.activeComponent === 'Orders' ? 'btn-primary' : 'btn-outline-light'"
           @click="orderStore.setActiveComponent('Orders')">
           訂單
         </button>
@@ -25,18 +19,14 @@
       </div>
 
       <!-- 中間內容區 -->
-      <div class="col-md-8 p-0 main-content">
-        <component 
-          :is="currentActiveComponent" 
-          :store-id="storeId"
-        />
+      <div class="col-md-8 p-0"
+        :class="{ 'main-content': orderStore.activeComponent === 'Orders', 'main-content-rigid': orderStore.activeComponent !== 'Orders' }">
+        <component :is="currentActiveComponent" :store-id="storeId" />
       </div>
 
       <!-- 右側邊欄 - 使用新元件 -->
       <div class="col-md-3 p-2">
-        <OrderCart 
-          :active-component="orderStore.activeComponent"
-        />
+        <OrderCart :active-component="orderStore.activeComponent" />
       </div>
     </div>
   </div>
@@ -94,6 +84,11 @@ onMounted(async () => {
 }
 
 .main-content {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.main-content-rigid {
   height: auto;
   overflow-y: auto;
 }
