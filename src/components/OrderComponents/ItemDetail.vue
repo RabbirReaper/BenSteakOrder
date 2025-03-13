@@ -159,8 +159,8 @@ watch(() => props.item, (newItem) => {
 const additionalMeatDishes = computed(() => {
   return props.menuItems.filter(item =>
     item.itemModel === 'MainDish' &&
-    item.extraPrice &&
-    item._id !== props.item?._id
+    item.extraPrice 
+    // item._id !== props.item?._id
   );
 });
 
