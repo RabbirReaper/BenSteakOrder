@@ -137,6 +137,17 @@ const formatAdditionalMeats = (additionalMeats) => {
   border-radius: 8px;
 }
 
+.card-body {
+  padding: 1rem 1.25rem;
+}
+
+.item-details {
+  padding-left: 0.5rem;
+}
+.order-total{
+  padding: 0.5rem;
+}
+
 .quantity-control button {
   width: 30px;
   height: 30px;
