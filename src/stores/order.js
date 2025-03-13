@@ -24,7 +24,10 @@ export const useOrderStore = defineStore('order', {
     },
 
     // 組件狀態
-    activeComponent: 'Orders'
+    activeComponent: 'Orders',
+
+    // 提交狀態
+    isCheckingOut: false
   }),
 
   getters: {
@@ -348,6 +351,8 @@ export const useOrderStore = defineStore('order', {
     // 結帳
     async checkout(storeId, pickupMethod) {
       if (this.cart.length === 0) return;
+      if(this.isCheckingOut) return;
+      this.isCheckingOut = true;
 
       try {
         // 整理購物車項目
@@ -388,7 +393,7 @@ export const useOrderStore = defineStore('order', {
 
         // 創建新訂單
         const { data: newOrder } = await axios.post(`${API_BASE_URL}/order`, orderData);
-        alert(`訂單建立成功，訂單編號: ${orderNumber}`);
+        // alert(`訂單建立成功，訂單編號: ${orderNumber}`);
 
         // 清空購物車
         this.clearCart();
@@ -398,7 +403,7 @@ export const useOrderStore = defineStore('order', {
 
         // 切換到訂單頁面
         this.setActiveComponent('Orders');
-
+        this.isCheckingOut = false;
         return newOrder;
       } catch (error) {
         console.error('結帳失敗:', error);
