@@ -13,8 +13,7 @@
       </div>
     </div>
     <div class="content-wrapper" style="padding: 0;">
-      <img style="max-height: 200px; width: 100%; padding: 0;"
-        :src="storeImage && storeImage.url"
+      <img style="max-height: 200px; width: 100%; padding: 0;" :src="storeImage && storeImage.url"
         :alt="storeImage && storeImage.alt ? storeImage.alt : '店家圖片'">
     </div>
     <div class="content-wrapper mt-4">
@@ -40,7 +39,7 @@
         <h4 class="fw-bold mt-3">{{ category.categoryName }}</h4>
         <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
           <div v-for="item in getItemsInCategory(category)" :key="item._id" class="col">
-            <div class="card h-100 shadow-sm" @click="$emit('select-item', item)">
+            <div class="card h-100 " @click="$emit('select-item', item)">
               <div class="card-img-top" style="aspect-ratio: 1/1; overflow: hidden;">
                 <img :src="item.image?.url || '/placeholder.jpg'" :alt="item.name" class="w-100 h-100"
                   style="object-fit: cover;">
@@ -181,7 +180,93 @@ onMounted(() => {
   padding: 0 15px;
 }
 
+.section-title {
+  font-family: 'Noto Sans TC', '微軟正黑體', 'Microsoft JhengHei', '蘋方-繁', 'PingFang TC', sans-serif !important;
+  font-weight: 700 !important;
+  color: #2c3e50;
+  position: relative;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.section-title:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background-color: #e67e22;
+}
+
+.opening-hours {
+  color: #7f8c8d;
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+h4.fw-bold {
+  font-family: 'Noto Sans TC', '微軟正黑體', 'Microsoft JhengHei', '蘋方-繁', 'PingFang TC', sans-serif !important;
+  font-weight: 700 !important;
+  color: #d35400;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+  padding-left: 15px;
+}
+
+h4.fw-bold:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 20px;
+  background-color: #e67e22;
+  border-radius: 3px;
+}
+
+.card-title {
+  font-family: 'Noto Sans TC', '微軟正黑體', 'Microsoft JhengHei', '蘋方-繁', 'PingFang TC', sans-serif !important;
+  font-weight: 700;
+  color: #333;
+  font-size: 1.1rem;
+  transition: color 0.2s;
+}
+
+.card:hover .card-title {
+  color: #d35400;
+}
+
+.card-text.price {
+  font-family: 'Noto Sans TC', '微軟正黑體', 'Microsoft JhengHei', '蘋方-繁', 'PingFang TC', sans-serif !important;
+  font-weight: 700;
+  color: #e74c3c;
+  font-size: 1.2rem;
+  transition: transform 0.3s;
+}
+
+.card:hover .card-text.price {
+  transform: scale(1.05);
+}
+
 .card {
   cursor: pointer;
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-img-top {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
 }
 </style>
