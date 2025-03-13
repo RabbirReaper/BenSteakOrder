@@ -369,7 +369,11 @@ const generateOrderNumber = async () => {
   return number.data.number;
 };
 
+const isSubmitting = ref(false);
+
 const submitOrder = async () => {
+  if(isSubmitting.value) return;
+  isSubmitting.value = true;
   try {
     const orderItems = props.cart.map(item => ({
       itemModel: item.itemModel,
