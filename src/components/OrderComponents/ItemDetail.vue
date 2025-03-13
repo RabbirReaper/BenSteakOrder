@@ -147,7 +147,7 @@ watch(() => props.item, (newItem) => {
   if (newItem) {
     quantity.value = 1;
     remarks.value = '';
-    selectedDoneness.value = newItem.steakDoneness ? newItem.steakDoneness[0] : '';
+    selectedDoneness.value = newItem.category === 'Steak' ? newItem.steakDoneness[0] : '';
     selectedSauce.value = newItem.sauceOptions ? newItem.sauceOptions[0] : '';
     selectedAddons.value = [];
     selectedExtraOptions.value = [];
