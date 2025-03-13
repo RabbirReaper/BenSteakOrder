@@ -133,8 +133,11 @@ const updateOrderStatus = async (orderId, status) => {
   }
 };
 
+const ishandleOnlinePaymenting = ref(false);
 // 處理線上付款
 const handleOnlinePayment = async () => {
+  if (ishandleOnlinePaymenting.value) return;
+  ishandleOnlinePaymenting.value = true;
   try {
     await axios.put(`${API_BASE_URL}/order/${checkoutOrderId.value}`, {
       orderStatus: 'Completed',
@@ -161,8 +164,12 @@ const handleOnlinePayment = async () => {
   }
 };
 
+
+const ishandleCashPaymenting = ref(false);
 // 處理現金付款
 const handleCashPayment = async () => {
+  if (ishandleCashPaymenting.value) return;
+  ishandleCashPaymenting.value = true;
   try {
     await axios.put(`${API_BASE_URL}/order/${checkoutOrderId.value}`, {
       orderStatus: 'Completed',
