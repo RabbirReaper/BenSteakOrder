@@ -33,6 +33,7 @@
       :is-orders-active="isOrdersActive"
       :selected-order="orderStore.selectedOrder"
       :cart-length="orderStore.cart.length"
+      :is-checking-out="orderStore.isCheckingOut"
       @update-order-status="updateOrderStatus"
       @print-order="printOrder"
       @cancel-order="orderStore.cancelOrder"
@@ -156,7 +157,7 @@ const handleOnlinePayment = async () => {
         orderStore.selectOrder(refreshedOrder);
       }
     }
-    
+    ishandleOnlinePaymenting.value = false;
     // alert('線上付款完成，訂單已結帳');
   } catch (error) {
     console.error('線上付款處理失敗:', error);
@@ -291,6 +292,7 @@ const printOrder = () => {
 
 // 提交訂單
 const submitOrder = async () => {
+  console.log('!')
   await orderStore.checkout(storeId);
 };
 

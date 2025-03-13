@@ -31,14 +31,23 @@
           <i class="bi bi-printer me-1"></i> 重印訂單
         </button>
       </div>
-      <button class="btn btn-success btn-lg w-100 py-3" :disabled="cartLength === 0" @click="$emit('submitOrder')">
-        <i class="bi bi-check-circle me-1"></i> 提交訂單
+      <button class="btn btn-success btn-lg w-100 py-3" :disabled="cartLength === 0 || isCheckingOut"
+        @click="handleSubmit">
+        <template v-if="isCheckingOut">
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          處理中...
+        </template>
+        <template v-else>
+          <i class="bi bi-check-circle me-1"></i> 提交訂單
+        </template>
       </button>
     </template>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
+
 const props = defineProps({
   isOrdersActive: {
     type: Boolean,
@@ -51,15 +60,26 @@ const props = defineProps({
   cartLength: {
     type: Number,
     default: 0
+  },
+  isCheckingOut: {
+    type: Boolean,
+    default: false
   }
 });
 
-defineEmits(['updateOrderStatus', 'printOrder', 'cancelOrder', 'submitOrder']);
+const emit = defineEmits(['updateOrderStatus', 'printOrder', 'cancelOrder', 'submitOrder']);
+
+// 處理提交按鈕點擊
+const handleSubmit = () => {
+  if (props.isCheckingOut) return; // 防止重複點擊
+  emit('submitOrder');
+};
 </script>
 
 <style scoped>
 .btn {
   font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .btn-lg {
@@ -75,6 +95,16 @@ defineEmits(['updateOrderStatus', 'printOrder', 'cancelOrder', 'submitOrder']);
 .btn-success:not(:disabled):hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s;
+}
+
+/* 添加旋轉動畫的自定義樣式 */
+.spinner-border {
+  vertical-align: middle;
+}
+
+/* 禁用按鈕時的樣式 */
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 </style>
