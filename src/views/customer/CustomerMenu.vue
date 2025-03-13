@@ -228,8 +228,8 @@ onMounted(async () => {
     await fetchMenu();
   }
   initModal();
-  console.log(menu.value.list)
-  console.log(menuItems.value)
+  // console.log(menu.value.list)
+  // console.log(menuItems.value)
 });
 
 </script>
