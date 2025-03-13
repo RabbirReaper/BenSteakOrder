@@ -390,7 +390,12 @@ const submitOrder = async () => {
       thisMoney: item.price * item.quantity
     }));
 
-    const orderAmount = parseFloat(calculateTotal());
+    // 計算商品的總金額 (不含折扣和運費)
+    const itemsSubtotal = calculateSubtotal();
+    
+    // 計算最終總金額 (含折扣和運費)
+    const finalTotal = calculateTotal();
+
     const pickupTimeValue = pickupTime.value === 'asap' ? null : scheduledTime.value;
 
     const orderData = {
@@ -399,15 +404,16 @@ const submitOrder = async () => {
       platform: 'web',
       pickupMethod: formatPickupMethod(),
       paymentMethod: paymentMethod.value,
-      orderAmount,
-      totalMoney: orderAmount,
+      orderAmount: itemsSubtotal, // 餐點總金額，不含折扣和運費
+      pointsDiscount: couponDiscount.value, // 優惠券折扣
+      deliveryFee: pickupMethod.value === 'delivery' ? deliveryFee.value : 0, // 運費
+      totalMoney: finalTotal, // 最終總金額 (含折扣和運費)
       tableNumber: pickupMethod.value === 'dineIn' ? tableNumber.value : null,
       deliveryAddress: pickupMethod.value === 'delivery' ? deliveryAddress.value : null,
       items: orderItems,
       remarks: orderRemarks.value || null,
       scheduledPickupTime: pickupTimeValue,
-      couponId: selectedCoupon.value || null,
-      deliveryFee: pickupMethod.value === 'delivery' ? deliveryFee.value : 0
+      couponId: selectedCoupon.value || null
     };
 
     console.log('Submitting order:', orderData);
