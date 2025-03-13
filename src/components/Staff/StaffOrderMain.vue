@@ -94,7 +94,7 @@ onMounted(async () => {
 }
 
 .main-content {
-  height: 100vh;
+  height: auto;
   overflow-y: auto;
 }
 </style>

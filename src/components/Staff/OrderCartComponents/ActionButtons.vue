@@ -2,32 +2,37 @@
   <div class="action-buttons mt-3 pt-3 border-top">
     <template v-if="isOrdersActive && selectedOrder">
       <!-- 訂單管理模式下的按鈕 -->
-      <div class="btn-group w-100 mb-2">
-        <button class="btn btn-success" @click="$emit('updateOrderStatus', selectedOrder._id, 'Completed')"
-          :disabled="selectedOrder.orderStatus === 'Completed' || selectedOrder.orderStatus === 'Canceled'">
-          <i class="bi bi-credit-card me-1"></i> 結帳
-        </button>
-        <button class="btn btn-danger" @click="$emit('updateOrderStatus', selectedOrder._id, 'Canceled')"
+      <div class="d-flex justify-content-between mb-3">
+        <button class="btn btn-danger btn-lg" style="width: 48%"
+          @click="$emit('updateOrderStatus', selectedOrder._id, 'Canceled')"
           :disabled="selectedOrder.orderStatus === 'Completed' || selectedOrder.orderStatus === 'Canceled'">
           <i class="bi bi-x-circle me-1"></i> 取消訂單
         </button>
+        <button class="btn btn-secondary btn-lg" style="width: 48%" @click="$emit('printOrder')"
+          :disabled="!selectedOrder">
+          <i class="bi bi-printer me-1"></i> 列印訂單
+        </button>
       </div>
-      <button class="btn btn-secondary w-100" @click="$emit('printOrder')" :disabled="!selectedOrder">
-        <i class="bi bi-printer me-1"></i> 列印訂單
+      <button class="btn btn-success btn-lg w-100 py-3"
+        @click="$emit('updateOrderStatus', selectedOrder._id, 'Completed')"
+        :disabled="selectedOrder.orderStatus === 'Completed' || selectedOrder.orderStatus === 'Canceled'">
+        <i class="bi bi-credit-card me-1"></i> 結帳
       </button>
     </template>
 
     <template v-else>
       <!-- 購物車模式下的按鈕 -->
-      <button class="btn btn-danger mb-2 w-100" :disabled="cartLength === 0"
-        @click="$emit('cancelOrder')">
-        取消訂單
-      </button>
-      <button class="btn btn-secondary mb-2 w-100" disabled>
-        重印訂單
-      </button>
-      <button class="btn btn-success w-100" :disabled="cartLength === 0" @click="$emit('submitOrder')">
-        提交訂單
+      <div class="d-flex justify-content-between mb-3">
+        <button class="btn btn-danger btn-lg" style="width: 48%" :disabled="cartLength === 0"
+          @click="$emit('cancelOrder')">
+          <i class="bi bi-x-circle me-1"></i> 取消訂單
+        </button>
+        <button class="btn btn-secondary btn-lg" style="width: 48%" disabled>
+          <i class="bi bi-printer me-1"></i> 重印訂單
+        </button>
+      </div>
+      <button class="btn btn-success btn-lg w-100 py-3" :disabled="cartLength === 0" @click="$emit('submitOrder')">
+        <i class="bi bi-check-circle me-1"></i> 提交訂單
       </button>
     </template>
   </div>
@@ -55,5 +60,21 @@ defineEmits(['updateOrderStatus', 'printOrder', 'cancelOrder', 'submitOrder']);
 <style scoped>
 .btn {
   font-weight: 500;
+}
+
+.btn-lg {
+  font-size: 1.1rem;
+  border-radius: 8px;
+}
+
+.btn-success {
+  font-size: 1.25rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-success:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s;
 }
 </style>
