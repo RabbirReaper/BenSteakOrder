@@ -72,32 +72,58 @@ const fetchStore = async () => {
 
 const fetchMenu = async () => {
   menu.value = store.value.menuItem;
-  // console.log('menu', menu.value);
-
-  const itemPromises = [];
-  for (const category of menu.value.list) {
-    for (const item of category.items) {
-      itemPromises.push(axios.get(`${API_BASE_URL}/dish/${item.itemModel.charAt(0).toLowerCase() + item.itemModel.slice(1)}/${item.itemId}`));
-    }
-  }
-
+  
+  // 創建一個映射，從 itemId 到 itemModel
   const dishModelMapping = {};
+  
+  // 創建一個集合，用於追踪已處理的 itemId
+  const processedItemIds = new Set();
+  
+  // 收集所有需要請求的項目
+  const itemsToFetch = [];
+  
   if (menu.value && menu.value.list) {
     menu.value.list.forEach(category => {
       category.items.forEach(item => {
-        dishModelMapping[item.itemId] = item.itemModel;
+        const itemId = item.itemId;
+        const itemModel = item.itemModel;
+        
+        // 更新映射
+        dishModelMapping[itemId] = itemModel;
+        
+        // 只有未處理過的 itemId 才添加到請求列表
+        if (!processedItemIds.has(itemId)) {
+          processedItemIds.add(itemId);
+          
+          const endpoint = `${itemModel.charAt(0).toLowerCase() + itemModel.slice(1)}`;
+          itemsToFetch.push({
+            id: itemId,
+            model: itemModel,
+            endpoint: endpoint
+          });
+        }
       });
     });
   }
+  
+  // 發送所有請求
+  const itemPromises = itemsToFetch.map(item => 
+    axios.get(`${API_BASE_URL}/dish/${item.endpoint}/${item.id}`)
+  );
+  
+  // 等待所有請求完成
   const itemResponses = await Promise.all(itemPromises);
-  menuItems.value = itemResponses.map(response => {
+  
+  // 處理響應結果
+  menuItems.value = itemResponses.map((response, index) => {
+    const item = itemsToFetch[index];
     return {
       ...response.data,
-      itemModel: dishModelMapping[response.data._id]
+      itemModel: item.model
     };
   });
 
-  // console.log('menuItems', menuItems.value);
+  // 獲取加點配料
   const { data: addons } = await axios.get(`${API_BASE_URL}/dish/addon`);
   addonItems.value = addons;
 };
@@ -202,6 +228,8 @@ onMounted(async () => {
     await fetchMenu();
   }
   initModal();
+  console.log(menu.value.list)
+  console.log(menuItems.value)
 });
 
 </script>
