@@ -94,17 +94,6 @@
                   </div>
                 </div>
               </div>
-              <div class="col-4 col-md-2">
-                <div 
-                  class="card p-2 text-center sauce-card" 
-                  :class="{ 'selected': orderStore.currentItem?.sauce === '不加醬' }"
-                  @click="orderStore.selectSauce('不加醬')"
-                >
-                  <div class="card-body p-1">
-                    <p class="fs-5 fw-bold mb-0">不加醬</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
           
