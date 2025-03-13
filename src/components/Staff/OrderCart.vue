@@ -189,7 +189,7 @@ const handleCashPayment = async () => {
         orderStore.selectOrder(refreshedOrder);
       }
     }
-    
+    ishandleCashPaymenting.value = false
     // alert('現金付款完成，訂單已結帳');
   } catch (error) {
     console.error('現金付款處理失敗:', error);
