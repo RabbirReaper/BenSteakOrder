@@ -69,7 +69,7 @@
           </tr>
         </tbody>
       </table>
-      
+
     </div>
 
     <!-- 訂單詳情 Modal -->
@@ -360,11 +360,11 @@ tr:hover {
 
 .table-active {
   --bs-table-active-bg: rgba(83, 109, 254, 0.35) !important;
-  --bs-table-active-color: #000 !important;
-  --bs-table-striped-bg: var(--bs-table-active-bg) !important;
-  --bs-table-striped-color: var(--bs-table-active-color) !important;
-  --bs-table-accent-bg: var(--bs-table-active-bg) !important;
+  /* 被選中行」的文字顏色 */
+  --bs-table-active-color: #000 !important; 
+  /* 當滑鼠懸停 (hover) 在表格行時，背景色變為 --bs-table-active-bg */
   --bs-table-hover-bg: var(--bs-table-active-bg) !important;
+  /* 當滑鼠懸停 (hover) 在表格行時，文字顏色變為黑色 */
   --bs-table-hover-color: var(--bs-table-active-color) !important;
 }
 </style>
