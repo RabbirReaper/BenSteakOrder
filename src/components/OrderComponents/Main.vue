@@ -208,6 +208,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
 /* 自定義變數，直接在選擇器內部定義 */
 .menu-listing {
   /* 顏色變數定義 */
