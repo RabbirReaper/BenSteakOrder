@@ -41,16 +41,16 @@
         <tbody>
           <tr v-for="order in filteredOrders" :key="order._id"
             :class="{ 'table-active': orderStore.selectedOrder && orderStore.selectedOrder._id === order._id }"
-            @click="selectAndViewOrder(order)">
+            @click="selectAndViewOrder(order)" class="order-row">
             <td>{{ orderStore.formatTime(order.createdAt) }}</td>
-            <td>{{ order.orderNumber }}</td>
+            <td class="fs-5">{{ order.orderNumber }}</td>
             <td>
               <span :class="orderStore.getPickupMethodClass(order.pickupMethod)">
                 {{ order.pickupMethod }}
               </span>
               <span v-if="order.tableNumber" class="ms-1 badge bg-info">桌號: {{ order.tableNumber }}</span>
             </td>
-            <td>${{ order.totalMoney.toLocaleString('en-US') }}</td>
+            <td class="fs-5">${{ order.totalMoney.toLocaleString('en-US') }}</td>
             <td>
               <span :class="orderStore.getStatusClass(order.orderStatus)">
                 {{ orderStore.formatStatus(order.orderStatus) }}
@@ -350,6 +350,21 @@ tr:hover {
 }
 
 .badge {
-  font-size: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.order-row {
+  height: 50px;
+  vertical-align: middle;
+}
+
+.table-active {
+  --bs-table-active-bg: rgba(83, 109, 254, 0.35) !important;
+  --bs-table-active-color: #000 !important;
+  --bs-table-striped-bg: var(--bs-table-active-bg) !important;
+  --bs-table-striped-color: var(--bs-table-active-color) !important;
+  --bs-table-accent-bg: var(--bs-table-active-bg) !important;
+  --bs-table-hover-bg: var(--bs-table-active-bg) !important;
+  --bs-table-hover-color: var(--bs-table-active-color) !important;
 }
 </style>
