@@ -13,7 +13,8 @@
           <div v-for="dish in orderStore.menuData.mainDishes" :key="dish._id" class="menu-item-card"
             @click="selectDish(dish, 'MainDish')">
             <div class="card h-100">
-              <div class="card-body">
+              <div class="card-body"
+                :class="{ 'selected': orderStore.currentItem?.id === dish._id && orderStore.currentItem?.itemModel === 'MainDish' }">
                 <h6 class="fs-5 card-title">{{ dish.name }}</h6>
                 <p class="card-text price">${{ dish.price }}</p>
               </div>
@@ -24,7 +25,8 @@
           <div v-for="dish in orderStore.menuData.elseDishes" :key="dish._id" class="menu-item-card"
             @click="selectDish(dish, 'ElseDish')">
             <div class="card h-100">
-              <div class="card-body">
+              <div class="card-body"
+                :class="{ 'selected': orderStore.currentItem?.id === dish._id && orderStore.currentItem?.itemModel === 'ElseDish' }">
                 <h6 class="card-title fs-5">{{ dish.name }}</h6>
                 <p class="card-text price">${{ dish.price }}</p>
               </div>
@@ -285,6 +287,14 @@ watch(() => orderStore.currentItem, (newItem) => {
   border-color: #6c757d;
   box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
 }
+
+.card-body.selected {
+  background-color: #fff8e8;
+  border: 2px solid #e22e0a;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(255, 1, 1, 0.2);
+}
+
 
 .doneness-section {
   border-left: 6px solid #dc3545;
