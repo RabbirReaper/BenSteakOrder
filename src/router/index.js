@@ -1,18 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 // 引入頁面
-import LoginView from '@/views/LoginView.vue'
-import AdminDashboard from '@/views/admin/AdminDashboard.vue'
-import StaffOrder from '@/views/staff/StaffOrder.vue'
-import CustomerMenu from '@/views/customer/CustomerMenu.vue'
-import NotFound from '@/views/NotFound.vue'
-import DishAdd from '@/views/admin/DishAdd.vue'
-import DishShow from '@/views/admin/DishShow.vue'
-import MenuAdd from '@/views/admin/MenuAdd.vue'
-import MenuShow from '@/views/admin/MenuShow.vue'
-import AdminIndex from '@/views/admin/Index.vue'
-import DishEdit from '@/views/admin/DishEdit.vue'
-import MenuEdit from '@/views/admin/MenuEdit.vue'
+import LoginView from '@/views/auth/loginView.vue'
+import StaffOrder from '@/views/staff/index.vue'
+import CustomerMenu from '@/views/customer/menu.vue'
+import NotFound from '@/views/notFound.vue'
+import DishAdd from '@/views/admin/dish/add.vue'
+import DishEdit from '@/views/admin/dish/edit.vue'
+import DishShow from '@/views/admin/dish/show.vue'
+import MenuAdd from '@/views/admin/menu/add.vue'
+import MenuShow from '@/views/admin/menu/show.vue'
+import MenuEdit from '@/views/admin/menu/edit.vue'
+import AdminIndex from '@/views/admin/index.vue'
 
 
 const isLoggedIn = async () => {
