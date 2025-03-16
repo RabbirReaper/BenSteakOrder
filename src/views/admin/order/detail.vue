@@ -117,11 +117,11 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
-import ProfitFeesPieChart from '@/components/admin/charts/ProfitFeesPieChart.vue';
-import OrderTypesPieChart from '@/components/admin/charts/OrderTypesPieChart.vue';
-import DishSalesBarChart from '@/components/admin/charts/DishSalesBarChart.vue';
-import HourlyOrdersLineChart from '@/components/admin/charts/HourlyOrdersLineChart.vue';
-import OrderDetailModal from '@/components/admin/OrderDetailModal.vue';
+import ProfitFeesPieChart from '@/components/Admin/OrderList/Charts/ProfitFeesPieChart.vue';
+import OrderTypesPieChart from '@/components/Admin/OrderList/Charts/OrderTypesPieChart.vue';
+import DishSalesBarChart from '@/components/Admin/OrderList/Charts/DishSalesBarChart.vue';
+import HourlyOrdersLineChart from '@/components/Admin/OrderList/Charts/HourlyOrdersLineChart.vue';
+import OrderDetailModal from '@/components/Admin/OrderList/OrderDetailModal.vue';
 
 const route = useRoute();
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -132,8 +132,6 @@ const dayOrders = ref([]);
 const loading = ref(true);
 const selectedOrder = ref(null);
 const showOrderModal = ref(false);
-
-
 
 // 獲取當天訂單資料
 const fetchDayOrders = async () => {
@@ -376,7 +374,6 @@ const viewOrderDetails = (order) => {
   showOrderModal.value = true;
 };
 
-
 // 組件掛載時初始化
 onMounted(async () => {
   // await fetchAllDishes();
@@ -384,6 +381,7 @@ onMounted(async () => {
   // console.log(profitInfo.value.profit)
 });
 </script>
+
 
 <style scoped>
 .chart-container {
