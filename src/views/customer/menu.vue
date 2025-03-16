@@ -34,9 +34,9 @@
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
-import MenuListing from '@/components/OrderComponents/Main.vue';
-import ItemDetail from '@/components/OrderComponents/ItemDetail.vue';
-import ShoppingCart from '@/components/OrderComponents/ShoppingCart.vue';
+import MenuListing from '@/components/Customer/Main.vue';
+import ItemDetail from '@/components/Customer/ItemDetail.vue';
+import ShoppingCart from '@/components/Customer/ShoppingCart.vue';
 
 
 const route = useRoute();
