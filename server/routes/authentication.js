@@ -1,7 +1,7 @@
 import express from "express";
 import bcrypt from 'bcrypt';
 import session from 'express-session';
-import Administrator from '../schemas/administratorSchema.js';
+import Administrator from '../models/Users/Admin.js';
 
 const router = express.Router();
 router.use(express.json());

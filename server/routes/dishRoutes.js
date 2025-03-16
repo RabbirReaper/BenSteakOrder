@@ -1,8 +1,8 @@
 import express from 'express';
-import MainDish from '../schemas/mainDishSchema.js';
-import ElseDish from '../schemas/elseDishSchema.js';
-import Addon from '../schemas/addonSchema.js';
-import RawMeat from '../schemas/rawMeatSchema.js';
+import MainDish from '../models/Dishs/MainDish.js';
+import ElseDish from '../models/Dishs/ElseDish.js';
+import Addon from '../models/Dishs/Addon.js';
+import RawMeat from '../models/Dishs/RawMeat.js';
 import { v2 as cloudinary } from 'cloudinary';
 
 const router = express.Router();

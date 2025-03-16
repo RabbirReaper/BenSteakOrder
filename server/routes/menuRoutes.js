@@ -1,5 +1,5 @@
 import express from 'express';
-import Menu from '../schemas/menuSchema.js';
+import Menu from '../models/Menus/Menu.js';
 
 const router = express.Router();
 
