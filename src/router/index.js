@@ -12,6 +12,11 @@ import MenuAdd from '@/views/admin/menu/add.vue'
 import MenuShow from '@/views/admin/menu/show.vue'
 import MenuEdit from '@/views/admin/menu/edit.vue'
 import AdminIndex from '@/views/admin/index.vue'
+import StoreAdd from '@/views/admin/store/add.vue'
+import StoreShow from '@/views/admin/store/show.vue'
+import StoreEdit from '@/views/admin/store/edit.vue'
+import Confirmation from '@/views/customer/confirmation.vue'
+
 
 
 const isLoggedIn = async () => {
@@ -90,12 +95,12 @@ const router = createRouter({
         {
           path: 'orders',
           name: 'admin-orders',
-          component: () => import('../views/admin/OrdersList.vue'),
+          component: () => import('@/views/admin/order/list.vue'),
         },
         {
           path: 'orders/:date',
           name: 'admin-orders-detail',
-          component: () => import('../views/admin/OrdersDetail.vue'),
+          component: () => import('@/views/admin/order/detail.vue'),
         }
         // // 營收及訂單列表與統計
         // {

@@ -25,10 +25,10 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import MainDishAdd from '@/views/admin/dish/components/MainDish.vue'
-import ElseDishAdd from '@/views/admin/dish/components/ElseDish.vue'
-import AddonDishAdd from '@/views/admin/dish/components/AddonDish.vue'
-import RawMeatAdd from '@/views/admin/dish/components/RawMeat.vue'
+import MainDishAdd from '@/components/Dish/DishAdd/MainDish.vue'
+import ElseDishAdd from '@/components/Dish/DishAdd/ElseDish.vue'
+import AddonDishAdd from '@/components/Dish/DishAdd/AddonDish.vue'
+import RawMeatAdd from '@/components/Dish/DishAdd/RawMeat.vue'
 
 const currentView = ref('main')
 
