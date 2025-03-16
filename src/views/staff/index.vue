@@ -7,7 +7,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import StaffOrderMain from '@/components/Staff/StaffOrderMain.vue';
+import StaffOrderMain from '@/components/Staff/index.vue';
 
 const route = useRoute();
 const storeId = ref(route.params.storeId || '1'); // 預設使用 ID 1 如果沒有提供
