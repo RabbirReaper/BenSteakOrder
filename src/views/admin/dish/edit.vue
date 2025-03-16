@@ -1,10 +1,10 @@
 <script setup>
 import { onMounted, shallowRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import MainDishEdit from '@/components/DishEdit/MainDish.vue';
-import ElseDishEdit from '@/components/DishEdit/ElseDish.vue';
-import AddonDishEdit from '@/components/DishEdit/AddonDish.vue';
-import RawMeatEdit from '@/components/DishEdit/RawMeat.vue';
+import MainDishEdit from '@/views/admin/dish/components/MainDish.vue';
+import ElseDishEdit from '@/views/admin/dish/components/ElseDish.vue';
+import AddonDishEdit from '@/views/admin/dish/components/AddonDish.vue';
+import RawMeatEdit from '@/views/admin/dish/components/RawMeat.vue';
 
 const route = useRoute();
 const router = useRouter();
