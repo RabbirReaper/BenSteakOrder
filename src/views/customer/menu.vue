@@ -33,7 +33,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '@/api';
 import MenuListing from '@/components/Customer/Main.vue';
 import ItemDetail from '@/components/Customer/ItemDetail.vue';
 import ShoppingCart from '@/components/Customer/ShoppingCart.vue';
@@ -62,7 +62,7 @@ let cartModal = null;
 
 const fetchStore = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/store/${storeId}`);
+    const response = await api.store.getById(storeId);
     store.value = response.data;
     // console.log(store.value);
   } catch (error) {
@@ -108,7 +108,7 @@ const fetchMenu = async () => {
   
   // 發送所有請求
   const itemPromises = itemsToFetch.map(item => 
-    axios.get(`${API_BASE_URL}/dish/${item.endpoint}/${item.id}`)
+    api.dish.getById(item.endpoint, item.id)
   );
   
   // 等待所有請求完成
@@ -124,7 +124,7 @@ const fetchMenu = async () => {
   });
 
   // 獲取加點配料
-  const { data: addons } = await axios.get(`${API_BASE_URL}/dish/addon`);
+  const { data: addons } = await api.dish.getAll('addon');
   addonItems.value = addons;
 };
 
