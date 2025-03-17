@@ -1,26 +1,14 @@
-import express from "express";
 import bcrypt from 'bcrypt';
-import session from 'express-session';
 import Administrator from '../models/Users/Admin.js';
 
-const router = express.Router();
-router.use(express.json());
-router.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 30 * 60 * 1000 // 30 分鐘後過期
-  }
-}));
-
-router.post('/login', async (req, res) => {
+// 處理登入
+export const login = async (req, res) => {
   try {
     const { name, password } = req.body;
     const admin = await Administrator.findOne({ name });
 
     if (!admin) { // adminname not found
-      return res.status(401).send('adminname or password arrors');
+      return res.status(401).send('adminname or password errors');
     }
 
     const validPassword = await bcrypt.compare(password, admin.password);
@@ -28,29 +16,32 @@ router.post('/login', async (req, res) => {
       req.session.user_id = admin._id;
       return res.send('Login successful');
     } else { // invalid password
-      return res.status(401).send('adminname or password arrors');
+      return res.status(401).send('adminname or password errors');
     }
   } catch (error) {
     console.error('Login error:', error);
     return res.status(500).send('Internal server error');
   }
-});
+};
 
-router.post('/logout', (req, res) => {
+// 處理登出
+export const logout = (req, res) => {
   req.session.user_id = null;
   res.send('Logout successful');
-});
+};
 
-router.get('/current_user', (req, res) => {
+// 獲取當前用戶信息
+export const getCurrentUser = (req, res) => {
   if (req.session.user_id) {
     // 根據需要回傳更多使用者資料
     res.json({ loggedIn: true, user_id: req.session.user_id });
   } else {
     res.json({ loggedIn: false });
   }
-});
+};
 
-router.post('/createUser', async (req, res) => {
+// 創建新管理員
+export const createUser = async (req, res) => {
   try {
     const { name, password } = req.body;
 
@@ -72,9 +63,10 @@ router.post('/createUser', async (req, res) => {
     console.error('Create user error:', error);
     res.status(500).send('Internal server error');
   }
-});
+};
 
-router.delete('/deleteUser/:id', async (req, res) => {
+// 刪除管理員
+export const deleteUser = async (req, res) => {
   try {
     if (!req.session.user_id) {
       return res.status(401).send('Unauthorized');
@@ -92,6 +84,4 @@ router.delete('/deleteUser/:id', async (req, res) => {
     console.error('Delete user error:', error);
     res.status(500).send('Internal server error');
   }
-});
-
-export default router;
+};

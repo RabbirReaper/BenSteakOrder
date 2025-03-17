@@ -10,7 +10,9 @@ import menuRoutes from './server/routes/menuRoutes.js';
 import storeRoutes from './server/routes/storeRoutes.js';
 import cloudinaryRoutes from './server/routes/cloudinaryRoutes.js';
 import orderRoutes from './server/routes/orderRoutes.js';
-import authentication from './server/routes/authentication.js'
+import authRoutes from './server/routes/authRoutes.js'
+import { configureSession } from './middlewares/auth.js';
+
 
 dotenv.config()
 const app = express()
@@ -22,15 +24,8 @@ app.use(cors())
 app.use(express.static('dist'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  rolling: true, // 每次請求都會重置過期時間
-  cookie: {
-    maxAge: 30 * 60 * 1000 // 30 分鐘後過期
-  }
-}));
+configureSession(app);
+
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -59,7 +54,7 @@ mongoose.connect(`${process.env.MongoDB_url}`)
   })
 
 
-app.use('/authentication', authentication)
+app.use('/authentication', authRoutes)
 app.use('/dish', dishRoutes);
 app.use('/menu', menuRoutes);
 app.use('/store', storeRoutes);
