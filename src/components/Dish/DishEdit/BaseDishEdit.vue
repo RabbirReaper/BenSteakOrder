@@ -26,7 +26,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import axios from 'axios';
+import api from '@/api';
 import BaseDishForm from '../DishAdd/BaseDishForm.vue';
 
 const props = defineProps({
@@ -52,7 +52,7 @@ const dishData = ref({});
 const fetchDishData = async () => {
   try {
     loading.value = true;
-    const response = await axios.get(`${API_BASE_URL}/dish/${props.apiEndpoint}/${itemId}`);
+    const response = await api.getById(props.apiEndpoint, itemId);
     dishData.value = response.data;
     loading.value = false;
   } catch (err) {
