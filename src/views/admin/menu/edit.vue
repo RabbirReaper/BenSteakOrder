@@ -203,7 +203,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -225,7 +225,7 @@ const fetchMenu = async () => {
   try {
     loading.value = true
     error.value = null
-    const response = await axios.get(`${API_BASE_URL}/menu/${menuId}`)
+    const response = await api.menu.getById(menuId);
     const menu = response.data
     
     menuName.value = menu.name
@@ -241,7 +241,7 @@ const fetchMenu = async () => {
 // 獲取指定類型的餐點
 const fetchDishes = async (endpoint) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/dish${endpoint}`)
+    const response = await api.dish.getAll(endpoint);
     return response.data
   } catch (error) {
     console.error('Error fetching dishes:', error)
@@ -253,9 +253,9 @@ const fetchDishes = async (endpoint) => {
 const initializeDishes = async () => {
   try {
     const [mainResponse, elseResponse, rawResponse] = await Promise.all([
-      fetchDishes('/mainDish'),
-      fetchDishes('/elseDish'),
-      fetchDishes('/rawMeat')
+      fetchDishes('mainDish'),
+      fetchDishes('elseDish'),
+      fetchDishes('rawMeat')
     ])
     
     mainDishes.value = mainResponse
@@ -369,7 +369,7 @@ const saveMenu = async () => {
       }))
     }
     
-    await axios.put(`${API_BASE_URL}/menu/${menuId}`, menuToSave)
+    await api.menu.update(menuId, menuToSave);
     alert('菜單更新成功！')
     isEditing.value = false
   } catch (error) {
@@ -388,7 +388,7 @@ const cancelEdit = async () => {
 const confirmDelete = async () => {
   if (confirm(`確定要刪除菜單 "${menuName.value}" 嗎？`)) {
     try {
-      await axios.delete(`${API_BASE_URL}/menu/${menuId}`)
+      await api.menu.delete(menuId);
       router.push('/menu') // 刪除後返回列表頁
     } catch (err) {
       alert('刪除失敗，請稍後再試')
