@@ -2,9 +2,9 @@ import session from 'express-session';
 
 // 檢查用戶是否已認證
 export const checkAuth = (req, res, next) => {
-  if (!req.session.user_id) {
-    return res.status(401).send('Unauthorized');
-  }
+  // if (!req.session.user_id) {
+  //   return res.status(401).send('Unauthorized');
+  // }
   next();
 };
 
