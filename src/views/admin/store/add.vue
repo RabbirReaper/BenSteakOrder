@@ -79,7 +79,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import axios from 'axios'
+import api from '@/api'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -110,7 +110,7 @@ const storeForm = ref({
 // 獲取所有菜單
 const fetchMenus = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/menu`)
+    const response = await api.menu.getAll()
     menus.value = response.data
   } catch (error) {
     console.error('獲取菜單失敗:', error)
@@ -153,9 +153,8 @@ const uploadImage = async () => {
     })
     
     // 上傳新圖片
-    const response = await axios.post(`${API_BASE_URL}/image`, {
-      image: base64Image
-    })
+    const response = await api.image.upload({ image: base64Image }) 
+
     return response.data
   } catch (error) {
     console.error('圖片上傳失敗:', error)
@@ -194,7 +193,7 @@ const handleSubmit = async () => {
       }
     }
     console.log(storeForm.value)
-    await axios.post(`${API_BASE_URL}/store`, storeForm.value)
+    await api.store.create(storeForm.value)
     router.push('./show')
   } catch (error) {
     console.error('新增失敗:', error)
