@@ -1,79 +1,22 @@
 import express from 'express';
-import Store from '../models/Stores/Store.js';
+import * as storeController from '../controllers/store.js';
+import { checkAuth } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-const checkAuth = (req, res, next) => {
-  // if (!req.session.user_id) {
-  //   return res.status(401).json({ message: 'Unauthorized' });
-  // }
-  next();
-};
+// 獲取所有店家
+router.get('/', storeController.getAllStores);
 
-// 取得 store
-router.get('/', async (req, res) => {
-  try {
-    const store = await Store.find({});
-    if (!store) return res.status(404).json({ error: 'Store not found' });
+// 獲取單個店家
+router.get('/:id', storeController.getStoreById);
 
-    res.json(store);
-  } catch (error) {
-    console.error('Error getting store:', error);
-    res.status(500).send('Internal server error');
-  }
-});
+// 創建店家 (需要驗證)
+router.post('/', checkAuth, storeController.createStore);
 
-// 取得單個 store
-router.get('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const store = await Store.findById(id).populate('menuItem');
-    if (!store) return res.status(404).json({ error: 'Store not found' });
+// 更新店家 (需要驗證)
+router.put('/:id', checkAuth, storeController.updateStore);
 
-    res.json(store);
-  } catch (error) {
-    console.error('Error getting store:', error);
-    res.status(500).send('Internal server error');
-  }
-});
-
-// 創建 store
-router.post('/', checkAuth, async (req, res) => {
-  try {
-    const newStore = new Store(req.body);
-    await newStore.save();
-
-    res.send('Store created successfully');
-  } catch (error) {
-    console.error('Error creating store:', error);
-    res.status(500).send('Internal server error');
-  }
-});
-
-// 更新 store
-router.put('/:id', checkAuth, async (req, res) => {
-  try {
-    const { id } = req.params;
-    await Store.findByIdAndUpdate(id, req.body);
-
-    res.send('Store updated successfully');
-  } catch (error) {
-    console.error('Error updating store:', error);
-    res.status(500).send('Internal server error');
-  }
-});
-
-// 刪除 store
-router.delete('/:id', checkAuth, async (req, res) => {
-  try {
-    const { id } = req.params;
-    await Store.findByIdAndDelete(id);
-
-    res.send('Store deleted successfully');
-  } catch (error) {
-    console.error('Error deleting store:', error);
-    res.status(500).send('Internal server error');
-  }
-});
+// 刪除店家 (需要驗證)
+router.delete('/:id', checkAuth, storeController.deleteStore);
 
 export default router;
