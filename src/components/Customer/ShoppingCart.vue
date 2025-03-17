@@ -237,7 +237,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import axios from 'axios';
+import api from '@/api';
 
 const props = defineProps({
   cart: {
@@ -365,8 +365,13 @@ const showConfirmation = () => {
 };
 
 const generateOrderNumber = async () => {
-  const number = await axios.get(`${API_BASE_URL}/order/number`);
-  return number.data.number;
+  try {
+    const response = await api.order.getOrderNumber();
+    return response.data.number;
+  } catch (error) {
+    console.error('獲取訂單編號失敗:', error);
+    throw error; // 或者其他錯誤處理方式
+  }
 };
 
 const isSubmitting = ref(false);
@@ -416,8 +421,9 @@ const submitOrder = async () => {
       couponId: selectedCoupon.value || null
     };
 
-    console.log('Submitting order:', orderData);
-    const { data: newOrder } = await axios.post(`${API_BASE_URL}/order`, orderData);
+    // console.log('Submitting order:', orderData);
+    const { data: newOrder } = await api.order.create(orderData);
+    
     confirmModal.value.hide();
 
     // Emit event that order was submitted
