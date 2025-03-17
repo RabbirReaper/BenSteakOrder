@@ -21,7 +21,7 @@ import Confirmation from '@/views/customer/confirmation.vue'
 
 const isLoggedIn = async () => {
   try {
-    const response = await axios.get(`/authentication/current_user`);
+    const response = await axios.get(`/auth/current_user`);
     return response.data.loggedIn;
   } catch (error) {
     console.error('檢查登入狀態失敗', error);
@@ -146,7 +146,7 @@ router.beforeEach(async (to, from, next) => {
     const loggedIn = await isLoggedIn();
     if (!loggedIn) {
       return next({
-        path: '/login',
+        path: '/auth/login',
         query: { redirect: to.fullPath }
       });
     }

@@ -54,7 +54,7 @@ mongoose.connect(`${process.env.MongoDB_url}`)
   })
 
 
-app.use('/authentication', authRoutes)
+app.use('/auth', authRoutes)
 app.use('/dish', dishRoutes);
 app.use('/menu', menuRoutes);
 app.use('/store', storeRoutes);
