@@ -82,7 +82,7 @@
 import { ref, computed } from 'vue';
 import { useOrderStore } from '@/stores/order';
 import { useRoute } from 'vue-router';
-import axios from 'axios';
+import api from '@/api';
 
 import OrderDetails from './OrderDetails.vue';
 import ShoppingCart from './ShoppingCart.vue';
@@ -140,10 +140,7 @@ const handleOnlinePayment = async () => {
   if (ishandleOnlinePaymenting.value) return;
   ishandleOnlinePaymenting.value = true;
   try {
-    await axios.put(`${API_BASE_URL}/order/${checkoutOrderId.value}`, {
-      orderStatus: 'Completed',
-      paymentMethod: 'linepay'
-    });
+    await api.order.updateStatus(checkoutOrderId.value, 'Completed', 'linepay');
     
     showCheckoutModal.value = false;
     
@@ -172,10 +169,8 @@ const handleCashPayment = async () => {
   if (ishandleCashPaymenting.value) return;
   ishandleCashPaymenting.value = true;
   try {
-    await axios.put(`${API_BASE_URL}/order/${checkoutOrderId.value}`, {
-      orderStatus: 'Completed',
-      paymentMethod: '現金'
-    });
+    await api.order.updateStatus(checkoutOrderId.value, 'Completed', '現金');
+
     
     showCashCalculatorModal.value = false;
     showCheckoutModal.value = false;
@@ -344,7 +339,7 @@ const confirmAdjustment = async () => {
         totalMoney: editingOrder.value.orderAmount - newAdjustment - (editingOrder.value.pointsDiscount || 0)
       };
 
-      await axios.put(`${API_BASE_URL}/order/${editingOrder.value._id}`, orderUpdate);
+      await api.order.update(editingOrder.value._id, orderUpdate);
 
       // 更新本地訂單資料
       editingOrder.value.discounts = newAdjustment;
@@ -406,7 +401,7 @@ const confirmDiscount = async () => {
         totalMoney: editingOrder.value.orderAmount - (editingOrder.value.discounts || 0) - tempDiscount.value
       };
 
-      await axios.put(`${API_BASE_URL}/order/${editingOrder.value._id}`, orderUpdate);
+      await api.order.update(editingOrder.value._id, orderUpdate);
 
       // 更新本地訂單資料
       editingOrder.value.pointsDiscount = tempDiscount.value;
