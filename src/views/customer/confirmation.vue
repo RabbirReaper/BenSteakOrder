@@ -103,7 +103,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios'
+import api from '@/api';
 
 const route = useRoute();
 const router = useRouter();
@@ -115,7 +115,7 @@ const orderItem = ref(null);
 
 const getOrder = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/order/${orderId}`);
+    const response = await api.order.getById(orderId);
     orderItem.value = response.data;
   } catch (error) {
     console.error('Error fetching order:', error);
