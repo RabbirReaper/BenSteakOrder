@@ -199,7 +199,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/api' // 引入 API 模組
 
 const props = defineProps({
   // 基本屬性
@@ -219,7 +219,6 @@ const props = defineProps({
 const emit = defineEmits(['cancel', 'delete']);
 
 const router = useRouter();
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // 預設值設定
 const defaultSauceOptions = ['蘑菇醬', '綜合醬', '黑胡椒醬','不加醬'];
@@ -391,16 +390,6 @@ const handleImageSelect = (event) => {
   }
 };
 
-// 將文件轉為 base64 格式
-const convertFileToBase64 = (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-};
-
 // 上傳圖片，僅在表單提交時執行
 const uploadImage = async () => {
   if (!selectedImage.value) return true; // 如果沒有新選擇的圖片，不需上傳
@@ -409,20 +398,15 @@ const uploadImage = async () => {
   
   try {
     // 轉換文件為 base64
-    const base64Image = await convertFileToBase64(selectedImage.value);
+    const base64Image = await api.image.fileToBase64(selectedImage.value);
     
     let response;
     if (form.value.image.publicId) {
       // 如果已有圖片，進行修改
-      response = await axios.put(`${API_BASE_URL}/image`, {
-        publicId: form.value.image.publicId,
-        newImage: base64Image
-      });
+      response = await api.image.modify(form.value.image.publicId, base64Image);
     } else {
       // 如果沒有圖片，進行新增
-      response = await axios.post(`${API_BASE_URL}/image`, {
-        image: base64Image
-      });
+      response = await api.image.upload(base64Image);
     }
     
     // 更新 form 的圖片資訊
@@ -459,11 +443,11 @@ const handleSubmit = async () => {
     
     // 編輯模式
     if (props.isEdit && props.itemId) {
-      await axios.put(`${API_BASE_URL}/dish/${props.apiEndpoint}/${props.itemId}`, formData);
+      await api.dish.update(props.apiEndpoint, props.itemId, formData);
     } 
     // 新增模式
     else {
-      await axios.post(`${API_BASE_URL}/dish/${props.apiEndpoint}`, formData);
+      await api.dish.create(props.apiEndpoint, formData);
     }
     
     // 重定向回列表頁
