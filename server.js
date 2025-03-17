@@ -11,7 +11,7 @@ import storeRoutes from './server/routes/storeRoutes.js';
 import cloudinaryRoutes from './server/routes/cloudinaryRoutes.js';
 import orderRoutes from './server/routes/orderRoutes.js';
 import authRoutes from './server/routes/authRoutes.js'
-import { configureSession } from './middlewares/auth.js';
+import { configureSession } from './server/middlewares/auth.js';
 
 
 dotenv.config()
