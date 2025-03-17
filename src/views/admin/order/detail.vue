@@ -1,14 +1,14 @@
 <template>
   <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center my-4">
-      <h1>{{ formatDate(dateParam) }} 訂單詳情</h1>
+      <h1>{{ formatDate(orderState.dateParam) }} 訂單詳情</h1>
       <router-link to="/admin/orders" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left"></i> 返回訂單列表
       </router-link>
     </div>
 
     <!-- 讀取中狀態 -->
-    <div v-if="loading" class="text-center my-5">
+    <div v-if="orderState.loading" class="text-center my-5">
       <div class="spinner-border" role="status">
         <span class="visually-hidden">載入中...</span>
       </div>
@@ -16,7 +16,7 @@
     </div>
 
     <!-- 無資料提示 -->
-    <div v-else-if="dayOrders.length === 0" class="alert alert-info text-center my-5">
+    <div v-else-if="orderState.dayOrders.length === 0" class="alert alert-info text-center my-5">
       <i class="bi bi-info-circle-fill me-2"></i>
       <span>當天沒有訂單資料</span>
     </div>
@@ -61,34 +61,32 @@
       <!-- 訂單列表 -->
       <div class="card">
         <div class="card-header">
-          <h5 class="mb-0">訂單列表 ({{ dayOrders.length }} 筆)</h5>
+          <h5 class="mb-0">訂單列表 ({{ orderState.dayOrders.length }} 筆)</h5>
         </div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-hover">
               <thead>
                 <tr>
-                  <th>店家</th>
                   <th>訂單號</th>
-                  <th>平台</th>
+                  <th>時間</th>
+                  <th>店家</th>
                   <th>取餐方式</th>
-                  <th>付款方式</th>
                   <th>總金額</th>
                   <th>狀態</th>
                   <th>操作</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="order in dayOrders" :key="order._id">
-                  <td>{{ order.store?.name || '未知店家' }}</td>
+                <tr v-for="order in orderState.dayOrders" :key="order._id">
                   <td>{{ order.orderNumber }}</td>
-                  <td>{{ order.platform }}</td>
+                  <td>{{ formatTime(order.createdAt) }}</td>
+                  <td>{{ getStoreName(order.store) }}</td>
                   <td>
                     <span :class="getPickupMethodClass(order.pickupMethod)">
                       {{ order.pickupMethod }}
                     </span>
                   </td>
-                  <td>{{ order.paymentMethod }}</td>
                   <td>${{ order.totalMoney.toLocaleString('en-US') }}</td>
                   <td>
                     <span :class="getOrderStatusClass(order.orderStatus)">
@@ -108,15 +106,19 @@
       </div>
 
       <!-- 訂單詳情 Modal -->
-      <OrderDetailModal :order="selectedOrder" :visible="showOrderModal" @close="showOrderModal = false" />
+      <OrderDetailModal 
+        :order="orderState.selectedOrder" 
+        :visible="orderState.showOrderModal" 
+        @close="orderState.showOrderModal = false" 
+      />
     </template>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, reactive } from 'vue';
 import { useRoute } from 'vue-router';
-import axios from 'axios';
+import api from '@/api';
 import ProfitFeesPieChart from '@/components/Admin/OrderList/Charts/ProfitFeesPieChart.vue';
 import OrderTypesPieChart from '@/components/Admin/OrderList/Charts/OrderTypesPieChart.vue';
 import DishSalesBarChart from '@/components/Admin/OrderList/Charts/DishSalesBarChart.vue';
@@ -126,52 +128,46 @@ import OrderDetailModal from '@/components/Admin/OrderList/OrderDetailModal.vue'
 const route = useRoute();
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// 初始化狀態變數
-const dateParam = ref(route.params.date);
-const dayOrders = ref([]);
-const loading = ref(true);
-const selectedOrder = ref(null);
-const showOrderModal = ref(false);
+// 集中管理訂單詳情頁的狀態
+const orderState = reactive({
+  dateParam: route.params.date,
+  dayOrders: [],
+  loading: true,
+  selectedOrder: null,
+  showOrderModal: false
+});
 
 // 獲取當天訂單資料
 const fetchDayOrders = async () => {
-  loading.value = true;
+  orderState.loading = true;
 
   try {
-    const startDate = new Date(dateParam.value);
+    const startDate = new Date(orderState.dateParam);
     startDate.setHours(0, 0, 0, 0);
 
-    const endDate = new Date(dateParam.value);
+    const endDate = new Date(orderState.dateParam);
     endDate.setHours(23, 59, 59, 999);
 
-    const response = await axios.get(`${API_BASE_URL}/order`, {
-      params: {
-        start: startDate.toISOString(),
-        end: endDate.toISOString()
-      }
-    });
-    // console.log(response.data)
-
-    dayOrders.value = response.data;
-    // console.log('daysorders:',dayOrders.value)
+    const response = await api.order.getByTimeRange(startDate, endDate);
+    orderState.dayOrders = response.data;
   } catch (error) {
     console.error('獲取當天訂單資料失敗:', error);
     alert('獲取當天訂單資料失敗，請重試');
   } finally {
-    loading.value = false;
+    orderState.loading = false;
   }
 };
 
 // 計算利潤信息
 const profitInfo = computed(() => {
-  if (dayOrders.value.length === 0) {
+  if (orderState.dayOrders.length === 0) {
     return { total: 0, fees: 0, profit: 0 };
   }
 
   let totalIncome = 0;
   let totalFees = 0;
 
-  dayOrders.value.forEach(order => {
+  orderState.dayOrders.forEach(order => {
     if(order.orderStatus === 'Canceled') return;
     totalIncome += order.totalMoney || 0;
     let feeRate = 0;
@@ -209,11 +205,11 @@ const orderTypeCounts = computed(() => {
     'UberEat': 0
   };
 
-  if (dayOrders.value.length === 0) {
+  if (orderState.dayOrders.length === 0) {
     return typeCounts;
   }
 
-  dayOrders.value.forEach(order => {
+  orderState.dayOrders.forEach(order => {
     if(order.orderStatus === 'Canceled') return;
     if (order.pickupMethod === '內用') {
       typeCounts['內用']++;
@@ -229,21 +225,20 @@ const orderTypeCounts = computed(() => {
   return typeCounts;
 });
 
-// 然後修改 dishSalesData 計算屬性
+// 餐點銷量數據
 const dishSalesData = computed(() => {
-  if (dayOrders.value.length === 0) {
+  if (orderState.dayOrders.length === 0) {
     return [];
   }
 
   const dishSales = {};
 
-  dayOrders.value.forEach(order => {
+  orderState.dayOrders.forEach(order => {
     if (!order.items) return;
     if(order.orderStatus === 'Canceled') return;
 
     order.items.forEach(item => {
-      
-      const dishName = item.itemId.name
+      const dishName = item.itemId.name;
 
       if (!dishSales[dishName]) {
         dishSales[dishName] = 0;
@@ -254,8 +249,7 @@ const dishSalesData = computed(() => {
       // 加點肉品需加到那個肉品的銷量統計
       if (item.options?.additionalMeats && item.options.additionalMeats.length > 0) {
         item.options.additionalMeats.forEach(meat => {
-          // // 判斷 meat 是 ID 字串還是物件
-          const meatName = meat.name ;
+          const meatName = meat.name;
 
           if (!dishSales[meatName]) {
             dishSales[meatName] = 0;
@@ -276,7 +270,7 @@ const dishSalesData = computed(() => {
 
 // 計算每半小時的訂單數量
 const hourlyOrdersData = computed(() => {
-  if (dayOrders.value.length === 0) {
+  if (orderState.dayOrders.length === 0) {
     return [];
   }
 
@@ -290,7 +284,7 @@ const hourlyOrdersData = computed(() => {
     }
   }
 
-  dayOrders.value.forEach(order => {
+  orderState.dayOrders.forEach(order => {
     if (!order.createdAt || !order.items) return;
     if(order.orderStatus === 'Canceled') return;
 
@@ -335,6 +329,20 @@ const formatDate = (dateStr) => {
   return `${year}/${month}/${day}`;
 };
 
+// 格式化時間
+const formatTime = (dateStr) => {
+  const date = new Date(dateStr);
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
+// 獲取店家名稱
+const getStoreName = (store) => {
+  if (!store) return '未知店家';
+  return typeof store === 'object' ? store.name : '店家ID: ' + store;
+};
+
 // 獲取取餐方式的樣式類別
 const getPickupMethodClass = (method) => {
   const classes = {
@@ -370,21 +378,12 @@ const formatOrderStatus = (status) => {
 
 // 查看訂單詳情
 const viewOrderDetails = (order) => {
-  selectedOrder.value = order;
-  showOrderModal.value = true;
+  orderState.selectedOrder = order;
+  orderState.showOrderModal = true;
 };
 
 // 組件掛載時初始化
 onMounted(async () => {
-  // await fetchAllDishes();
   await fetchDayOrders();
-  // console.log(profitInfo.value.profit)
 });
 </script>
-
-
-<style scoped>
-.chart-container {
-  height: 300px;
-}
-</style>
