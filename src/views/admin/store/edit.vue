@@ -138,7 +138,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import axios from 'axios'
+import api from '@/api'
 import { useRouter, useRoute } from 'vue-router'
 import { Modal } from 'bootstrap'
 
@@ -174,7 +174,7 @@ const storeForm = ref({
 // 獲取所有菜單
 const fetchMenus = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/menu`)
+    const response = await api.menu.getAll()
     menus.value = response.data
   } catch (error) {
     console.error('獲取菜單失敗:', error)
@@ -187,8 +187,7 @@ const fetchStore = async () => {
   try {
     loading.value = true
     const storeId = route.params.id
-    const { data: storeData } = await axios.get(`${API_BASE_URL}/store/${storeId}`)
-
+    const {data: storeData} = await api.store.get(storeId)
     storeForm.value = {
       name: storeData.name,
       menuItem: storeData.menuItem,
@@ -244,16 +243,13 @@ const uploadImage = async () => {
     
     if (storeForm.value.image.publicId) {
       // 如果已有圖片，進行修改
-      const response = await axios.put(`${API_BASE_URL}/image`, {
-        publicId: storeForm.value.image.publicId,
-        newImage: base64Image
-      })
+      const response = await api.image.modify(storeForm.value.image.publicId, base64Image)
+
       return response.data
     } else {
       // 如果沒有圖片，進行新增
-      const response = await axios.post(`${API_BASE_URL}/image`, {
-        image: base64Image
-      })
+      const response = await api.image.upload(base64Image)
+
       return response.data
     }
   } catch (error) {
@@ -294,7 +290,7 @@ const handleSubmit = async () => {
     }
     
     const storeId = route.params.id
-    await axios.put(`${API_BASE_URL}/store/${storeId}`, storeForm.value)
+    await api.store.update(storeId, storeForm.value)
     router.push('./show')
   } catch (error) {
     console.error('更新失敗:', error)
@@ -310,7 +306,7 @@ const handleDelete = async () => {
   try {
     loading.value = true
     const storeId = route.params.id
-    await axios.delete(`${API_BASE_URL}/store/${storeId}`)
+    await api.store.delete(storeId)
     router.push('./show')
   } catch (error) {
     console.error('刪除失敗:', error)
@@ -342,7 +338,7 @@ const saveAnnouncement = async () => {
   
   try {
     const storeId = route.params.id
-    await axios.put(`${API_BASE_URL}/store/${storeId}`, storeForm.value)
+    await api.store.update(storeId, storeForm.value)
     const modal = Modal.getInstance(announcementModal.value)
     modal.hide()
   } catch (error) {
@@ -358,7 +354,7 @@ const deleteAnnouncement = async (index) => {
   try {
     storeForm.value.announcements.splice(index, 1)
     const storeId = route.params.id
-    await axios.put(`${API_BASE_URL}/store/${storeId}`, storeForm.value)
+    await api.store.update(storeId, storeForm.value)
   } catch (error) {
     console.error('刪除公告失敗:', error)
     alert('刪除公告失敗，請稍後再試')
