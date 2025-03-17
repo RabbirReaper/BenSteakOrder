@@ -21,7 +21,7 @@ import Confirmation from '@/views/customer/confirmation.vue'
 
 const isLoggedIn = async () => {
   try {
-    const response = await axios.get(`/auth/current_user`);
+    const response = await api.auth.getCurrentUser();
     return response.data.loggedIn;
   } catch (error) {
     console.error('檢查登入狀態失敗', error);
