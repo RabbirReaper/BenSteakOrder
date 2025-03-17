@@ -122,7 +122,7 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/api'
 import { Modal } from 'bootstrap'
 
 const router = useRouter()
@@ -134,15 +134,15 @@ const selectedDish = ref(null)
 const modal = ref(null)
 
 const endpoints = {
-  main: '/mainDish',
-  else: '/elseDish',
-  addon: '/addon',
-  raw: '/rawMeat'
+  main: 'mainDish',
+  else: 'elseDish',
+  addon: 'addon',
+  raw: 'rawMeat'
 }
 
 const fetchDishes = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/dish${endpoints[currentView.value]}`)
+    const response = await api.dish.getAll(endpoints[currentView.value]);
     dishes.value = response.data
   } catch (error) {
     console.error('Error fetching dishes:', error)
@@ -168,7 +168,7 @@ const deleteDish = async () => {
   }
 
   try {
-    await axios.delete(`${API_BASE_URL}/dish${endpoints[currentView.value]}/${selectedDish.value._id}`)
+    await api.dish.delete(endpoints[currentView.value], selectedDish.value._id);
     await fetchDishes()
     if (modal.value) {
       Modal.getInstance(modal.value).hide()
