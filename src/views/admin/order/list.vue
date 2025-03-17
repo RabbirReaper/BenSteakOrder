@@ -2,14 +2,14 @@
   <div class="container-fluid">
     <h1 class="my-4">訂單列表</h1>
 
-    <!-- 上方選擇和設定部分 (20% 高度) -->
+    <!-- 上方選擇和設定部分 -->
     <div class="card mb-4">
       <div class="card-body">
         <div class="row align-items-center">
           <div class="col-md-4">
             <div class="input-group">
               <span class="input-group-text">顯示天數</span>
-              <select class="form-select" v-model="dayRange" @change="updateDateRangeAndFetch">
+              <select class="form-select" v-model="orderState.dayRange" @change="updateDateRangeAndFetch">
                 <option :value="1">1 天</option>
                 <option :value="10">10 天</option>
                 <option :value="30">30 天</option>
@@ -28,7 +28,7 @@
           </div>
           <div class="col-md-4 text-end">
             <div class="date-range-display">
-              {{ formatDate(startDate) }} 至 {{ formatDate(endDate) }}
+              {{ formatDate(orderState.startDate) }} 至 {{ formatDate(orderState.endDate) }}
             </div>
           </div>
         </div>
@@ -36,7 +36,7 @@
     </div>
 
     <!-- 讀取中狀態 -->
-    <div v-if="loading" class="text-center my-5">
+    <div v-if="orderState.loading" class="text-center my-5">
       <div class="spinner-border" role="status">
         <span class="visually-hidden">載入中...</span>
       </div>
@@ -49,7 +49,7 @@
       <span>所選時間範圍內沒有訂單資料</span>
     </div>
 
-    <!-- 下方顯示訂單部分 (80% 高度) -->
+    <!-- 下方顯示訂單部分 -->
     <div v-else class="row">
       <div v-for="dayData in ordersByDate" :key="dayData.date" class="col-md-4 mb-4">
         <div class="card h-100 order-day-card" @click="viewDayDetails(dayData.date)">
@@ -89,32 +89,34 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '@/api';
 
 const router = useRouter();
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// 狀態變數
-const dayRange = ref(10);
-const startDate = ref(new Date());
-const endDate = ref(new Date());
-const orders = ref([]);
-const loading = ref(true);
+// 集中管理訂單頁面的狀態
+const orderState = reactive({
+  dayRange: 1,
+  startDate: new Date(),
+  endDate: new Date(),
+  orders: [],
+  loading: true
+});
 
 // 計算日期範圍
 const calculateDateRange = () => {
   const end = new Date();
   end.setHours(23, 59, 59, 999);
-  endDate.value = end;
+  orderState.endDate = end;
 
   const start = new Date();
-  start.setDate(start.getDate() - dayRange.value + 1);
+  start.setDate(start.getDate() - orderState.dayRange + 1);
   start.setHours(0, 0, 0, 0);
-  startDate.value = start;
+  orderState.startDate = start;
 };
 
+// 更新日期範圍並獲取數據
 const updateDateRangeAndFetch = () => {
   calculateDateRange();
   fetchOrdersData();
@@ -123,16 +125,16 @@ const updateDateRangeAndFetch = () => {
 // 移動日期範圍
 const moveDateRange = (direction) => {
   // direction: 1 表示往後，-1 表示往前
-  const days = dayRange.value * direction;
+  const days = orderState.dayRange * direction;
 
-  const newEnd = new Date(endDate.value);
+  const newEnd = new Date(orderState.endDate);
   newEnd.setDate(newEnd.getDate() - days);
-  endDate.value = newEnd;
+  orderState.endDate = newEnd;
 
   const newStart = new Date(newEnd);
-  newStart.setDate(newStart.getDate() - dayRange.value + 1);
+  newStart.setDate(newStart.getDate() - orderState.dayRange + 1);
   newStart.setHours(0, 0, 0, 0);
-  startDate.value = newStart;
+  orderState.startDate = newStart;
 
   fetchOrdersData();
 };
@@ -141,12 +143,11 @@ const moveDateRange = (direction) => {
 const ordersByDate = computed(() => {
   const groupedByDate = {};
 
-  orders.value.forEach(order => {
+  orderState.orders.forEach(order => {
     if (order.orderStatus === 'Canceled') return;
 
-    // 修改後
+    // 加上時區偏移，轉換為台灣時間
     const orderDate = new Date(order.createdAt);
-    // 加上8小時的時區偏移
     const taiwanDate = new Date(orderDate.getTime() + 8 * 60 * 60 * 1000);
     const dateKey = taiwanDate.toISOString().split('T')[0];
 
@@ -164,21 +165,7 @@ const ordersByDate = computed(() => {
     groupedByDate[dateKey].totalIncome += order.totalMoney || 0;
 
     // 計算手續費
-    let feeRate = 0;
-    switch (order.paymentMethod) {
-      case 'linepay':
-        feeRate = 0.03;
-        break;
-      case 'FoodPanda':
-        feeRate = 0.25;
-        break;
-      case 'UberEat':
-        feeRate = 0.33;
-        break;
-      default:
-        feeRate = 0;
-    }
-
+    let feeRate = calculateFeeRate(order.paymentMethod);
     const fee = Math.floor((order.totalMoney || 0) * feeRate);
     groupedByDate[dateKey].fees += fee;
     groupedByDate[dateKey].profit = groupedByDate[dateKey].totalIncome - groupedByDate[dateKey].fees;
@@ -187,6 +174,16 @@ const ordersByDate = computed(() => {
   // 將物件轉為陣列並按日期排序
   return Object.values(groupedByDate).sort((a, b) => new Date(b.date) - new Date(a.date));
 });
+
+// 計算手續費率
+const calculateFeeRate = (paymentMethod) => {
+  switch (paymentMethod) {
+    case 'linepay': return 0.03;
+    case 'FoodPanda': return 0.25;
+    case 'UberEat': return 0.33;
+    default: return 0;
+  }
+};
 
 // 格式化日期
 const formatDate = (dateStr) => {
@@ -204,22 +201,16 @@ const viewDayDetails = (date) => {
 
 // 獲取訂單資料
 const fetchOrdersData = async () => {
-  loading.value = true;
+  orderState.loading = true;
 
   try {
-    const response = await axios.get(`${API_BASE_URL}/order`, {
-      params: {
-        start: startDate.value,
-        end: endDate.value
-      }
-    });
-
-    orders.value = response.data;
+    const response = await api.order.getByTimeRange(orderState.startDate, orderState.endDate);
+    orderState.orders = response.data;
   } catch (error) {
     console.error('獲取訂單資料失敗:', error);
     alert('獲取訂單資料失敗，請重試');
   } finally {
-    loading.value = false;
+    orderState.loading = false;
   }
 };
 
