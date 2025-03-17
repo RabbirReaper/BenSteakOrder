@@ -9,13 +9,13 @@
 
     <!-- 店家列表 -->
     <div class="row">
-      <div v-if="loading" class="col-12 text-center">
+      <div v-if="storeState.loading" class="col-12 text-center">
         <div class="spinner-border" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
       </div>
 
-      <div v-else-if="stores.length === 0" class="col-12">
+      <div v-else-if="storeState.stores.length === 0" class="col-12">
         <div class="alert alert-info">
           目前還沒有任何分店資料
         </div>
@@ -27,12 +27,14 @@
             <thead>
               <tr>
                 <th>分店名稱</th>
+                <th>公告數量</th>
                 <th>操作</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="store in stores" :key="store._id">
+              <tr v-for="store in storeState.stores" :key="store._id">
                 <td>{{ store.name }}</td>
+                <td>{{ store.announcements?.length || 0 }}</td>
                 <td>
                   <div class="btn-group">
                     <router-link 
@@ -43,7 +45,7 @@
                     </router-link>
                     <button 
                       class="btn btn-sm btn-outline-danger"
-                      @click="handleDelete(store._id)"
+                      @click="handleDelete(store._id, store.name)"
                     >
                       刪除
                     </button>
@@ -59,47 +61,54 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '@/api'
 
-const router = useRouter()
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
-const stores = ref([])
-const loading = ref(true)
+const router = useRouter();
+
+// 使用響應式狀態來管理店家數據
+const storeState = reactive({
+  stores: [],
+  loading: true,
+  error: null
+});
 
 // 獲取所有店家資料
 const fetchStores = async () => {
   try {
-    loading.value = true
-    const response = await axios.get(`${API_BASE_URL}/store`)
-    stores.value = response.data
+    storeState.loading = true;
+    storeState.error = null;
+    
+    const response = await api.store.getAll();
+    storeState.stores = response.data;
   } catch (error) {
-    console.error('獲取店家資料失敗:', error)
-    alert('獲取店家資料失敗')
+    console.error('獲取店家資料失敗:', error);
+    storeState.error = '獲取店家資料失敗，請重試';
+    alert('獲取店家資料失敗');
   } finally {
-    loading.value = false
+    storeState.loading = false;
   }
-}
+};
 
 // 刪除店家
-const handleDelete = async (storeId) => {
-  if (!confirm('確定要刪除這個店家嗎？')) return
+const handleDelete = async (storeId, storeName) => {
+  if (!confirm(`確定要刪除「${storeName}」分店嗎？`)) return;
 
   try {
-    await axios.delete(`${API_BASE_URL}/store/${storeId}`)
-    await fetchStores() // 重新獲取列表
-    // alert('刪除成功')
+    await api.store.delete(storeId);
+    // 重新獲取店家列表，而不是手動從陣列中移除
+    await fetchStores();
   } catch (error) {
-    console.error('刪除店家失敗:', error)
-    alert('刪除店家失敗')
+    console.error('刪除店家失敗:', error);
+    alert('刪除店家失敗');
   }
-}
+};
 
 // 組件掛載時獲取資料
 onMounted(() => {
-  fetchStores()
-})
+  fetchStores();
+});
 </script>
 
 <style scoped>
