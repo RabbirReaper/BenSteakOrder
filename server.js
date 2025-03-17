@@ -37,6 +37,7 @@ const __dirname = path.dirname(__filename);
 mongoose.connect(`${process.env.MongoDB_url}`)
   .then(() => {
     console.log("MongoDB connected")
+    // initializeAdmin();
   })
   .then(async () => {
     // 取得 native db 實例
@@ -64,19 +65,35 @@ app.use('/order', orderRoutes);
 
 
 
-// const createAdmin = async () => {
+// import bcrypt from 'bcrypt';
+// import Admin from './server/models/Users/Admin.js';
+
+// // 創建初始管理員函式
+// const initializeAdmin = async () => {
 //   try {
-//     const adminData = {
+//     // 檢查是否已有管理員
+//     const adminCount = await Admin.countDocuments();
+//     if (adminCount > 0) {
+//       console.log('管理員已存在，跳過初始化');
+//       return;
+//     }
+
+//     // 創建密碼的雜湊值
+//     const salt = await bcrypt.genSalt(10);
+//     const hashedPassword = await bcrypt.hash('123456', salt);
+
+//     // 創建新的管理員
+//     const defaultAdmin = new Admin({
 //       name: 'atsaulio',
-//       password: '$2a$10$tDwA2dIPXJuj2v4qNiX/du/D5KUL7c41JdsEmW5Y5L15.yhO4U.uu'
-//     };
-//     await new Administrator(adminData).save();
-//     console.log('Admin created successfully');
+//       password: hashedPassword
+//     });
+
+//     await defaultAdmin.save();
+//     console.log('初始管理員創建成功！');
 //   } catch (error) {
-//     console.error('Error creating admin:', error);
+//     console.error('創建初始管理員失敗:', error);
 //   }
 // };
-
 
 
 app.get('*', (req, res) => {
