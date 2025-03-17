@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '@/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -372,7 +372,7 @@ export const useOrderStore = defineStore('order', {
         }));
 
         // 生成訂單號碼
-        const orderNumberRes = await axios.get(`${API_BASE_URL}/order/number`);
+        const orderNumberRes = await api.order.getOrderNumber();
         const orderNumber = orderNumberRes.data.number;
 
         // 創建訂單數據
@@ -392,7 +392,7 @@ export const useOrderStore = defineStore('order', {
         };
 
         // 創建新訂單
-        const { data: newOrder } = await axios.post(`${API_BASE_URL}/order`, orderData);
+        const { data: newOrder } = await api.order.create(orderData);
         // alert(`訂單建立成功，訂單編號: ${orderNumber}`);
 
         // 清空購物車
@@ -418,15 +418,15 @@ export const useOrderStore = defineStore('order', {
     async fetchMenuData() {
       try {
         // 獲取主餐
-        const mainDishesRes = await axios.get(`${API_BASE_URL}/dish/mainDish`);
+        const mainDishesRes = await api.dish.getAll('mainDish');
         this.menuData.mainDishes = mainDishesRes.data;
 
         // 獲取附餐
-        const elseDishesRes = await axios.get(`${API_BASE_URL}/dish/elseDish`);
+        const elseDishesRes = await api.dish.getAll('elseDish');
         this.menuData.elseDishes = elseDishesRes.data;
 
         // 獲取加點配料
-        const addonsRes = await axios.get(`${API_BASE_URL}/dish/addon`);
+        const addonsRes = await api.dish.getAll('addon');
         this.menuData.addons = addonsRes.data;
       } catch (error) {
         console.error("獲取菜單數據失敗:", error);
@@ -436,7 +436,7 @@ export const useOrderStore = defineStore('order', {
     // 獲取今日訂單
     async fetchTodayOrders(storeId) {
       try {
-        const response = await axios.get(`${API_BASE_URL}/order/today/${storeId}`);
+        const response = await api.order.getTodayStoreOrders(storeId);
         this.todayOrders = response.data;
       } catch (error) {
         console.error("獲取今日訂單失敗:", error);
@@ -454,12 +454,7 @@ export const useOrderStore = defineStore('order', {
         end.setHours(23, 59, 59, 999);
 
         // 使用 query 參數
-        const response = await axios.get(`${API_BASE_URL}/order/order/${storeId}`, {
-          params: {
-            start: start.toISOString(),
-            end: end.toISOString()
-          }
-        });
+        const response = await api.order.getStoreOrdersByTimeRange(storeId, start, end);
 
         this.todayOrders = response.data;
       } catch (error) {
@@ -492,9 +487,7 @@ export const useOrderStore = defineStore('order', {
       }
 
       try {
-        await axios.put(`${API_BASE_URL}/order/${orderId}`, {
-          orderStatus: status
-        });
+        await api.order.updateStatus(orderId, status);
 
         // 更新本地數據
         this.todayOrders = this.todayOrders.map(order => {
