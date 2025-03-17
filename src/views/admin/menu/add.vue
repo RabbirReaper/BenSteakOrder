@@ -152,7 +152,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import api from '@/api'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -182,7 +182,7 @@ const getDishes = (itemModel) => {
 // 獲取指定類型的餐點
 const fetchDishes = async (endpoint) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/dish${endpoint}`)
+    const response = await api.dish.getAll(endpoint);
     return response.data
   } catch (error) {
     console.error('Error fetching dishes:', error)
@@ -194,9 +194,9 @@ const fetchDishes = async (endpoint) => {
 const initializeDishes = async () => {
   try {
     const [mainResponse, elseResponse, rawResponse] = await Promise.all([
-      fetchDishes('/mainDish'),
-      fetchDishes('/elseDish'),
-      fetchDishes('/rawMeat')
+      fetchDishes('mainDish'),
+      fetchDishes('elseDish'),
+      fetchDishes('rawMeat')
     ])
     
     mainDishes.value = mainResponse
@@ -301,7 +301,7 @@ const saveMenu = async () => {
       }))
     }
     
-    await axios.post(`${API_BASE_URL}/menu`, menuToSave)
+    await api.menu.create(menuToSave);
     alert('菜單儲存成功！')
     router.push('./show')
   } catch (error) {
