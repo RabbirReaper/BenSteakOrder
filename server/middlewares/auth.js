@@ -35,6 +35,7 @@ export const isSuperAdmin = async (req, res, next) => {
   } catch (error) {
     return res.status(500).json({ message: '伺服器錯誤' });
   }
+  return next();
 };
 
 // 分店管理員是否登入
