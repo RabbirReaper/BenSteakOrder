@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 // 引入頁面
-import LoginView from '@/views/auth/loginView.vue'
+import AuthLoginView from '@/views/auth/loginView.vue'
 import StaffOrder from '@/views/staff/index.vue'
 import CustomerMenu from '@/views/customer/menu.vue'
 import NotFound from '@/views/notFound.vue'
@@ -16,7 +16,7 @@ import StoreAdd from '@/views/admin/store/add.vue'
 import StoreShow from '@/views/admin/store/show.vue'
 import StoreEdit from '@/views/admin/store/edit.vue'
 import Confirmation from '@/views/customer/confirmation.vue'
-
+import api from '@/api'
 
 
 const isLoggedIn = async () => {
@@ -35,13 +35,13 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: LoginView, // 登入頁面
+      component: AuthLoginView, // 登入頁面
     },
     {
       path: '/admin',
       name: 'admin',
       component: AdminIndex,
-      meta: { requiresAuth: false }, // 需要登入
+      meta: { requiresAuth: true }, // 需要登入
       children: [
         // 餐點新增介面 - 新增、修改、刪除
         {
@@ -146,7 +146,7 @@ router.beforeEach(async (to, from, next) => {
     const loggedIn = await isLoggedIn();
     if (!loggedIn) {
       return next({
-        path: '/auth/login',
+        path: '/login',
         query: { redirect: to.fullPath }
       });
     }

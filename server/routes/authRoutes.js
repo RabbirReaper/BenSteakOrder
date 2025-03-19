@@ -1,11 +1,15 @@
 import express from "express";
 import * as authController from '../controllers/auth.js';
-import { checkAuth } from '../middlewares/auth.js';
+import { isSuperAdmin } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-// 登入路由
-router.post('/login', authController.login);
+// 管理員登入路由
+router.post('/admin/login', authController.authLogin);
+
+// 客戶登入路由
+
+router.post('/customer/login', authController.customerLogin);
 
 // 登出路由
 router.post('/logout', authController.logout);
@@ -14,9 +18,12 @@ router.post('/logout', authController.logout);
 router.get('/current_user', authController.getCurrentUser);
 
 // 創建新管理員（需驗證）
-router.post('/createUser', checkAuth, authController.createUser);
+router.post('/createAdmin', isSuperAdmin, authController.createAdmin);
 
 // 刪除管理員（需驗證）
-router.delete('/deleteUser/:id', checkAuth, authController.deleteUser);
+router.delete('/deleteUser/:id', isSuperAdmin, authController.deleteUser);
+
+// 客戶註冊
+router.post('/customer/register', authController.customerRegister);
 
 export default router;

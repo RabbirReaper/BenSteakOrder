@@ -9,13 +9,34 @@
 export default function(apiClient) {
   return {
     /**
-     * 用戶登入
-     * @param {string} name - 用戶名
+     * 管理員登入
+     * @param {string} name - 管理員用戶名
      * @param {string} password - 密碼
      * @returns {Promise} - API 響應
      */
-    login(name, password) {
-      return apiClient.post('/auth/login', { name, password });
+    adminLogin(name, password) {
+      return apiClient.post('/auth/admin/login', { name, password });
+    },
+
+    /**
+     * 客戶登入
+     * @param {string} phoneNumber - 客戶電話號碼
+     * @param {string} password - 密碼
+     * @returns {Promise} - API 響應
+     */
+    customerLogin(phoneNumber, password) {
+      return apiClient.post('/auth/customer/login', { phoneNumber, password });
+    },
+
+    /**
+     * 客戶註冊
+     * @param {string} name - 客戶姓名
+     * @param {string} phoneNumber - 客戶電話號碼
+     * @param {string} password - 密碼
+     * @returns {Promise} - API 響應
+     */
+    customerRegister(name, phoneNumber, password) {
+      return apiClient.post('/auth/customer/register', { name, phoneNumber, password });
     },
 
     /**
@@ -46,6 +67,25 @@ export default function(apiClient) {
         console.error('檢查登入狀態失敗:', error);
         return false;
       }
+    },
+
+    /**
+     * 創建新管理員（僅限超級管理員）
+     * @param {string} name - 新管理員用戶名
+     * @param {string} password - 密碼
+     * @returns {Promise} - API 響應
+     */
+    createAdmin(name, password) {
+      return apiClient.post('/auth/createAdmin', { name, password });
+    },
+
+    /**
+     * 刪除管理員（僅限超級管理員）
+     * @param {string} id - 要刪除的管理員ID
+     * @returns {Promise} - API 響應
+     */
+    deleteAdmin(id) {
+      return apiClient.delete(`/auth/deleteUser/${id}`);
     }
   };
 }

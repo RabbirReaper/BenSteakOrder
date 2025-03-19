@@ -1,236 +1,245 @@
 <template>
   <div class="login-container">
-    <div class="login-card">
-      <h2 class="login-title">犇野牛排管理系統</h2>
-      <form @submit.prevent="handleLogin" class="login-form">
-        <div class="alert alert-danger" v-if="authState.error">{{ authState.error }}</div>
-        
-        <div class="form-group">
-          <label for="username">管理員帳號</label>
-          <input 
-            type="text" 
-            id="username" 
-            v-model="authState.username" 
-            class="form-control" 
-            :disabled="authState.loading"
-            required
-          />
-        </div>
-        
-        <div class="form-group">
-          <label for="password">密碼</label>
-          <div class="password-field">
-            <input 
-              :type="showPassword ? 'text' : 'password'" 
-              id="password" 
-              v-model="authState.password" 
-              class="form-control"
-              :disabled="authState.loading" 
-              required
-            />
-            <button 
-              type="button" 
-              class="password-toggle" 
-              @click="showPassword = !showPassword"
-            >
-              <i class="bi" :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
-            </button>
-          </div>
-        </div>
-        
+    <h2>登入系統</h2>
+    
+    <div class="role-toggle mb-4">
+      <div class="btn-group w-100">
         <button 
-          type="submit" 
-          class="btn btn-primary btn-block" 
-          :disabled="authState.loading"
+          @click="loginType = 'admin'"
+          :class="['btn', loginType === 'admin' ? 'btn-primary' : 'btn-outline-primary']"
         >
-          <span v-if="authState.loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-          {{ authState.loading ? '登入中...' : '登入' }}
+          管理員登入
         </button>
-      </form>
+        <button 
+          @click="loginType = 'customer'"
+          :class="['btn', loginType === 'customer' ? 'btn-primary' : 'btn-outline-primary']"
+        >
+          會員登入
+        </button>
+      </div>
+    </div>
+    
+    <form @submit.prevent="handleLogin">
+      <!-- 管理員登入表單 -->
+      <template v-if="loginType === 'admin'">
+        <div class="form-group">
+          <label for="username">用戶名:</label>
+          <input type="text" id="username" v-model="username" required />
+        </div>
+        <div class="form-group">
+          <label for="password">密碼:</label>
+          <input type="password" id="password" v-model="password" required />
+        </div>
+      </template>
+      
+      <!-- 客戶登入表單 -->
+      <template v-else>
+        <div class="form-group">
+          <label for="phoneNumber">電話號碼:</label>
+          <input type="text" id="phoneNumber" v-model="phoneNumber" required />
+        </div>
+        <div class="form-group">
+          <label for="customerPassword">密碼:</label>
+          <input type="password" id="customerPassword" v-model="customerPassword" required />
+        </div>
+        <div class="text-end">
+          <a href="#" @click.prevent="showRegisterModal = true">註冊新帳號</a>
+        </div>
+      </template>
+      
+      <button type="submit">登入</button>
+    </form>
+    
+    <!-- 註冊彈窗 -->
+    <div v-if="showRegisterModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3>註冊新帳號</h3>
+        <form @submit.prevent="handleRegister">
+          <div class="form-group">
+            <label for="registerName">姓名:</label>
+            <input type="text" id="registerName" v-model="registerForm.name" required />
+          </div>
+          <div class="form-group">
+            <label for="registerPhone">電話號碼:</label>
+            <input type="text" id="registerPhone" v-model="registerForm.phoneNumber" required />
+          </div>
+          <div class="form-group">
+            <label for="registerPassword">密碼 (可選):</label>
+            <input type="password" id="registerPassword" v-model="registerForm.password" />
+            <small>若不填寫，將使用電話號碼作為預設密碼</small>
+          </div>
+          <div class="button-group">
+            <button type="button" @click="showRegisterModal = false">取消</button>
+            <button type="submit">註冊</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/api'
 
+const loginType = ref('admin') // 'admin' 或 'customer'
+const username = ref('')
+const password = ref('')
+const phoneNumber = ref('')
+const customerPassword = ref('')
 const router = useRouter()
 const route = useRoute()
 
-// 集中管理認證狀態
-const authState = reactive({
-  username: '',
-  password: '',
-  loading: false,
-  error: null
+// 註冊相關
+const showRegisterModal = ref(false)
+const registerForm = ref({
+  name: '',
+  phoneNumber: '',
+  password: ''
 })
-
-// 密碼顯示控制
-const showPassword = ref(false)
 
 // 登入函數
 const handleLogin = async () => {
-  if (authState.loading) return;
-  
-  // 清除先前的錯誤提示
-  authState.error = null;
-  authState.loading = true;
-
   try {
-    // 使用 API 模組進行登入
-    const response = await api.auth.login(authState.username, authState.password);
+    let response;
     
-    if (response.data === 'Login successful') {
-      // 登入成功，導向首頁或指定的重定向頁面
-      const redirectPath = route.query.redirect || '/admin';
-      router.push(redirectPath);
-    }
-  } catch (error) {
-    console.error('登入失敗:', error);
-    
-    // 處理錯誤顯示
-    if (error.response) {
-      // 服務器返回了錯誤狀態碼
-      authState.error = error.response.data || '登入失敗，請檢查帳號和密碼';
-    } else if (error.request) {
-      // 請求已發送但沒有收到響應
-      authState.error = '網路連線問題，請稍後再試';
+    if (loginType.value === 'admin') {
+      // 管理員登入
+      response = await api.auth.adminLogin(username.value, password.value);
+      
+      if (response.data.success) {
+        // 根據角色導向不同頁面
+        if (response.data.role === 'super_admin') {
+          router.push('/admin')
+        } else {
+          router.push(`/admin/store/${response.data.storeId}`)
+        }
+      }
     } else {
-      // 發生其他錯誤
-      authState.error = '登入過程中發生錯誤';
-    }
-  } finally {
-    authState.loading = false;
-  }
-}
-
-// 檢查登入狀態，如果已登入則重定向
-const checkLoginStatus = async () => {
-  try {
-    const isLoggedIn = await api.auth.checkLoginStatus();
-    if (isLoggedIn) {
-      router.push('/admin');
+      // 客戶登入
+      response = await api.auth.customerLogin(phoneNumber.value, customerPassword.value);
+      
+      if (response.data.success) {
+        router.push('/customer/profile')
+      }
     }
   } catch (error) {
-    console.error('檢查登入狀態失敗:', error);
+    console.error('登入失敗:', error.response ? error.response.data : error)
+    alert('登入失敗: ' + (error.response ? error.response.data : error.message))
   }
 }
 
-// 組件掛載時檢查登入狀態
-onMounted(() => {
-  checkLoginStatus();
-})
+// 註冊函數
+const handleRegister = async () => {
+  try {
+    await api.auth.customerRegister(
+      registerForm.value.name,
+      registerForm.value.phoneNumber,
+      registerForm.value.password
+    );
+    
+    alert('註冊成功！請使用您的帳號登入')
+    showRegisterModal.value = false
+    
+    // 自動填入電話號碼，方便登入
+    phoneNumber.value = registerForm.value.phoneNumber
+    customerPassword.value = registerForm.value.password || registerForm.value.phoneNumber
+    
+    // 重置註冊表單
+    registerForm.value = {
+      name: '',
+      phoneNumber: '',
+      password: ''
+    }
+  } catch (error) {
+    console.error('註冊失敗:', error.response ? error.response.data : error)
+    alert('註冊失敗: ' + (error.response ? error.response.data : error.message))
+  }
+}
+
+// 共用登出函數（也可放在全局，方便其他元件調用）
+const handleLogout = async () => {
+  try {
+    await api.auth.logout();
+  } catch (error) {
+    console.error('登出錯誤:', error.response ? error.response.data : error)
+  } finally {
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('loginTime')
+    router.push('/login')
+  }
+}
 </script>
 
 <style scoped>
 .login-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f8f9fa;
-  padding: 20px;
-}
-
-.login-card {
-  width: 100%;
   max-width: 400px;
-  padding: 30px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-}
-
-.login-title {
-  text-align: center;
-  margin-bottom: 25px;
-  color: #333;
-  font-weight: bold;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .form-group {
-  margin-bottom: 0;
+  margin-bottom: 15px;
 }
 
 label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #444;
+  margin-bottom: 5px;
 }
 
-.form-control {
+input {
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
-  transition: border-color 0.2s;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
-.form-control:focus {
-  border-color: #4a7dde;
-  box-shadow: 0 0 0 0.2rem rgba(74, 125, 222, 0.25);
-  outline: none;
-}
-
-.password-field {
-  position: relative;
-}
-
-.password-toggle {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #666;
-  cursor: pointer;
-  padding: 0;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.password-toggle:hover {
-  color: #333;
-}
-
-.btn-block {
+button {
   width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  font-weight: 500;
-  background-color: #4a7dde;
-  border: none;
-  border-radius: 4px;
+  padding: 10px;
+  background-color: #007bff;
   color: white;
+  border: none;
+  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.2s;
 }
 
-.btn-block:hover:not(:disabled) {
-  background-color: #3a6ccd;
+button:hover {
+  background-color: #0056b3;
 }
 
-.btn-block:disabled {
-  background-color: #91a9e0;
-  cursor: not-allowed;
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
-.alert {
-  padding: 12px;
-  border-radius: 4px;
-  margin-bottom: 0;
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  width: 80%;
+  max-width: 500px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.role-toggle {
+  margin-bottom: 20px;
 }
 </style>
