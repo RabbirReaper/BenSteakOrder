@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-import Administrator from '../schemas/administratorSchema.js';
+import Administrator from './server/models/Users/Admin.js';
 
 dotenv.config();
 
