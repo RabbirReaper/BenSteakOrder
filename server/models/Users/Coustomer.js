@@ -5,7 +5,6 @@ const customerSchema = new mongoose.Schema({
   phoneNumber: { type: String, required: true }, // 顧客電話
   password: {
     type: String,
-    default: phoneNumber,
     required: true
   },
   coupons: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Coupon' }], // 顧客擁有的優惠券
