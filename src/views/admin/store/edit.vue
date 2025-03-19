@@ -187,7 +187,7 @@ const fetchStore = async () => {
   try {
     loading.value = true
     const storeId = route.params.id
-    const {data: storeData} = await api.store.get(storeId)
+    const {data: storeData} = await api.store.getById(storeId)
     storeForm.value = {
       name: storeData.name,
       menuItem: storeData.menuItem,
