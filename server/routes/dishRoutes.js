@@ -1,6 +1,6 @@
 import express from 'express';
 import * as dishController from '../controllers/dish.js';
-import { checkAuth } from '../middlewares/auth.js';
+import { isSuperAdmin } from '../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -11,12 +11,12 @@ router.get('/:type', dishController.getDishes);
 router.get('/:type/:id', dishController.getDishById);
 
 // 創建新餐點
-router.post('/:type', checkAuth, dishController.createDish);
+router.post('/:type', isSuperAdmin, dishController.createDish);
 
 // 更新餐點
-router.put('/:type/:id', checkAuth, dishController.updateDish);
+router.put('/:type/:id', isSuperAdmin, dishController.updateDish);
 
 // 刪除餐點
-router.delete('/:type/:id', checkAuth, dishController.deleteDish);
+router.delete('/:type/:id', isSuperAdmin, dishController.deleteDish);
 
 export default router;

@@ -1,6 +1,6 @@
 import express from 'express';
 import * as storeController from '../controllers/store.js';
-import { checkAuth } from '../middlewares/auth.js';
+import { isSuperAdmin } from '../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -11,12 +11,12 @@ router.get('/', storeController.getAllStores);
 router.get('/:id', storeController.getStoreById);
 
 // 創建店家 (需要驗證)
-router.post('/', checkAuth, storeController.createStore);
+router.post('/', isSuperAdmin, storeController.createStore);
 
 // 更新店家 (需要驗證)
-router.put('/:id', checkAuth, storeController.updateStore);
+router.put('/:id', isSuperAdmin, storeController.updateStore);
 
 // 刪除店家 (需要驗證)
-router.delete('/:id', checkAuth, storeController.deleteStore);
+router.delete('/:id', isSuperAdmin, storeController.deleteStore);
 
 export default router;
