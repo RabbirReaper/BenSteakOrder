@@ -19,6 +19,7 @@ mongoose.connect(process.env.MongoDB_url)
       }
       
       // 創建密碼
+      const name = 'atsaulio'; 
       const salt = await bcrypt.genSalt(10);
       const password = '123456';
       const hashedPassword = await bcrypt.hash(password, salt);
@@ -31,7 +32,7 @@ mongoose.connect(process.env.MongoDB_url)
       });
       
       await superAdmin.save();
-      console.log(`超級管理員創建成功！用戶名: superadmin, 密碼: ${password}`);
+      console.log(`超級管理員創建成功！用戶名: ${name}, 密碼: ${password}`);
     } catch (error) {
       console.error('創建超級管理員時出錯:', error);
     } finally {
