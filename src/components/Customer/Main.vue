@@ -29,7 +29,7 @@
             class="banner-img">
           <div class="banner-overlay"></div>
           <div class="banner-content">
-            <h1 class="banner-title">奔野牛排 {{ storeName }}</h1>
+            <h1 class="banner-title">犇野牛排 {{ storeName }}</h1>
             <p class="banner-subtitle">優質美食，精心烹調</p>
           </div>
         </div>
