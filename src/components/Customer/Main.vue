@@ -246,6 +246,16 @@ const navbarInit = () => {
 
 onMounted(() => {
   navbarInit();
+  
+  // 初始化 Bootstrap 的 dropdown 功能
+  import('bootstrap/js/dist/dropdown').then(module => {
+    const Dropdown = module.default;
+    // 獲取所有的 dropdown toggler 並初始化
+    const dropdownElementList = document.querySelectorAll('.dropdown-toggle');
+    dropdownElementList.forEach(dropdownToggleEl => {
+      new Dropdown(dropdownToggleEl);
+    });
+  });
 });
 </script>
 
