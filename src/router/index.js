@@ -1,6 +1,8 @@
+// 更新的路由配置，添加會員相關的路由
+
 import { createRouter, createWebHistory } from 'vue-router'
 
-// 引入頁面
+// 引入原有的頁面
 import AuthLoginView from '@/views/auth/loginView.vue'
 import StaffOrder from '@/views/staff/index.vue'
 import CustomerMenu from '@/views/customer/menu.vue'
@@ -16,8 +18,23 @@ import StoreAdd from '@/views/admin/store/add.vue'
 import StoreShow from '@/views/admin/store/show.vue'
 import StoreEdit from '@/views/admin/store/edit.vue'
 import Confirmation from '@/views/customer/confirmation.vue'
-import api from '@/api'
 
+// 引入新的會員相關頁面
+import CustomerLoginView from '@/views/customer/loginView.vue'
+import CustomerLoginForm from '@/components/Customer/LoginForm.vue'
+import CustomerLoginPassword from '@/components/Customer/LoginPassword.vue'
+import CustomerRegister from '@/components/Customer/Register.vue'
+import CustomerForgotPassword from '@/components/Customer/ForgotPassword.vue'
+import CustomerMyAccount from '@/views/customer/myAccount.vue'
+import CustomerAccountHome from '@/components/Customer/AccountHome.vue'
+import CustomerAccountEdit from '@/components/Customer/AccountEdit.vue'
+import CustomerPasswordEdit from '@/components/Customer/PasswordEdit.vue'
+import CustomerPoints from '@/components/Customer/Points.vue'
+import CustomerCoupons from '@/components/Customer/Coupons.vue'
+import CustomerOrders from '@/components/Customer/Orders.vue'
+import CustomerOrdering from '@/views/customer/ordering.vue'
+
+import api from '@/api'
 
 const isLoggedIn = async () => {
   try {
@@ -32,10 +49,11 @@ const isLoggedIn = async () => {
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // 原有路由
     {
       path: '/login',
       name: 'login',
-      component: AuthLoginView, // 登入頁面
+      component: AuthLoginView, // 管理員登入頁面
     },
     {
       path: '/admin',
@@ -43,7 +61,7 @@ const router = createRouter({
       component: AdminIndex,
       meta: { requiresAuth: false }, // 需要登入
       children: [
-        // 餐點新增介面 - 新增、修改、刪除
+        // 餐點管理相關路由
         {
           path: 'dish/add',
           name: 'admin-dish-add',
@@ -56,10 +74,10 @@ const router = createRouter({
         },
         {
           path: 'dish/:type/:id',
-          name: 'admin-dish-showbyid',
+          name: 'admin-dish-edit',
           component: DishEdit,
         },
-        // 菜單新增介面
+        // 菜單管理相關路由
         {
           path: 'menu/add',
           name: 'admin-menu-add',
@@ -72,10 +90,10 @@ const router = createRouter({
         },
         {
           path: 'menu/:id',
-          name: 'admin-menu-Edit',
+          name: 'admin-menu-edit',
           component: MenuEdit,
         },
-        // 店家新增介面
+        // 店家管理相關路由
         {
           path: 'store/add',
           name: 'admin-store-add',
@@ -102,18 +120,6 @@ const router = createRouter({
           name: 'admin-orders-detail',
           component: () => import('@/views/admin/order/detail.vue'),
         }
-        // // 營收及訂單列表與統計
-        // {
-        //   path: 'sales',
-        //   name: 'admin-sales',
-        //   component: SalesOrdersStats,
-        // },
-        // // 訂單列表
-        // {
-        //   path: 'sales/list',
-        //   name: 'admin-order-list',
-        //   component: OrderList,
-        // },
       ],
     },
     {
@@ -123,15 +129,91 @@ const router = createRouter({
       meta: { requiresAuth: false }, // 需要登入
     },
     {
-      path: '/customer/:store',
-      name: 'customer',
-      component: CustomerMenu,
-    },
-    {
       path: '/confirmation/:orderId',
       name: 'confirmation',
       component: Confirmation,
     },
+    
+    // 新增會員相關路由
+    {
+      path: '/customer/login',
+      name: 'customer-login',
+      component: CustomerLoginView,
+      children: [
+        {
+          path: '',
+          name: 'customer-login-form',
+          component: CustomerLoginForm,
+        },
+        {
+          path: 'password',
+          name: 'customer-login-password',
+          component: CustomerLoginPassword,
+        },
+        {
+          path: 'register',
+          name: 'customer-register',
+          component: CustomerRegister,
+        },
+        {
+          path: 'forgot-password',
+          name: 'customer-forgot-password',
+          component: CustomerForgotPassword,
+        }
+      ]
+    },
+    {
+      path: '/customer/my-account',
+      name: 'customer-my-account',
+      component: CustomerMyAccount,
+      meta: { requiresCustomerAuth: true },
+      children: [
+        {
+          path: '',
+          name: 'customer-account-home',
+          component: CustomerAccountHome,
+        },
+        {
+          path: 'edit',
+          name: 'customer-account-edit',
+          component: CustomerAccountEdit,
+        },
+        {
+          path: 'password/edit',
+          name: 'customer-password-edit',
+          component: CustomerPasswordEdit,
+        },
+        {
+          path: 'points',
+          name: 'customer-points',
+          component: CustomerPoints,
+        },
+        {
+          path: 'coupons',
+          name: 'customer-coupons',
+          component: CustomerCoupons,
+        },
+        {
+          path: 'orders',
+          name: 'customer-orders',
+          component: CustomerOrders,
+        }
+      ]
+    },
+    {
+      path: '/customer/ordering/:store',
+      name: 'customer-ordering',
+      component: CustomerOrdering,
+    },
+    
+    // 重新導向舊的顧客路由到新的線上點餐入口
+    {
+      path: '/customer/:store',
+      name: 'menu',
+      component: CustomerMenu,
+    },
+    
+    // 404 頁面
     {
       path: '/:pathMatch(.*)*',
       name: "NotFound",
@@ -140,8 +222,9 @@ const router = createRouter({
   ],
 })
 
-// // 全局前置守衛
+// 全局前置守衛
 router.beforeEach(async (to, from, next) => {
+  // 管理員授權檢查
   if (to.meta.requiresAuth) {
     const loggedIn = await isLoggedIn();
     if (!loggedIn) {
@@ -151,6 +234,18 @@ router.beforeEach(async (to, from, next) => {
       });
     }
   }
+  
+  // 會員授權檢查
+  if (to.meta.requiresCustomerAuth) {
+    const isCustomerLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    if (!isCustomerLoggedIn) {
+      return next({
+        path: '/customer/login',
+        query: { redirect: to.fullPath }
+      });
+    }
+  }
+  
   next();
 });
 

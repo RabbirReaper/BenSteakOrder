@@ -1,4 +1,3 @@
-<!-- MenuListing.vue -->
 <template>
   <div class="menu-listing">
     <!-- 固定導航欄 -->
@@ -10,7 +9,23 @@
               <i class="bi bi-fire brand-icon me-2"></i>奔野牛排 {{ storeName }}
             </a>
             <div class="nav-icons">
-              <a class="nav-icon" href="#">
+              <template v-if="isLoggedIn">
+                <div class="dropdown">
+                  <button class="btn nav-icon dropdown-toggle" type="button" id="userMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle me-1"></i>
+                    <span class="login-text">{{ customerName }}</span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuDropdown">
+                    <li><a class="dropdown-item" href="#" @click.prevent="$emit('account')">會員專區</a></li>
+                    <li><a class="dropdown-item" href="#" @click.prevent="$emit('account')">我的點數</a></li>
+                    <li><a class="dropdown-item" href="#" @click.prevent="$emit('account')">我的優惠券</a></li>
+                    <li><a class="dropdown-item" href="#" @click.prevent="$emit('account')">我的訂單</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#" @click.prevent="logout">登出</a></li>
+                  </ul>
+                </div>
+              </template>
+              <a v-else class="nav-icon" href="#" @click.prevent="$emit('login')">
                 <i class="bi bi-person-circle"></i>
                 <span class="login-text">登入</span>
               </a>
@@ -29,7 +44,7 @@
             class="banner-img">
           <div class="banner-overlay"></div>
           <div class="banner-content">
-            <h1 class="banner-title">犇野牛排 {{ storeName }}</h1>
+            <h1 class="banner-title">奔野牛排 {{ storeName }}</h1>
             <p class="banner-subtitle">優質美食，精心烹調</p>
           </div>
         </div>
@@ -118,6 +133,7 @@
 
 <script setup>
 import { onMounted, onUnmounted } from 'vue';
+import api from '@/api';
 
 const props = defineProps({
   storeName: {
@@ -143,10 +159,18 @@ const props = defineProps({
   storeImage: {
     type: Object,
     default: () => null
+  },
+  isLoggedIn: {
+    type: Boolean,
+    default: false
+  },
+  customerName: {
+    type: String,
+    default: ''
   }
 });
 
-const emit = defineEmits(['select-item']);
+const emit = defineEmits(['select-item', 'login', 'account']);
 
 // 取得分類中的菜單項目並排序
 const getItemsInCategory = (category) => {
@@ -163,6 +187,24 @@ const getItemsInCategory = (category) => {
 const truncateDescription = (text, maxLength) => {
   if (!text) return '';
   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+};
+
+// 登出
+const logout = async () => {
+  try {
+    // 調用登出 API
+    await api.auth.logout();
+    
+    // 清除本地存儲
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('customerName');
+    
+    // 重新載入頁面
+    window.location.reload();
+  } catch (error) {
+    console.error('登出失敗:', error);
+    alert('登出失敗，請稍後再試。');
+  }
 };
 
 // 導航欄滾動效果初始化
