@@ -81,8 +81,6 @@ const selectedItem = ref(null);
 const cart = ref([]);
 const showCart = ref(false);
 
-// Bootstrap modal instance
-let cartModal = null;
 
 // 用戶狀態
 const isLoggedIn = computed(() => {
@@ -186,11 +184,6 @@ const addToCart = (item) => {
   // console.log(cart.value);
 };
 
-const openCartModal = () => {
-  if (cartModal) {
-    cartModal.show();
-  }
-};
 
 const updateCartItemQuantity = (index, change) => {
   const newQuantity = cart.value[index].quantity + change;
@@ -250,19 +243,6 @@ const calculateTotal = () => {
   return cart.value.reduce((total, item) => total + (item.price * item.quantity), 0);
 };
 
-// Initialize Bootstrap modal
-const initModal = () => {
-  // Import Bootstrap's modal JavaScript
-  import('bootstrap/js/dist/modal').then(module => {
-    const Modal = module.default;
-
-    // Initialize cart modal
-    const cartModalElement = document.getElementById('cartModal');
-    if (cartModalElement) {
-      cartModal = new Modal(cartModalElement);
-    }
-  });
-};
 
 // 保持原始檔案的 onMounted 邏輯，這很重要
 onMounted(async () => {
@@ -272,7 +252,6 @@ onMounted(async () => {
   if (!menu.value.list || menu.value.list.length === 0) {
     await fetchMenu();
   }
-  initModal();
 });
 </script>
 
