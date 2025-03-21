@@ -65,7 +65,7 @@ import ShoppingCart from '@/components/Customer/ShoppingCart.vue';
 const route = useRoute();
 const router = useRouter();
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const storeId = route.params.store;
+const storeId = route.params.store_id;
 const queryOrderType = route.query.orderType;
 const queryTable = route.query.table;
 const queryCouponId = route.query.couponId;

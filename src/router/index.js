@@ -201,7 +201,7 @@ const router = createRouter({
       ]
     },
     {
-      path: '/customer/ordering/:store',
+      path: '/customer/ordering/:store_id',
       name: 'customer-ordering',
       component: CustomerOrdering,
     },
