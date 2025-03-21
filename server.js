@@ -12,6 +12,8 @@ import cloudinaryRoutes from './server/routes/cloudinaryRoutes.js';
 import orderRoutes from './server/routes/orderRoutes.js';
 import authRoutes from './server/routes/authRoutes.js'
 import { configureSession } from './server/middlewares/auth.js';
+import customerRoutes from './server/routes/customerRoutes.js';
+
 
 
 dotenv.config()
@@ -51,7 +53,7 @@ app.use('/menu', menuRoutes);
 app.use('/store', storeRoutes);
 app.use('/image', cloudinaryRoutes);
 app.use('/order', orderRoutes);
-
+app.use('/customer', customerRoutes);
 
 
 
