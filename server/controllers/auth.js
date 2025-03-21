@@ -1,11 +1,8 @@
 import bcrypt from 'bcrypt';
 import Administrator from '../models/Users/Admin.js';
-import Customer from '../models/Users/Customer.js';
-
-
 
 // 管理員登入
-export const authLogin =  async (req, res) => {
+export const authLogin = async (req, res) => {
   try {
     const { name, password } = req.body;
     const admin = await Administrator.findOne({ name });
@@ -35,35 +32,8 @@ export const authLogin =  async (req, res) => {
   }
 };
 
-// 客戶登入
-export const customerLogin =  async (req, res) => {
-  try {
-    const { phoneNumber, password } = req.body;
-    const customer = await Customer.findOne({ phoneNumber });
-
-    if (!customer) {
-      return res.status(401).send('電話號碼或密碼錯誤');
-    }
-
-    const validPassword = password === customer.password || await bcrypt.compare(password, customer.password);
-    if (validPassword) {
-      req.session.customer_id = customer._id;
-      req.session.role = 'customer';
-      return res.send({
-        success: true,
-        name: customer.name
-      });
-    } else {
-      return res.status(401).send('電話號碼或密碼錯誤');
-    }
-  } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).send('伺服器錯誤');
-  }
-};
-
 // 創建管理員（僅限超級管理員）
-export const createAdmin =  async (req, res) => {
+export const createAdmin = async (req, res) => {
   try {
     const { name, password, role, managedStore } = req.body;
 
@@ -94,45 +64,15 @@ export const createAdmin =  async (req, res) => {
   }
 };
 
-// 客戶註冊
-export const customerRegister =  async (req, res) => {
-  try {
-    const { name, phoneNumber, password } = req.body;
-    
-    // 檢查必填欄位
-    if (!name || !phoneNumber) {
-      return res.status(400).send('姓名和電話號碼為必填欄位');
-    }
-    
-    // 檢查電話號碼是否已存在
-    const existingCustomer = await Customer.findOne({ phoneNumber });
-    if (existingCustomer) {
-      return res.status(400).send('此電話號碼已被註冊');
-    }
-    
-    // 創建新客戶
-    const newCustomer = new Customer({
-      name,
-      phoneNumber,
-      password: password || phoneNumber // 如果沒有密碼，預設為電話號碼
-    });
-    
-    await newCustomer.save();
-    res.status(201).send('註冊成功');
-  } catch (error) {
-    console.error('Customer registration error:', error);
-    res.status(500).send('伺服器錯誤');
-  }
-};
-
 // 處理登出
 export const logout = (req, res) => {
   req.session.user_id = null;
+  req.session.customer_id = null;
   res.send('Logout successful');
 };
 
 // 獲取當前用戶信息
-export const getCurrentUser =  (req, res) => {
+export const getCurrentUser = (req, res) => {
   if (req.session.user_id) {
     // 管理員登入
     res.json({ 
@@ -152,7 +92,6 @@ export const getCurrentUser =  (req, res) => {
     res.json({ loggedIn: false });
   }
 };
-
 
 // 刪除管理員
 export const deleteUser = async (req, res) => {
