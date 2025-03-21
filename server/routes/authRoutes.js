@@ -7,10 +7,6 @@ const router = express.Router();
 // 管理員登入路由
 router.post('/admin/login', authController.authLogin);
 
-// 客戶登入路由
-
-router.post('/customer/login', authController.customerLogin);
-
 // 登出路由
 router.post('/logout', authController.logout);
 
@@ -22,8 +18,5 @@ router.post('/createAdmin', isSuperAdmin, authController.createAdmin);
 
 // 刪除管理員（需驗證）
 router.delete('/deleteUser/:id', isSuperAdmin, authController.deleteUser);
-
-// 客戶註冊
-router.post('/customer/register', authController.customerRegister);
 
 export default router;
