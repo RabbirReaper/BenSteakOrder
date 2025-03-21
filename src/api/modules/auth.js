@@ -19,27 +19,6 @@ export default function(apiClient) {
     },
 
     /**
-     * 客戶登入
-     * @param {string} phoneNumber - 客戶電話號碼
-     * @param {string} password - 密碼
-     * @returns {Promise} - API 響應
-     */
-    customerLogin(phoneNumber, password) {
-      return apiClient.post('/auth/customer/login', { phoneNumber, password });
-    },
-
-    /**
-     * 客戶註冊
-     * @param {string} name - 客戶姓名
-     * @param {string} phoneNumber - 客戶電話號碼
-     * @param {string} password - 密碼
-     * @returns {Promise} - API 響應
-     */
-    customerRegister(name, phoneNumber, password) {
-      return apiClient.post('/auth/customer/register', { name, phoneNumber, password });
-    },
-
-    /**
      * 用戶登出
      * @returns {Promise} - API 響應
      */
@@ -73,10 +52,17 @@ export default function(apiClient) {
      * 創建新管理員（僅限超級管理員）
      * @param {string} name - 新管理員用戶名
      * @param {string} password - 密碼
+     * @param {string} role - 角色 ('super_admin' 或 'store_admin')
+     * @param {string} managedStore - 管理的店家ID (僅對 store_admin 角色需要)
      * @returns {Promise} - API 響應
      */
-    createAdmin(name, password) {
-      return apiClient.post('/auth/createAdmin', { name, password });
+    createAdmin(name, password, role, managedStore) {
+      return apiClient.post('/auth/createAdmin', { 
+        name, 
+        password,
+        role,
+        managedStore
+      });
     },
 
     /**
