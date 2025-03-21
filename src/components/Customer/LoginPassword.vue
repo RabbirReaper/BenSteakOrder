@@ -134,7 +134,7 @@ const login = async () => {
         // 1. 先嘗試從 URL query 獲取
         // 2. 再嘗試從 localStorage 獲取
         // 3. 最後使用默認值 '1'
-        const storeId = route.query.store_id || localStorage.getItem('storeId') || '1';
+        const storeId = route.query.store_id || localStorage.getItem('store_Id') || '1';
         
         // 跳轉回店家頁面
         router.push(`/customer/ordering/${storeId}`);

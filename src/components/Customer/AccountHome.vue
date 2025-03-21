@@ -92,7 +92,7 @@ const customer = ref({
   points: 0,
   coupons: []
 });
-const storeId = localStorage.getItem('storeId') || '1';
+const storeId = localStorage.getItem('store_Id') || '1';
 
 // 獲取用戶名首字母作為頭像
 const userInitial = computed(() => {

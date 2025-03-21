@@ -104,7 +104,7 @@ const checkPhoneNumber = async () => {
     
     // 保存店家 ID 到 localStorage
     if (storeId) {
-      localStorage.setItem('storeId', storeId);
+      localStorage.setItem('store_Id', storeId);
     }
     
     // 檢查是否已註冊

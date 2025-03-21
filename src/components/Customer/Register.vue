@@ -507,7 +507,7 @@ const goToLogin = () => {
   }
   
   // 獲取 store_id
-  const storeId = route.query.store_id || localStorage.getItem('storeId') || '1';
+  const storeId = route.query.store_id || localStorage.getItem('store_Id') || '1';
   
   // 跳轉到登入頁面
   router.push({
