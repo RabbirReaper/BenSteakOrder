@@ -53,7 +53,7 @@ export const customerRegister = async (req, res) => {
       name,
       phoneNumber,
       password: hashedPassword,
-      birthday: birthday || undefined,
+      birthday: birthday ? new Date(birthday) : undefined,
       gender: gender || undefined,
       address: address || undefined
     });
@@ -125,7 +125,7 @@ export const updateCustomerProfile = async (req, res) => {
       req.session.customer_id,
       {
         name,
-        birthday: birthday || undefined,
+        birthday: birthday ? new Date(birthday) : undefined,
         gender: gender || undefined,
         address: address || undefined
       },
