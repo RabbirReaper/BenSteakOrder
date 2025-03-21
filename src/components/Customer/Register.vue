@@ -109,7 +109,7 @@
               >
               <label class="form-check-label" for="male">男性</label>
             </div>
-            <div class="form-check">
+            <div class="form-check me-4">
               <input 
                 class="form-check-input" 
                 type="radio" 
@@ -118,6 +118,16 @@
                 v-model="registrationForm.gender"
               >
               <label class="form-check-label" for="female">女性</label>
+            </div>
+            <div class="form-check">
+              <input 
+                class="form-check-input" 
+                type="radio" 
+                id="else" 
+                value="else" 
+                v-model="registrationForm.gender"
+              >
+              <label class="form-check-label" for="else">其他</label>
             </div>
           </div>
         </div>
