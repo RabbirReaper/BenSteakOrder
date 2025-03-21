@@ -92,6 +92,7 @@ const customer = ref({
   points: 0,
   coupons: []
 });
+const storeId = localStorage.getItem('storeId') || '1';
 
 // 獲取用戶名首字母作為頭像
 const userInitial = computed(() => {
@@ -115,7 +116,8 @@ const formattedPhone = computed(() => {
 
 // 返回上一頁
 const goBack = () => {
-  router.push('/customer/ordering/1'); // 假設餐廳ID為1
+  // 從 localStorage 獲取 storeId，如果沒有則使用默認值 '1'
+  router.push(`/customer/ordering/${storeId}`);
 };
 
 // 登出
@@ -129,7 +131,7 @@ const logout = async () => {
     localStorage.removeItem('customerName');
     
     // 跳轉到點餐頁面
-    router.push('/customer/ordering/1'); // 假設餐廳ID為1
+    router.push(`/customer/ordering/${storeId}`);
   } catch (error) {
     console.error('登出失敗:', error);
     alert('登出失敗，請稍後再試。');

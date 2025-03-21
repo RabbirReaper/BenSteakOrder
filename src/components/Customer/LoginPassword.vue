@@ -131,7 +131,12 @@ const login = async () => {
         localStorage.setItem('customerName', '測試用戶');
         
         // 獲取 storeId 並跳轉
-        const storeId = route.query.store_id || localStorage.getItem('store') || '1';
+        // 1. 先嘗試從 URL query 獲取
+        // 2. 再嘗試從 localStorage 獲取
+        // 3. 最後使用默認值 '1'
+        const storeId = route.query.store_id || localStorage.getItem('storeId') || '1';
+        
+        // 跳轉回店家頁面
         router.push(`/customer/ordering/${storeId}`);
       } else {
         // 登入失敗

@@ -67,7 +67,7 @@ const router = useRouter();
 const route = useRoute();
 
 // 取得店家ID
-const storeId = route.params.store_id;
+const storeId = route.query.store_id;
 const storeName = ref('');
 const restaurantImage = ref('');
 
@@ -102,6 +102,11 @@ const checkPhoneNumber = async () => {
     localStorage.setItem('phoneNumber', phoneNumber.value);
     localStorage.setItem('countryCode', selectedCountryCode.value);
     
+    // 保存店家 ID 到 localStorage
+    if (storeId) {
+      localStorage.setItem('storeId', storeId);
+    }
+    
     // 檢查是否已註冊
     try {
       // 這裡應該調用 API 檢查電話號碼是否存在
@@ -119,13 +124,19 @@ const checkPhoneNumber = async () => {
         // 已註冊，跳轉到密碼輸入頁面
         router.push({
           name: 'customer-login-password',
-          query: { phone: phoneNumber.value }
+          query: { 
+            phone: phoneNumber.value,
+            store_id: storeId
+          }
         });
       } else {
         // 未註冊，跳轉到註冊頁面
         router.push({
           name: 'customer-register',
-          query: { phone: phoneNumber.value }
+          query: { 
+            phone: phoneNumber.value,
+            store_id: storeId 
+          }
         });
       }
     } catch (error) {

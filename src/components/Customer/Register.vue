@@ -506,10 +506,16 @@ const goToLogin = () => {
     }
   }
   
+  // 獲取 store_id
+  const storeId = route.query.store_id || localStorage.getItem('storeId') || '1';
+  
   // 跳轉到登入頁面
   router.push({
     name: 'customer-login-password',
-    query: { phone: phoneNumber.value }
+    query: { 
+      phone: phoneNumber.value,
+      store_id: storeId
+    }
   });
 };
 
