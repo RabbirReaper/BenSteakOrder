@@ -42,7 +42,6 @@
             <span>我的點數</span>
           </div>
           <div class="d-flex align-items-center">
-            <span class="me-2 text-primary">{{ customer.coupons ? customer.coupons.length : 0 }} 張</span>
             <i class="bi bi-chevron-right"></i>
           </div>
         </div>
@@ -104,13 +103,13 @@ const userInitial = computed(() => {
 const formattedPhone = computed(() => {
   const countryCode = localStorage.getItem('countryCode') || '+886';
   const phone = customer.value.phoneNumber;
-  
+
   if (!phone) return '';
-  
+
   if (countryCode === '+886' && phone.startsWith('09')) {
     return `(${countryCode}) ${phone}`;
   }
-  
+
   return `${countryCode} ${phone}`;
 });
 
@@ -125,11 +124,11 @@ const logout = async () => {
   try {
     // 調用登出 API
     await api.auth.logout();
-    
+
     // 清除本地存儲
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('customerName');
-    
+
     // 跳轉到點餐頁面
     router.push(`/customer/ordering/${storeId}`);
   } catch (error) {
@@ -141,21 +140,10 @@ const logout = async () => {
 // 獲取會員資料
 const fetchCustomerData = async () => {
   try {
-    // 模擬 API 調用
-    // const response = await api.customer.getProfile();
-    
-    // 模擬數據
-    setTimeout(() => {
-      customer.value = {
-        name: localStorage.getItem('customerName') || '測試用戶',
-        phoneNumber: localStorage.getItem('phoneNumber') || '0912345678',
-        points: 1500,
-        coupons: [
-          { id: 1, name: '新會員折價券', discount: 50, expiryDate: '2023-12-31' },
-          { id: 2, name: '生日優惠券', discount: 100, expiryDate: '2023-11-30' }
-        ]
-      };
-    }, 500);
+    customer.value = {
+      name: localStorage.getItem('customerName'),
+      phoneNumber: localStorage.getItem('phoneNumber'),
+    };
   } catch (error) {
     console.error('獲取會員資料失敗:', error);
     alert('獲取會員資料失敗，請稍後再試。');
