@@ -385,26 +385,20 @@ const submitPasswordReset = async () => {
   try {
     isSubmitting.value = true;
     
-    // 準備重設密碼數據
-    const resetData = {
-      phoneNumber: phoneNumber.value,
-      newPassword: resetForm.value.newPassword
-    };
-    
-    // 這裡應該調用實際的 API 來提交重設密碼
-    // 模擬 API 調用
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // 嘗試重設密碼
     try {
-      // 假設重設密碼 API
-      // const response = await api.auth.resetPassword(resetData);
+      // 呼叫重設密碼 API
+      await api.customer.resetPassword(phoneNumber.value, resetForm.value.newPassword);
       
       // 重設成功，顯示成功 Modal
       showResetSuccessModal();
     } catch (error) {
       console.error('重設密碼失敗:', error);
-      alert('重設密碼失敗，請稍後再試。');
+      // 處理 API 錯誤
+      if (error.response && error.response.status === 404) {
+        alert('找不到該電話號碼對應的帳戶');
+      } else {
+        alert(error.response?.data || '重設密碼失敗，請稍後再試。');
+      }
     }
     
   } catch (error) {
