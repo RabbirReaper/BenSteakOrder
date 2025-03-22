@@ -11,7 +11,7 @@ export const customerLogin = async (req, res) => {
       return res.status(401).send('電話號碼或密碼錯誤');
     }
 
-    const validPassword = password === customer.password || await bcrypt.compare(password, customer.password);
+    const validPassword = await bcrypt.compare(password, customer.password);
     if (validPassword) {
       req.session.customer_id = customer._id;
       req.session.role = 'customer';
@@ -20,7 +20,9 @@ export const customerLogin = async (req, res) => {
         name: customer.name
       });
     } else {
-      return res.status(401).send('電話號碼或密碼錯誤');
+      return res.send({
+        success: false
+      });
     }
   } catch (error) {
     console.error('Login error:', error);
@@ -32,22 +34,22 @@ export const customerLogin = async (req, res) => {
 export const customerRegister = async (req, res) => {
   try {
     const { name, phoneNumber, password, birthday, gender, address } = req.body;
-    
+
     // 檢查必填欄位
     if (!name || !phoneNumber) {
       return res.status(400).send('姓名和電話號碼為必填欄位');
     }
-    
+
     // 檢查電話號碼是否已存在
     const existingCustomer = await Customer.findOne({ phoneNumber });
     if (existingCustomer) {
       return res.status(400).send('此電話號碼已被註冊');
     }
-    
+
     // 密碼加密
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password || phoneNumber, salt); // 如果沒有密碼，預設為電話號碼
-    
+
     // 創建新客戶
     const newCustomer = new Customer({
       name,
@@ -57,7 +59,7 @@ export const customerRegister = async (req, res) => {
       gender: gender || undefined,
       address: address || undefined
     });
-    
+
     await newCustomer.save();
     res.status(201).send('註冊成功');
   } catch (error) {
@@ -70,13 +72,13 @@ export const customerRegister = async (req, res) => {
 export const checkPhoneExists = async (req, res) => {
   try {
     const { phoneNumber } = req.params;
-    
+
     if (!phoneNumber) {
       return res.status(400).send('電話號碼為必填參數');
     }
-    
+
     const customer = await Customer.findOne({ phoneNumber });
-    
+
     return res.json({ exists: !!customer });
   } catch (error) {
     console.error('Check phone error:', error);
@@ -90,15 +92,15 @@ export const getCustomerProfile = async (req, res) => {
     if (!req.session.customer_id) {
       return res.status(401).send('請先登入');
     }
-    
+
     const customer = await Customer.findById(req.session.customer_id)
       .select('-password') // 不返回密碼欄位
       .populate('coupons');
-    
+
     if (!customer) {
       return res.status(404).send('找不到客戶資料');
     }
-    
+
     res.json(customer);
   } catch (error) {
     console.error('Get profile error:', error);
@@ -112,14 +114,14 @@ export const updateCustomerProfile = async (req, res) => {
     if (!req.session.customer_id) {
       return res.status(401).send('請先登入');
     }
-    
+
     const { name, birthday, gender, address } = req.body;
-    
+
     // 驗證資料
     if (!name) {
       return res.status(400).send('姓名為必填欄位');
     }
-    
+
     // 更新資料
     const updatedCustomer = await Customer.findByIdAndUpdate(
       req.session.customer_id,
@@ -131,11 +133,11 @@ export const updateCustomerProfile = async (req, res) => {
       },
       { new: true }
     ).select('-password');
-    
+
     if (!updatedCustomer) {
       return res.status(404).send('找不到客戶資料');
     }
-    
+
     res.json(updatedCustomer);
   } catch (error) {
     console.error('Update profile error:', error);
@@ -149,39 +151,39 @@ export const changePassword = async (req, res) => {
     if (!req.session.customer_id) {
       return res.status(401).send('請先登入');
     }
-    
+
     const { currentPassword, newPassword } = req.body;
-    
+
     // 驗證資料
     if (!currentPassword || !newPassword) {
       return res.status(400).send('目前密碼和新密碼為必填欄位');
     }
-    
+
     // 檢查密碼長度
     if (newPassword.length < 8 || newPassword.length > 32) {
       return res.status(400).send('密碼長度必須為 8-32 個字元');
     }
-    
+
     // 查找用戶
     const customer = await Customer.findById(req.session.customer_id);
     if (!customer) {
       return res.status(404).send('找不到客戶資料');
     }
-    
+
     // 驗證目前密碼
     const validPassword = currentPassword === customer.password || await bcrypt.compare(currentPassword, customer.password);
     if (!validPassword) {
       return res.status(401).send('目前密碼不正確');
     }
-    
+
     // 加密新密碼
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
-    
+
     // 更新密碼
     customer.password = hashedPassword;
     await customer.save();
-    
+
     res.send('密碼修改成功');
   } catch (error) {
     console.error('Change password error:', error);
@@ -193,31 +195,31 @@ export const changePassword = async (req, res) => {
 export const resetPassword = async (req, res) => {
   try {
     const { phoneNumber, newPassword } = req.body;
-    
+
     // 驗證資料
     if (!phoneNumber || !newPassword) {
       return res.status(400).send('電話號碼和新密碼為必填欄位');
     }
-    
+
     // 檢查密碼長度
     if (newPassword.length < 8 || newPassword.length > 32) {
       return res.status(400).send('密碼長度必須為 8-32 個字元');
     }
-    
+
     // 查找用戶
     const customer = await Customer.findOne({ phoneNumber });
     if (!customer) {
       return res.status(404).send('找不到客戶資料');
     }
-    
+
     // 加密新密碼
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
-    
+
     // 更新密碼
     customer.password = hashedPassword;
     await customer.save();
-    
+
     res.send('密碼重設成功');
   } catch (error) {
     console.error('Reset password error:', error);
@@ -231,23 +233,23 @@ export const getCustomerOrders = async (req, res) => {
     if (!req.session.customer_id) {
       return res.status(401).send('請先登入');
     }
-    
+
     const customer = await Customer.findById(req.session.customer_id)
       .populate({
         path: 'orders',
         populate: [
           { path: 'store' },
-          { 
+          {
             path: 'items.itemId',
           }
         ],
         options: { sort: { createdAt: -1 } } // 按訂單建立時間降序排序
       });
-    
+
     if (!customer) {
       return res.status(404).send('找不到客戶資料');
     }
-    
+
     res.json(customer.orders);
   } catch (error) {
     console.error('Get orders error:', error);
