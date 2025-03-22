@@ -5,9 +5,29 @@ const couponSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  type: {
+    type: String,
+    enum: ['discount', 'exchange'],
+    required: true
+  },
   discount: {
     type: Number,
-    required: true
+    required: function () { return this.type === 'discount'; }
+  },
+  items: {
+    itemModel: {
+      type: String,
+      required: function () { return this.type === 'exchange'; }
+    },
+    itemId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: function () { return this.type === 'exchange'; },
+      refPath: 'items.itemModel'
+    },
+    amount: {
+      type: Number,
+      default: 1
+    }
   }
 });
 
