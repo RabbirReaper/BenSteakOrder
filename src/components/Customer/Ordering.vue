@@ -64,11 +64,9 @@ import ShoppingCart from '@/components/Customer/ShoppingCart.vue';
 
 const route = useRoute();
 const router = useRouter();
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const storeId = route.params.store_id;
 const queryOrderType = route.query.orderType;
 const queryTable = route.query.table;
-const queryCouponId = route.query.couponId;
 
 // 狀態
 const store = ref({});
@@ -109,6 +107,7 @@ const fetchStore = async () => {
     // console.log(store.value);
   } catch (error) {
     console.error('Error fetching store:', error);
+    router.push('/');
   }
 };
 
