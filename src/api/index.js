@@ -8,6 +8,7 @@ import storeApi from './modules/store';
 import orderApi from './modules/order';
 import authApi from './modules/auth';
 import imageApi from './modules/image';
+import customerApi from './modules/customer';
 
 // 獲取 API 基礎 URL，從環境變數或默認值
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
@@ -52,6 +53,7 @@ export default {
   order: orderApi(apiClient),
   auth: authApi(apiClient),
   image: imageApi(apiClient),
+  customer: customerApi(apiClient),
   // 導出 axios 實例，方便直接使用
   client: apiClient,
 };
