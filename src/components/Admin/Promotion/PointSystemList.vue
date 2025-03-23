@@ -98,10 +98,9 @@
       </div>
     </div>
 
-    <!-- 添加/編輯點數系統模態框 -->
+    <!-- 添加點數系統模態框 -->
     <PointSystemForm
       v-if="showModal"
-      :show="showModal"
       @close="closeModal"
       @save="refreshData"
     />
@@ -214,7 +213,12 @@ const calculatedPoints = computed(() => {
   if (!selectedSystem.value || testAmount.value < selectedSystem.value.minAmount) {
     return 0;
   }
-  return api.pointSystem.testFormula(selectedSystem.value.formula, testAmount.value);
+  try {
+    return api.pointSystem.testFormula(selectedSystem.value.formula, testAmount.value);
+  } catch (err) {
+    console.error('計算點數失敗:', err);
+    return 0;
+  }
 });
 
 // 獲取點數系統列表
@@ -274,7 +278,8 @@ const closeModal = () => {
 const openTestFormula = (system) => {
   selectedSystem.value = system;
   testAmount.value = Math.max(system.minAmount, 1000);
-  new Modal(testFormulaModal.value).show();
+  const modal = new Modal(testFormulaModal.value);
+  modal.show();
 };
 
 // 確認刪除
@@ -284,7 +289,8 @@ const confirmDelete = (system) => {
     return;
   }
   selectedSystem.value = system;
-  new Modal(confirmDeleteModal.value).show();
+  const modal = new Modal(confirmDeleteModal.value);
+  modal.show();
 };
 
 // 刪除點數系統
@@ -294,7 +300,8 @@ const deleteSystem = async () => {
   try {
     isDeleting.value = true;
     await api.pointSystem.delete(selectedSystem.value._id);
-    Modal.getInstance(confirmDeleteModal.value).hide();
+    const modal = Modal.getInstance(confirmDeleteModal.value);
+    modal.hide();
     await fetchPointSystems();
   } catch (err) {
     console.error('刪除點數系統失敗:', err);
@@ -312,6 +319,8 @@ const refreshData = () => {
 // 組件掛載時獲取數據
 onMounted(() => {
   fetchPointSystems();
+  
+  // 初始化 Bootstrap 模態框引用
   testFormulaModal.value = document.getElementById('testFormulaModal');
   confirmDeleteModal.value = document.getElementById('confirmDeleteModal');
 });
