@@ -160,16 +160,20 @@ const saveProfile = async () => {
   try {
     isSubmitting.value = true;
     
-    // 這裡應該調用實際的 API 來保存個人資料
-    // 模擬 API 調用
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const response = await api.customer.updateProfile({
+      name: profileForm.value.name,
+      birthday: profileForm.value.birthday || null,
+      gender: profileForm.value.gender || null,
+      address: profileForm.value.address || null
+    });
     
-    // 模擬保存成功
-    showSaveSuccessModal();
-    
-    // 更新本地存儲的用戶名
-    localStorage.setItem('customerName', profileForm.value.name);
-    
+    if (response.data) {
+      // 保存成功，顯示成功提示
+      showSaveSuccessModal();
+      
+      // 更新本地存儲的用戶名
+      localStorage.setItem('customerName', profileForm.value.name);
+    }
   } catch (error) {
     console.error('保存個人資料失敗:', error);
     alert('保存失敗，請稍後再試。');
@@ -189,19 +193,30 @@ const showSaveSuccessModal = () => {
 // 獲取會員資料
 const fetchCustomerData = async () => {
   try {
-    // 模擬 API 調用
-    // const response = await api.customer.getProfile();
-    
-    // 模擬數據
-    setTimeout(() => {
+    // 嘗試使用 API 獲取會員資料
+    try {
+      const response = await api.customer.getProfile();
+      // 如果成功獲取到資料，使用 API 返回的資料
+      if (response.data) {
+        profileForm.value = {
+          name: response.data.name,
+          phoneNumber: response.data.phoneNumber,
+          birthday: response.data.birthday ? new Date(response.data.birthday).toISOString().split('T')[0] : '',
+          gender: response.data.gender || '',
+          address: response.data.address || ''
+        };
+      }
+    } catch (apiError) {
+      console.warn('API 獲取會員資料失敗，使用本地資料:', apiError);
+      // 如果 API 請求失敗，回退使用本地存儲的資料
       profileForm.value = {
-        name: localStorage.getItem('customerName') || '測試用戶',
-        phoneNumber: localStorage.getItem('phoneNumber') || '0912345678',
-        birthday: '1990-01-01',
-        gender: 'male',
-        address: '台北市信義區信義路五段7號'
+        name: localStorage.getItem('customerName'),
+        phoneNumber: localStorage.getItem('phoneNumber'),
+        birthday: '',
+        gender: '',
+        address: ''
       };
-    }, 500);
+    }
   } catch (error) {
     console.error('獲取會員資料失敗:', error);
     alert('獲取會員資料失敗，請稍後再試。');
