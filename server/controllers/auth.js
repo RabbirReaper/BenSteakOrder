@@ -1,11 +1,11 @@
 import bcrypt from 'bcrypt';
-import Administrator from '../models/Users/Admin.js';
+import Admin from '../models/Users/Admin.js';
 
 // 管理員登入
 export const authLogin = async (req, res) => {
   try {
     const { name, password } = req.body;
-    const admin = await Administrator.findOne({ name });
+    const admin = await Admin.findOne({ name });
 
     if (!admin) {
       return res.status(401).send('用戶名或密碼錯誤');
@@ -41,7 +41,7 @@ export const createAdmin = async (req, res) => {
     if (!name || !password) {
       return res.status(400).send('Name and password are required');
     }
-    
+
     if (role === 'store_admin' && !managedStore) {
       return res.status(400).send('Store admin must have a managed store');
     }
@@ -49,7 +49,7 @@ export const createAdmin = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newAdmin = new Administrator({
+    const newAdmin = new Admin({
       name,
       password: hashedPassword,
       role,
@@ -75,16 +75,16 @@ export const logout = (req, res) => {
 export const getCurrentUser = (req, res) => {
   if (req.session.user_id) {
     // 管理員登入
-    res.json({ 
-      loggedIn: true, 
+    res.json({
+      loggedIn: true,
       role: req.session.role,
       user_id: req.session.user_id,
       store_id: req.session.store_id || null
     });
   } else if (req.session.customer_id) {
     // 客戶登入
-    res.json({ 
-      loggedIn: true, 
+    res.json({
+      loggedIn: true,
       role: 'customer',
       user_id: req.session.customer_id
     });
@@ -101,7 +101,7 @@ export const deleteUser = async (req, res) => {
     }
 
     const userId = req.params.id;
-    const result = await Administrator.findByIdAndDelete(userId);
+    const result = await Admin.findByIdAndDelete(userId);
 
     if (!result) {
       return res.status(404).send('User not found');
