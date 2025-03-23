@@ -30,6 +30,12 @@
             訂單列表
           </router-link>
         </li>
+        <!-- 新增促銷管理選項 -->
+        <li class="nav-item">
+          <router-link to="/admin/promotion" class="nav-link text-white">
+            促銷管理
+          </router-link>
+        </li>
       </ul>
     </div>
 

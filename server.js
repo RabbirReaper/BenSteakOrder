@@ -13,6 +13,8 @@ import orderRoutes from './server/routes/orderRoutes.js';
 import authRoutes from './server/routes/authRoutes.js'
 import { configureSession } from './server/middlewares/auth.js';
 import customerRoutes from './server/routes/customerRoutes.js';
+import pointSystemRoutes from './server/routes/pointSystemRoutes.js';
+import couponRoutes from './server/routes/couponRoutes.js';
 
 
 
@@ -54,6 +56,8 @@ app.use('/store', storeRoutes);
 app.use('/image', cloudinaryRoutes);
 app.use('/order', orderRoutes);
 app.use('/customer', customerRoutes);
+app.use('/pointSystem', pointSystemRoutes);
+app.use('/coupon', couponRoutes);
 
 
 
@@ -65,4 +69,3 @@ app.get('*', (req, res) => {
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
 })
-

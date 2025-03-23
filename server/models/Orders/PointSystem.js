@@ -9,3 +9,4 @@ const pointSystemSchema = new mongoose.Schema({
 });
 
 export default mongoose.model("PointSystem", pointSystemSchema);
+
