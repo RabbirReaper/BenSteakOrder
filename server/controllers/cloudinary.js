@@ -16,7 +16,7 @@ export const uploadImage = async (req, res) => {
   try {
     // Upload
     const result = await cloudinary.uploader.upload(req.body.image, {
-      folder: 'beefpicture',
+      folder: `${process.env.CLOUDINARY_FOLDER}/`,
       resource_type: 'image',
       transformation: [{ quality: "auto", fetch_format: "auto" }]
     });
