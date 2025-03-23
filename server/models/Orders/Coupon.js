@@ -28,6 +28,19 @@ const couponSchema = new mongoose.Schema({
       type: Number,
       default: 1
     }
+  },
+  description: {
+    type: String
+  },
+  active: {
+    type: Boolean,
+    default: true
+  },
+  startAt:{
+    type: Date,
+  },
+  expireAt: {
+    type: Date,
   }
 });
 
