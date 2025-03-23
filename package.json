@@ -6,7 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:unit": "vitest run",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "test:components": "vitest run tests/unit/components",
+    "test:views": "vitest run tests/unit/views",
+    "test:e2e": "cypress run"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
