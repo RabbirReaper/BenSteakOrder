@@ -19,14 +19,14 @@ mongoose.connect(process.env.MongoDB_url)
       }
       
       // 創建密碼
-      const name = 'atsaulio'; 
+      const name = 'test'; 
       const salt = await bcrypt.genSalt(10);
       const password = '123456';
       const hashedPassword = await bcrypt.hash(password, salt);
       
       // 創建超級管理員
       const superAdmin = new Administrator({
-        name: 'atsaulio',
+        name: name,
         password: hashedPassword,
         role: 'super_admin'
       });
