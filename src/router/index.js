@@ -1,5 +1,3 @@
-// 更新的路由配置，添加會員相關的路由
-
 import { createRouter, createWebHistory } from 'vue-router'
 
 // 引入原有的頁面
@@ -34,6 +32,9 @@ import CustomerCoupons from '@/components/Customer/Coupons.vue'
 import CustomerOrders from '@/components/Customer/Orders.vue'
 import CustomerOrdering from '@/views/customer/ordering.vue'
 
+// 引入促銷管理相關頁面
+import PromotionIndex from '@/views/admin/promotion/index.vue'
+
 import api from '@/api'
 
 const isLoggedIn = async () => {
@@ -59,7 +60,7 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: AdminIndex,
-      meta: { requiresAuth: true }, // 需要登入
+      meta: { requiresAuth: false }, // 需要登入
       children: [
         // 餐點管理相關路由
         {
@@ -119,6 +120,12 @@ const router = createRouter({
           path: 'orders/:date',
           name: 'admin-orders-detail',
           component: () => import('@/views/admin/order/detail.vue'),
+        },
+        // 促銷管理相關路由
+        {
+          path: 'promotion',
+          name: 'admin-promotion',
+          component: PromotionIndex,
         }
       ],
     },
