@@ -78,32 +78,18 @@
                 </td>
                 <td>
                   <div class="btn-group">
-                    <button
-                      v-if="!isActive(coupon)"
-                      class="btn btn-sm btn-success"
-                      @click="toggleCouponStatus(coupon._id, true)"
-                      :disabled="isUpdating"
-                    >
+                    <button v-if="!isActive(coupon)" class="btn btn-sm btn-success"
+                      @click="toggleCouponStatus(coupon._id, true)" :disabled="isUpdating">
                       <i class="bi bi-check-circle"></i> 啟用
                     </button>
-                    <button
-                      v-else
-                      class="btn btn-sm btn-secondary"
-                      @click="toggleCouponStatus(coupon._id, false)"
-                      :disabled="isUpdating"
-                    >
+                    <button v-else class="btn btn-sm btn-secondary" @click="toggleCouponStatus(coupon._id, false)"
+                      :disabled="isUpdating">
                       <i class="bi bi-pause-circle"></i> 停用
                     </button>
-                    <button
-                      class="btn btn-sm btn-primary"
-                      @click="editCoupon(coupon)"
-                    >
+                    <button class="btn btn-sm btn-primary" @click="editCoupon(coupon)">
                       <i class="bi bi-pencil"></i> 編輯
                     </button>
-                    <button
-                      class="btn btn-sm btn-danger"
-                      @click="confirmDelete(coupon)"
-                    >
+                    <button class="btn btn-sm btn-danger" @click="confirmDelete(coupon)">
                       <i class="bi bi-trash"></i> 刪除
                     </button>
                   </div>
@@ -116,12 +102,7 @@
     </div>
 
     <!-- 添加/編輯優惠券模態框 -->
-    <CouponForm
-      v-if="showModal"
-      :editing-coupon="editingCoupon"
-      @close="closeModal"
-      @save="refreshData"
-    />
+    <CouponForm v-if="showModal" :editing-coupon="editingCoupon" @close="closeModal" @save="refreshData" />
 
     <!-- 確認刪除模態框 -->
     <div class="modal fade" id="confirmDeleteModal" tabindex="-1" ref="confirmDeleteModal">
@@ -137,18 +118,9 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-            <button
-              type="button"
-              class="btn btn-danger"
-              @click="deleteCoupon"
-              :disabled="isDeleting"
-            >
-              <span
-                v-if="isDeleting"
-                class="spinner-border spinner-border-sm me-2"
-                role="status"
-                aria-hidden="true"
-              ></span>
+            <button type="button" class="btn btn-danger" @click="deleteCoupon" :disabled="isDeleting">
+              <span v-if="isDeleting" class="spinner-border spinner-border-sm me-2" role="status"
+                aria-hidden="true"></span>
               確認刪除
             </button>
           </div>
@@ -195,7 +167,7 @@ const fetchCoupons = async () => {
 // 格式化兌換商品
 const formatExchangeItems = (items) => {
   if (!items || items.length === 0) return '無';
-  
+
   return items.map(item => {
     const amount = item.amount || 1;
     return `${item.name || '未知商品'} x ${amount}`;
@@ -217,19 +189,19 @@ const formatDateRange = (startAt, expireAt) => {
   } else if (expireAt) {
     return `至 ${formatDate(expireAt)}`;
   }
-  
+
   return '無限期';
 };
 
 // 檢查優惠券是否啟用
 const isActive = (coupon) => {
   if (!coupon.active) return false;
-  
+
   const now = new Date();
-  
+
   if (coupon.startAt && new Date(coupon.startAt) > now) return false;
   if (coupon.expireAt && new Date(coupon.expireAt) < now) return false;
-  
+
   return true;
 };
 
