@@ -145,15 +145,10 @@ const uploadImage = async () => {
   
   try {
     // 轉換檔案為 base64
-    const base64Image = await new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result)
-      reader.onerror = reject
-      reader.readAsDataURL(selectedImage.value)
-    })
+    const base64Image = await api.image.fileToBase64(selectedImage.value);
     
     // 上傳新圖片
-    const response = await api.image.upload({ image: base64Image }) 
+    const response = await api.image.upload(base64Image) 
 
     return response.data
   } catch (error) {
@@ -192,7 +187,7 @@ const handleSubmit = async () => {
         storeForm.value.image.publicId = imageData.public_id
       }
     }
-    console.log(storeForm.value)
+    // console.log(storeForm.value)
     await api.store.create(storeForm.value)
     router.push('./show')
   } catch (error) {
