@@ -1,19 +1,26 @@
 <template>
-  <div class="login-container">
-    <h2>管理員登入系統</h2>
-    
-    <form @submit.prevent="handleLogin">
-      <div class="form-group">
-        <label for="username">用戶名:</label>
-        <input type="text" id="username" v-model="username" required />
-      </div>
-      <div class="form-group">
-        <label for="password">密碼:</label>
-        <input type="password" id="password" v-model="password" required />
-      </div>
+  <div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card p-4 shadow" style="max-width: 400px; width: 100%">
+      <h2 class="text-center mb-4">管理員登入</h2>
       
-      <button type="submit">登入</button>
-    </form>
+      <form @submit.prevent="handleLogin">
+        <div class="mb-3">
+          <label for="username" class="form-label">用戶名</label>
+          <input type="text" id="username" v-model="username" class="form-control" required />
+        </div>
+        
+        <div class="mb-3">
+          <label for="password" class="form-label">密碼</label>
+          <input type="password" id="password" v-model="password" class="form-control" required />
+        </div>
+        
+        <div v-if="errorMessage" class="alert alert-danger" role="alert">
+          {{ errorMessage }}
+        </div>
+        
+        <button type="submit" class="btn btn-primary w-100">登入</button>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -24,90 +31,37 @@ import api from '@/api'
 
 const username = ref('')
 const password = ref('')
+const errorMessage = ref('') // 儲存錯誤訊息
 const router = useRouter()
 const route = useRoute()
 
 // 登入函數
 const handleLogin = async () => {
+  errorMessage.value = '' // 先清空錯誤訊息
   try {
-    // 管理員登入
-    const response = await api.auth.adminLogin(username.value, password.value);
-    
+    const response = await api.auth.adminLogin(username.value, password.value)
     if (response.data.success) {
-      // 獲取用戶角色和管理的店舖
-      const { role, storeId } = response.data;
-      
-      // 檢查是否有重定向路徑
-      const redirectPath = route.query.redirect;
+      const { role, storeId } = response.data
+      const redirectPath = route.query.redirect
       
       if (redirectPath) {
-        // 如果有重定向路徑，則導向該路徑
-        router.push(redirectPath);
+        router.push(redirectPath)
       } else {
-        // 沒有重定向路徑時，根據角色導向默認頁面
-        if (role === 'super_admin') {
-          router.push('/admin');
-        } else if (role === 'store_admin') {
-          router.push(`/staff/${storeId}`);
-        }
+        router.push(role === 'super_admin' ? '/admin' : `/staff/${storeId}`)
       }
     }
   } catch (error) {
-    console.error('登入失敗:', error.response ? error.response.data : error)
-    alert('登入失敗: ' + (error.response ? error.response.data : error.message))
-  }
-}
-
-// 登出函數
-const handleLogout = async () => {
-  try {
-    await api.auth.logout();
-  } catch (error) {
-    console.error('登出錯誤:', error.response ? error.response.data : error)
-  } finally {
-    localStorage.removeItem('authToken')
-    localStorage.removeItem('loginTime')
-    router.push('/login')
+    errorMessage.value = error.response ? error.response.data.message || '用戶名或密碼錯誤' : '無法連線到伺服器'
   }
 }
 </script>
 
 <style scoped>
-.login-container {
+.container {
+  height: 100vh;
+}
+.card {
+  width: 100%;
   max-width: 400px;
-  margin: 0 auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-}
-
-input {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-}
-
-button {
-  width: 100%;
-  padding: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #0056b3;
 }
 </style>
