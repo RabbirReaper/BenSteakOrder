@@ -34,11 +34,22 @@ const handleLogin = async () => {
     const response = await api.auth.adminLogin(username.value, password.value);
     
     if (response.data.success) {
-      // 根據角色導向不同頁面
-      if (response.data.role === 'super_admin') {
-        router.push('/admin')
+      // 獲取用戶角色和管理的店舖
+      const { role, storeId } = response.data;
+      
+      // 檢查是否有重定向路徑
+      const redirectPath = route.query.redirect;
+      
+      if (redirectPath) {
+        // 如果有重定向路徑，則導向該路徑
+        router.push(redirectPath);
       } else {
-        router.push(`/admin/store/${response.data.storeId}`)
+        // 沒有重定向路徑時，根據角色導向默認頁面
+        if (role === 'super_admin') {
+          router.push('/admin');
+        } else if (role === 'store_admin') {
+          router.push(`/staff/${storeId}`);
+        }
       }
     }
   } catch (error) {

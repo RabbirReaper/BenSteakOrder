@@ -47,6 +47,21 @@ const isLoggedIn = async () => {
   }
 }
 
+// 檢查登入狀態和用戶角色
+const checkAuth = async () => {
+  try {
+    const response = await api.auth.getCurrentUser();
+    return {
+      loggedIn: response.data.loggedIn,
+      role: response.data.role,
+      storeId: response.data.store_id
+    };
+  } catch (error) {
+    console.error('檢查登入狀態失敗', error);
+    return { loggedIn: false, role: null, storeId: null };
+  }
+}
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -60,7 +75,7 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: AdminIndex,
-      meta: { requiresAuth: true }, // 需要登入
+      meta: { requiresAuth: true, role: 'super_admin' }, // 需要登入
       children: [
         // 餐點管理相關路由
         {
@@ -133,7 +148,7 @@ const router = createRouter({
       path: '/staff/:storeId',
       name: 'staff',
       component: StaffOrder,
-      meta: { requiresAuth: false }, // 需要登入
+      meta: { requiresAuth: true, role: 'store_admin' }, // 需要登入
     },
     {
       path: '/confirmation/:orderId',
@@ -233,12 +248,34 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   // 管理員授權檢查
   if (to.meta.requiresAuth) {
-    const loggedIn = await isLoggedIn();
+    const { loggedIn, role, storeId } = await checkAuth();
+    
     if (!loggedIn) {
       return next({
         path: '/login',
         query: { redirect: to.fullPath }
       });
+    }
+
+    // 檢查角色權限
+    if (to.meta.role === 'super_admin' && role !== 'super_admin') {
+      alert('您沒有權限訪問此頁面');
+      return next('/login');
+    }
+
+    // 檢查店家管理員是否訪問自己的店鋪
+    if (to.meta.role === 'store_admin') {
+      // 如果是超級管理員，允許訪問任何店鋪
+      if (role === 'super_admin') {
+        return next();
+      }
+      
+      // 店家管理員只能訪問自己的店鋪
+      const requestedStoreId = to.params.storeId;
+      if (role === 'store_admin' && storeId !== requestedStoreId) {
+        alert('您沒有權限管理此店鋪');
+        return next('/login');
+      }
     }
   }
   
