@@ -4,9 +4,6 @@ import AuthLoginView from '@/views/auth/loginView.vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/api'
 
-// 由於 setup.js 中已經模擬了 vue-router，這裡不需要重複模擬
-// 我們可以移除這個部分，或保留它但確保與 setup.js 中的定義相容
-
 // 模擬 API
 vi.mock('@/api', () => ({
   default: {
@@ -18,16 +15,36 @@ vi.mock('@/api', () => ({
 
 describe('AuthLoginView.vue', () => {
   let wrapper
-  let router
-  let route
+  let mockRouter
+  let mockRoute
   
   beforeEach(() => {
     // 清除所有模擬的調用記錄
     vi.clearAllMocks()
     
     // 獲取 vue-router 的模擬
-    router = useRouter()
-    route = useRoute()
+    mockRouter = {
+      push: vi.fn(),
+      replace: vi.fn(),
+      go: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn()
+    }
+    
+    mockRoute = {
+      params: {},
+      query: {},
+      path: '/',
+      name: '',
+      fullPath: '/',
+      hash: '',
+      matched: [],
+      meta: {}
+    }
+    
+    // 重新模擬 useRouter 和 useRoute
+    vi.mocked(useRouter).mockReturnValue(mockRouter)
+    vi.mocked(useRoute).mockReturnValue(mockRoute)
     
     // 渲染組件
     wrapper = mount(AuthLoginView)
@@ -84,7 +101,7 @@ describe('AuthLoginView.vue', () => {
       expect(api.auth.adminLogin).toHaveBeenCalledWith('admin', 'admin123')
       
       // 驗證路由導向
-      expect(router.push).toHaveBeenCalledWith('/admin')
+      expect(mockRouter.push).toHaveBeenCalledWith('/admin')
     })
   })
   
@@ -107,15 +124,19 @@ describe('AuthLoginView.vue', () => {
       expect(api.auth.adminLogin).toHaveBeenCalledWith('storemanager', 'store123')
       
       // 驗證路由導向
-      expect(router.push).toHaveBeenCalledWith('/staff/123456')
+      expect(mockRouter.push).toHaveBeenCalledWith('/staff/123456')
     })
   })
   
   it('存在重定向路徑時應該導向該路徑', async () => {
-    // 設置路由中的 redirect 查詢參數
-    vi.mocked(useRoute).mockReturnValue({
+    // 設置新的模擬路由，包含 redirect 查詢參數
+    const routeWithRedirect = {
+      ...mockRoute,
       query: { redirect: '/admin/orders' }
-    })
+    }
+    
+    // 重新模擬 useRoute
+    vi.mocked(useRoute).mockReturnValue(routeWithRedirect)
     
     // 重新渲染組件以使用新的 route
     wrapper = mount(AuthLoginView)
@@ -135,7 +156,7 @@ describe('AuthLoginView.vue', () => {
     // 等待 Promise 解析
     await vi.waitFor(() => {
       // 驗證應該導向 redirect 路徑而不是預設路徑
-      expect(router.push).toHaveBeenCalledWith('/admin/orders')
+      expect(mockRouter.push).toHaveBeenCalledWith('/admin/orders')
     })
   })
   
