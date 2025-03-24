@@ -1,4 +1,5 @@
 import session from 'express-session';
+import Admin from '../models/Users/Admin.js';
 
 // 配置 session
 export const configureSession = (app) => {
@@ -28,7 +29,7 @@ export const isSuperAdmin = async (req, res, next) => {
   }
   
   try {
-    const admin = await Administrator.findById(req.session.user_id);
+    const admin = await Admin.findById(req.session.user_id);
     if (!admin || admin.role !== 'super_admin') {
       return res.status(403).json({ message: '需要超級管理員權限' });
     }
@@ -45,7 +46,7 @@ export const isStoreAdmin = async (req, res, next) => {
   }
   
   try {
-    const admin = await Administrator.findById(req.session.user_id);
+    const admin = await Admin.findById(req.session.user_id);
     if (!admin) {
       return res.status(403).json({ message: '需要管理員權限' });
     }
