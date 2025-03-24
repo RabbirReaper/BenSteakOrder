@@ -4,25 +4,17 @@ import AuthLoginView from '@/views/auth/loginView.vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/api'
 
-// 
-vi.mock('vue-router', () => ({
-  useRouter: vi.fn(() => ({
-    push: vi.fn(),
-  })),
-  useRoute: vi.fn(() => ({
-    query: {}
-  })),
-}))
+// 由於 setup.js 中已經模擬了 vue-router，這裡不需要重複模擬
+// 我們可以移除這個部分，或保留它但確保與 setup.js 中的定義相容
 
-// 
+// 模擬 API
 vi.mock('@/api', () => ({
   default: {
     auth: {
-      adminLogin: vi.fn(),
+      adminLogin: vi.fn()
     }
   }
 }))
-
 
 describe('AuthLoginView.vue', () => {
   let wrapper
@@ -33,7 +25,7 @@ describe('AuthLoginView.vue', () => {
     // 清除所有模擬的調用記錄
     vi.clearAllMocks()
     
-    // 設置 router 和 route
+    // 獲取 vue-router 的模擬
     router = useRouter()
     route = useRoute()
     
@@ -86,11 +78,14 @@ describe('AuthLoginView.vue', () => {
     // 提交表單
     await wrapper.find('form').trigger('submit.prevent')
     
-    // 驗證API調用
-    expect(api.auth.adminLogin).toHaveBeenCalledWith('admin', 'admin123')
-    
-    // 驗證路由導向
-    expect(router.push).toHaveBeenCalledWith('/admin')
+    // 等待 Promise 解析
+    await vi.waitFor(() => {
+      // 驗證API調用
+      expect(api.auth.adminLogin).toHaveBeenCalledWith('admin', 'admin123')
+      
+      // 驗證路由導向
+      expect(router.push).toHaveBeenCalledWith('/admin')
+    })
   })
   
   it('店鋪管理員登入成功後應該導向特定店鋪頁面', async () => {
@@ -106,11 +101,14 @@ describe('AuthLoginView.vue', () => {
     // 提交表單
     await wrapper.find('form').trigger('submit.prevent')
     
-    // 驗證API調用
-    expect(api.auth.adminLogin).toHaveBeenCalledWith('storemanager', 'store123')
-    
-    // 驗證路由導向
-    expect(router.push).toHaveBeenCalledWith('/staff/123456')
+    // 等待 Promise 解析
+    await vi.waitFor(() => {
+      // 驗證API調用
+      expect(api.auth.adminLogin).toHaveBeenCalledWith('storemanager', 'store123')
+      
+      // 驗證路由導向
+      expect(router.push).toHaveBeenCalledWith('/staff/123456')
+    })
   })
   
   it('存在重定向路徑時應該導向該路徑', async () => {
@@ -134,8 +132,11 @@ describe('AuthLoginView.vue', () => {
     // 提交表單
     await wrapper.find('form').trigger('submit.prevent')
     
-    // 驗證應該導向 redirect 路徑而不是預設路徑
-    expect(router.push).toHaveBeenCalledWith('/admin/orders')
+    // 等待 Promise 解析
+    await vi.waitFor(() => {
+      // 驗證應該導向 redirect 路徑而不是預設路徑
+      expect(router.push).toHaveBeenCalledWith('/admin/orders')
+    })
   })
   
   it('登入失敗時應該顯示錯誤訊息', async () => {
@@ -204,7 +205,10 @@ describe('AuthLoginView.vue', () => {
     // 再次提交表單
     await wrapper.find('form').trigger('submit.prevent')
     
-    // 驗證錯誤訊息應該被清空
-    expect(wrapper.find('.alert-danger').exists()).toBe(false)
+    // 等待異步操作完成
+    await vi.waitFor(() => {
+      // 驗證錯誤訊息應該被清空
+      expect(wrapper.find('.alert-danger').exists()).toBe(false)
+    })
   })
 })
