@@ -22,27 +22,16 @@ describe('AuthLoginView.vue', () => {
     // 清除所有模擬的調用記錄
     vi.clearAllMocks()
     
-    // 獲取 vue-router 的模擬
+    // 使用 setup.js 中已經設置的 vue-router 模擬
     mockRouter = {
-      push: vi.fn(),
-      replace: vi.fn(),
-      go: vi.fn(),
-      back: vi.fn(),
-      forward: vi.fn()
+      push: vi.fn()
     }
     
     mockRoute = {
-      params: {},
-      query: {},
-      path: '/',
-      name: '',
-      fullPath: '/',
-      hash: '',
-      matched: [],
-      meta: {}
+      query: {}
     }
     
-    // 重新模擬 useRouter 和 useRoute
+    // 設置路由模擬的返回值
     vi.mocked(useRouter).mockReturnValue(mockRouter)
     vi.mocked(useRoute).mockReturnValue(mockRoute)
     
@@ -73,7 +62,7 @@ describe('AuthLoginView.vue', () => {
     expect(wrapper.vm.password).toBe('password123')
   })
   
-  it('表單輸入應該是必填的', async () => {
+  it('表單輸入應該是必填的', () => {
     const usernameInput = wrapper.find('input#username')
     const passwordInput = wrapper.find('input#password')
     
@@ -95,12 +84,11 @@ describe('AuthLoginView.vue', () => {
     // 提交表單
     await wrapper.find('form').trigger('submit.prevent')
     
-    // 等待 Promise 解析
+    // 驗證API調用
+    expect(api.auth.adminLogin).toHaveBeenCalledWith('admin', 'admin123')
+    
+    // 驗證路由導向
     await vi.waitFor(() => {
-      // 驗證API調用
-      expect(api.auth.adminLogin).toHaveBeenCalledWith('admin', 'admin123')
-      
-      // 驗證路由導向
       expect(mockRouter.push).toHaveBeenCalledWith('/admin')
     })
   })
@@ -118,30 +106,19 @@ describe('AuthLoginView.vue', () => {
     // 提交表單
     await wrapper.find('form').trigger('submit.prevent')
     
-    // 等待 Promise 解析
+    // 驗證API調用和路由導向
+    expect(api.auth.adminLogin).toHaveBeenCalledWith('storemanager', 'store123')
+    
     await vi.waitFor(() => {
-      // 驗證API調用
-      expect(api.auth.adminLogin).toHaveBeenCalledWith('storemanager', 'store123')
-      
-      // 驗證路由導向
       expect(mockRouter.push).toHaveBeenCalledWith('/staff/123456')
     })
   })
   
   it('存在重定向路徑時應該導向該路徑', async () => {
-    // 設置新的模擬路由，包含 redirect 查詢參數
-    const routeWithRedirect = {
-      ...mockRoute,
-      query: { redirect: '/admin/orders' }
-    }
+    // 設置重定向查詢參數
+    mockRoute.query = { redirect: '/admin/orders' }
     
-    // 重新模擬 useRoute
-    vi.mocked(useRoute).mockReturnValue(routeWithRedirect)
-    
-    // 重新渲染組件以使用新的 route
-    wrapper = mount(AuthLoginView)
-    
-    // 設置輸入值
+    // 設置輸入值並提交
     await wrapper.find('input#username').setValue('admin')
     await wrapper.find('input#password').setValue('admin123')
     
@@ -153,9 +130,8 @@ describe('AuthLoginView.vue', () => {
     // 提交表單
     await wrapper.find('form').trigger('submit.prevent')
     
-    // 等待 Promise 解析
+    // 驗證應該導向 redirect 路徑
     await vi.waitFor(() => {
-      // 驗證應該導向 redirect 路徑而不是預設路徑
       expect(mockRouter.push).toHaveBeenCalledWith('/admin/orders')
     })
   })
@@ -177,7 +153,7 @@ describe('AuthLoginView.vue', () => {
     // 驗證API調用
     expect(api.auth.adminLogin).toHaveBeenCalledWith('wronguser', 'wrongpass')
     
-    // 驗證錯誤訊息顯示在畫面上
+    // 驗證錯誤訊息顯示
     await vi.waitFor(() => {
       expect(wrapper.find('.alert-danger').exists()).toBe(true)
       expect(wrapper.find('.alert-danger').text()).toBe(errorMessage)
@@ -226,9 +202,8 @@ describe('AuthLoginView.vue', () => {
     // 再次提交表單
     await wrapper.find('form').trigger('submit.prevent')
     
-    // 等待異步操作完成
+    // 驗證錯誤訊息應該被清空
     await vi.waitFor(() => {
-      // 驗證錯誤訊息應該被清空
       expect(wrapper.find('.alert-danger').exists()).toBe(false)
     })
   })
