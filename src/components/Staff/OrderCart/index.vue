@@ -64,15 +64,19 @@
     <CheckoutModal
       v-if="showCheckoutModal"
       :total="checkoutTotal"
-      @close="showCheckoutModal = false"
+      :is-processing="isProcessingPayment"
+      :error-message="paymentErrorMessage"
+      @close="handleCloseCheckoutModal"
       @online-payment="handleOnlinePayment"
-      @cash-payment="showCashCalculatorModal = true"
+      @cash-payment="handleOpenCashCalculator"
     />
 
     <CashCalculatorModal
       v-if="showCashCalculatorModal"
       :total="checkoutTotal"
-      @close="showCashCalculatorModal = false"
+      :is-processing="isProcessingPayment"
+      :error-message="paymentErrorMessage"
+      @close="handleCloseCashCalculator"
       @complete="handleCashPayment"
     />
   </div>
@@ -118,30 +122,77 @@ const showCheckoutModal = ref(false);
 const showCashCalculatorModal = ref(false);
 const checkoutTotal = ref(0);
 const checkoutOrderId = ref(null);
+const isProcessingPayment = ref(false);
+const paymentErrorMessage = ref('');
 
 // 計算屬性
 const isOrdersActive = computed(() => orderStore.activeComponent === 'Orders');
 
 // 更新訂單狀態
 const updateOrderStatus = async (orderId, status) => {
-  if (status === 'Completed') {
-    // 如果是完成訂單（結帳），顯示結帳模態框
-    checkoutOrderId.value = orderId;
-    checkoutTotal.value = orderStore.selectedOrder.totalMoney;
-    showCheckoutModal.value = true;
-  } else {
-    await orderStore.updateOrderStatus(orderId, status);
+  try {
+    if (status === 'Completed') {
+      // 如果是完成訂單（結帳），顯示結帳模態框
+      checkoutOrderId.value = orderId;
+      checkoutTotal.value = orderStore.selectedOrder.totalMoney;
+      paymentErrorMessage.value = ''; // 清空先前的錯誤訊息
+      showCheckoutModal.value = true;
+    } else {
+      // 其他狀態變更
+      isProcessingPayment.value = true;
+      const response = await api.order.updateStatus(orderId, status);
+      
+      if (!response.data.success) {
+        throw new Error(response.data.message || '更新訂單狀態失敗');
+      }
+      
+      // 更新本地訂單資料
+      await orderStore.fetchTodayOrders(storeId);
+      
+      // 如果是當前選中的訂單，更新詳情
+      if (orderStore.selectedOrder && orderStore.selectedOrder._id === orderId) {
+        const refreshedOrder = await orderStore.fetchOrderDetails(orderId);
+        if (refreshedOrder) {
+          orderStore.selectOrder(refreshedOrder);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('更新訂單狀態失敗:', error);
+    let errorMsg = '更新訂單狀態失敗';
+    
+    if (error.response) {
+      // 伺服器有回應但狀態碼不是 2xx
+      errorMsg = error.response.data.message || '發生伺服器錯誤';
+    } else if (error.request) {
+      // 沒有收到伺服器的回應
+      errorMsg = '無法連線到伺服器，請檢查網路連接';
+    } else {
+      // 其他錯誤
+      errorMsg = error.message || '發生未知錯誤';
+    }
+    
+    alert(errorMsg);
+  } finally {
+    isProcessingPayment.value = false;
   }
 };
 
-const ishandleOnlinePaymenting = ref(false);
 // 處理線上付款
 const handleOnlinePayment = async () => {
-  if (ishandleOnlinePaymenting.value) return;
-  ishandleOnlinePaymenting.value = true;
+  if (isProcessingPayment.value) return;
+  
+  isProcessingPayment.value = true;
+  paymentErrorMessage.value = '';
+  
   try {
-    await api.order.updateStatus(checkoutOrderId.value, 'Completed', 'linepay');
+    const response = await api.order.updateStatus(checkoutOrderId.value, 'Completed', 'linepay');
     
+    if (!response.data.success) {
+      throw new Error(response.data.message || '線上付款處理失敗');
+    }
+    
+    // 更新成功後關閉模態窗
     showCheckoutModal.value = false;
     
     // 更新本地訂單資料
@@ -154,24 +205,57 @@ const handleOnlinePayment = async () => {
         orderStore.selectOrder(refreshedOrder);
       }
     }
-    ishandleOnlinePaymenting.value = false;
-    // alert('線上付款完成，訂單已結帳');
   } catch (error) {
     console.error('線上付款處理失敗:', error);
-    alert('付款處理失敗，請重試');
+    
+    if (error.response) {
+      // 伺服器有回應但狀態碼不是 2xx
+      paymentErrorMessage.value = error.response.data.message || '線上付款處理失敗，請重試';
+    } else if (error.request) {
+      // 沒有收到伺服器的回應
+      paymentErrorMessage.value = '無法連線到伺服器，請檢查網路連接';
+    } else {
+      // 其他錯誤
+      paymentErrorMessage.value = error.message || '線上付款處理失敗，請重試';
+    }
+  } finally {
+    isProcessingPayment.value = false;
   }
 };
 
+// 開啟現金計算器
+const handleOpenCashCalculator = () => {
+  paymentErrorMessage.value = ''; // 清空錯誤訊息
+  showCashCalculatorModal.value = true;
+};
 
-const ishandleCashPaymenting = ref(false);
+// 關閉現金計算器
+const handleCloseCashCalculator = () => {
+  paymentErrorMessage.value = '';
+  showCashCalculatorModal.value = false;
+};
+
+// 關閉結帳模態窗
+const handleCloseCheckoutModal = () => {
+  paymentErrorMessage.value = '';
+  showCheckoutModal.value = false;
+};
+
 // 處理現金付款
-const handleCashPayment = async () => {
-  if (ishandleCashPaymenting.value) return;
-  ishandleCashPaymenting.value = true;
+const handleCashPayment = async (receivedAmount, changeAmount) => {
+  if (isProcessingPayment.value) return;
+  
+  isProcessingPayment.value = true;
+  paymentErrorMessage.value = '';
+  
   try {
-    await api.order.updateStatus(checkoutOrderId.value, 'Completed', '現金');
-
+    const response = await api.order.updateStatus(checkoutOrderId.value, 'Completed', '現金');
     
+    if (!response.data.success) {
+      throw new Error(response.data.message || '現金付款處理失敗');
+    }
+    
+    // 更新成功後關閉模態窗
     showCashCalculatorModal.value = false;
     showCheckoutModal.value = false;
     
@@ -185,11 +269,21 @@ const handleCashPayment = async () => {
         orderStore.selectOrder(refreshedOrder);
       }
     }
-    ishandleCashPaymenting.value = false
-    // alert('現金付款完成，訂單已結帳');
   } catch (error) {
     console.error('現金付款處理失敗:', error);
-    alert('付款處理失敗，請重試');
+    
+    if (error.response) {
+      // 伺服器有回應但狀態碼不是 2xx
+      paymentErrorMessage.value = error.response.data.message || '現金付款處理失敗，請重試';
+    } else if (error.request) {
+      // 沒有收到伺服器的回應
+      paymentErrorMessage.value = '無法連線到伺服器，請檢查網路連接';
+    } else {
+      // 其他錯誤
+      paymentErrorMessage.value = error.message || '現金付款處理失敗，請重試';
+    }
+  } finally {
+    isProcessingPayment.value = false;
   }
 };
 
@@ -287,8 +381,26 @@ const printOrder = () => {
 
 // 提交訂單
 const submitOrder = async () => {
-  console.log('!')
-  await orderStore.checkout(storeId);
+  try {
+    await orderStore.checkout(storeId);
+  } catch (error) {
+    console.error('提交訂單失敗:', error);
+    
+    let errorMsg = '提交訂單失敗';
+    
+    if (error.response) {
+      // 伺服器有回應但狀態碼不是 2xx
+      errorMsg = error.response.data.message || '發生伺服器錯誤';
+    } else if (error.request) {
+      // 沒有收到伺服器的回應
+      errorMsg = '無法連線到伺服器，請檢查網路連接';
+    } else {
+      // 其他錯誤
+      errorMsg = error.message || '發生未知錯誤';
+    }
+    
+    alert(errorMsg);
+  }
 };
 
 // ======= 調帳相關函數 =======
@@ -339,7 +451,11 @@ const confirmAdjustment = async () => {
         totalMoney: editingOrder.value.orderAmount - newAdjustment - (editingOrder.value.pointsDiscount || 0)
       };
 
-      await api.order.update(editingOrder.value._id, orderUpdate);
+      const response = await api.order.update(editingOrder.value._id, orderUpdate);
+      
+      if (!response.data.success) {
+        throw new Error(response.data.message || '更新訂單調帳失敗');
+      }
 
       // 更新本地訂單資料
       editingOrder.value.discounts = newAdjustment;
@@ -355,7 +471,21 @@ const confirmAdjustment = async () => {
       }
     } catch (error) {
       console.error('更新訂單調帳失敗:', error);
-      alert('調整訂單失敗，請重試');
+      
+      let errorMsg = '調整訂單失敗，請重試';
+      
+      if (error.response) {
+        // 伺服器有回應但狀態碼不是 2xx
+        errorMsg = error.response.data.message || '發生伺服器錯誤';
+      } else if (error.request) {
+        // 沒有收到伺服器的回應
+        errorMsg = '無法連線到伺服器，請檢查網路連接';
+      } else {
+        // 其他錯誤
+        errorMsg = error.message || '發生未知錯誤';
+      }
+      
+      alert(errorMsg);
     }
   } else {
     // 更新購物車調帳
@@ -401,7 +531,11 @@ const confirmDiscount = async () => {
         totalMoney: editingOrder.value.orderAmount - (editingOrder.value.discounts || 0) - tempDiscount.value
       };
 
-      await api.order.update(editingOrder.value._id, orderUpdate);
+      const response = await api.order.update(editingOrder.value._id, orderUpdate);
+      
+      if (!response.data.success) {
+        throw new Error(response.data.message || '更新訂單折扣失敗');
+      }
 
       // 更新本地訂單資料
       editingOrder.value.pointsDiscount = tempDiscount.value;
@@ -417,7 +551,21 @@ const confirmDiscount = async () => {
       }
     } catch (error) {
       console.error('更新訂單折扣失敗:', error);
-      alert('調整訂單失敗，請重試');
+      
+      let errorMsg = '調整訂單失敗，請重試';
+      
+      if (error.response) {
+        // 伺服器有回應但狀態碼不是 2xx
+        errorMsg = error.response.data.message || '發生伺服器錯誤';
+      } else if (error.request) {
+        // 沒有收到伺服器的回應
+        errorMsg = '無法連線到伺服器，請檢查網路連接';
+      } else {
+        // 其他錯誤
+        errorMsg = error.message || '發生未知錯誤';
+      }
+      
+      alert(errorMsg);
     }
   } else {
     // 更新購物車折扣

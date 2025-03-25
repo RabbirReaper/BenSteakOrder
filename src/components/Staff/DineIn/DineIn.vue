@@ -4,7 +4,21 @@
       <h4>內用點餐</h4>
     </div>
 
-    <div class="row g-0">
+    <!-- 加載提示 -->
+    <div v-if="isLoading" class="d-flex justify-content-center align-items-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">載入中...</span>
+      </div>
+      <span class="ms-2">載入菜單資料中...</span>
+    </div>
+
+    <!-- 錯誤提示 -->
+    <div v-if="errorMessage" class="alert alert-danger m-3" role="alert">
+      {{ errorMessage }}
+      <button class="btn btn-outline-danger btn-sm ms-2" @click="fetchMenuData">重試</button>
+    </div>
+
+    <div v-if="!isLoading && !errorMessage" class="row g-0">
       <!-- 上半部：菜單選擇區域 -->
       <div class="col-12 menu-section p-3">
         <!-- 合併的菜單列表 -->
@@ -131,8 +145,9 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useOrderStore } from '@/stores/order';
+import api from '@/api';
 
 const props = defineProps({
   storeId: {
@@ -147,15 +162,108 @@ const orderStore = useOrderStore();
 // 內部狀態
 const selectedDish = ref(null);
 const selectedDishType = ref(null);
+const isLoading = ref(false);
+const errorMessage = ref('');
+
+// 加載菜單數據
+const fetchMenuData = async () => {
+  isLoading.value = true;
+  errorMessage.value = '';
+  
+  try {
+    // 獲取店家資訊（包括菜單）
+    const storeResponse = await api.store.getById(props.storeId);
+    
+    if (!storeResponse.data.success) {
+      throw new Error(storeResponse.data.message || '獲取店家資訊失敗');
+    }
+    
+    const store = storeResponse.data.store;
+    
+    // 獲取菜單細節
+    const menuResponse = await api.menu.getById(store.menuItem);
+    
+    if (!menuResponse.data.success) {
+      throw new Error(menuResponse.data.message || '獲取菜單資訊失敗');
+    }
+    
+    // 初始化菜單數據
+    orderStore.initMenuData(menuResponse.data.menu, store);
+    
+    // 加載餐點詳細資料
+    await loadDishDetails();
+    
+  } catch (error) {
+    console.error('獲取菜單數據錯誤:', error);
+    
+    if (error.response) {
+      // 伺服器回應錯誤
+      errorMessage.value = error.response.data.message || '獲取菜單時發生錯誤';
+    } else if (error.request) {
+      // 沒有收到伺服器回應
+      errorMessage.value = '無法連線到伺服器，請檢查網絡連接';
+    } else {
+      // 其他錯誤
+      errorMessage.value = error.message || '發生未知錯誤';
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// 加載餐點詳細資料
+const loadDishDetails = async () => {
+  try {
+    // 加載主餐資料
+    const mainDishesPromise = api.dish.getAll('mainDish');
+    // 加載附餐資料
+    const elseDishesPromise = api.dish.getAll('elseDish');
+    // 加載配料資料
+    const addonsPromise = api.dish.getAll('addon');
+    // 加載生肉資料
+    const rawMeatPromise = api.dish.getAll('rawMeat');
+    
+    // 平行處理所有請求
+    const [mainDishesRes, elseDishesRes, addonsRes, rawMeatRes] = await Promise.all([
+      mainDishesPromise,
+      elseDishesPromise,
+      addonsPromise,
+      rawMeatPromise
+    ]);
+    
+    // 檢查回應是否成功
+    if (!mainDishesRes.data.success || !elseDishesRes.data.success || 
+        !addonsRes.data.success || !rawMeatRes.data.success) {
+      throw new Error('獲取餐點詳細資料失敗');
+    }
+    
+    // 更新 store 中的餐點詳細資料
+    orderStore.setDishesData({
+      mainDishes: mainDishesRes.data.dishes,
+      elseDishes: elseDishesRes.data.dishes,
+      addons: addonsRes.data.dishes,
+      rawMeat: rawMeatRes.data.dishes
+    });
+    
+  } catch (error) {
+    console.error('加載餐點詳細資料錯誤:', error);
+    throw error; // 將錯誤傳遞給上層函數
+  }
+};
 
 // 選擇菜品 - 直接添加到購物車
 const selectDish = (dish, type) => {
-  // 將菜品添加到購物車
-  orderStore.addDishToCart(dish, type);
+  try {
+    // 將菜品添加到購物車
+    orderStore.addDishToCart(dish, type);
 
-  // 設置選中的菜品用於顯示選項
-  selectedDish.value = dish;
-  selectedDishType.value = type;
+    // 設置選中的菜品用於顯示選項
+    selectedDish.value = dish;
+    selectedDishType.value = type;
+  } catch (error) {
+    console.error('選擇菜品時發生錯誤:', error);
+    errorMessage.value = '無法選擇此菜品，請稍後再試';
+  }
 };
 
 // 取消選擇
@@ -167,6 +275,7 @@ const cancelSelection = () => {
 const resetSelection = () => {
   selectedDish.value = null;
   selectedDishType.value = null;
+  orderStore.clearCurrentItem();
 };
 
 // 監聽 store 中的當前項目變化
@@ -192,6 +301,11 @@ watch(() => orderStore.currentItem, (newItem) => {
     selectedDishType.value = null;
   }
 }, { immediate: true });
+
+// 組件掛載時加載菜單數據
+onMounted(() => {
+  fetchMenuData();
+});
 </script>
 
 <style scoped>
