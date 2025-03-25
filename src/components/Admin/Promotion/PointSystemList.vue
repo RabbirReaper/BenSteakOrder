@@ -227,10 +227,28 @@ const fetchPointSystems = async () => {
     loading.value = true;
     error.value = null;
     const response = await api.pointSystem.getAll();
-    pointSystems.value = response.data;
+    
+    if (response.data.success) {
+      pointSystems.value = response.data.pointSystems || [];
+    } else {
+      error.value = response.data.message || '獲取點數系統設定失敗';
+      pointSystems.value = [];
+    }
   } catch (err) {
     console.error('獲取點數系統失敗:', err);
-    error.value = '獲取點數系統設定失敗，請稍後再試';
+    
+    if (err.response) {
+      // 伺服器有回應但狀態碼不是 2xx
+      error.value = err.response.data.message || '獲取點數系統設定失敗';
+    } else if (err.request) {
+      // 沒有收到伺服器的回應（可能是網路錯誤）
+      error.value = '無法連線到伺服器，請檢查網路連線';
+    } else {
+      // 其他錯誤（例如程式錯誤）
+      error.value = '獲取點數系統設定失敗，請稍後再試';
+    }
+    
+    pointSystems.value = [];
   } finally {
     loading.value = false;
   }
@@ -240,11 +258,23 @@ const fetchPointSystems = async () => {
 const activateSystem = async (id) => {
   try {
     isActivating.value = true;
-    await api.pointSystem.updateStatus(id, true);
-    await fetchPointSystems();
+    const response = await api.pointSystem.updateStatus(id, true);
+    
+    if (response.data.success) {
+      await fetchPointSystems();
+    } else {
+      alert(response.data.message || '啟用點數系統失敗');
+    }
   } catch (err) {
     console.error('啟用點數系統失敗:', err);
-    alert('啟用點數系統失敗，請稍後再試');
+    
+    if (err.response) {
+      alert(err.response.data.message || '啟用點數系統失敗');
+    } else if (err.request) {
+      alert('無法連線到伺服器，請檢查網路連線');
+    } else {
+      alert('啟用點數系統失敗，請稍後再試');
+    }
   } finally {
     isActivating.value = false;
   }
@@ -254,11 +284,23 @@ const activateSystem = async (id) => {
 const deactivateSystem = async (id) => {
   try {
     isActivating.value = true;
-    await api.pointSystem.updateStatus(id, false);
-    await fetchPointSystems();
+    const response = await api.pointSystem.updateStatus(id, false);
+    
+    if (response.data.success) {
+      await fetchPointSystems();
+    } else {
+      alert(response.data.message || '停用點數系統失敗');
+    }
   } catch (err) {
     console.error('停用點數系統失敗:', err);
-    alert('停用點數系統失敗，請稍後再試');
+    
+    if (err.response) {
+      alert(err.response.data.message || '停用點數系統失敗');
+    } else if (err.request) {
+      alert('無法連線到伺服器，請檢查網路連線');
+    } else {
+      alert('停用點數系統失敗，請稍後再試');
+    }
   } finally {
     isActivating.value = false;
   }
@@ -299,13 +341,25 @@ const deleteSystem = async () => {
 
   try {
     isDeleting.value = true;
-    await api.pointSystem.delete(selectedSystem.value._id);
-    const modal = Modal.getInstance(confirmDeleteModal.value);
-    modal.hide();
-    await fetchPointSystems();
+    const response = await api.pointSystem.delete(selectedSystem.value._id);
+    
+    if (response.data.success) {
+      const modal = Modal.getInstance(confirmDeleteModal.value);
+      modal.hide();
+      await fetchPointSystems();
+    } else {
+      alert(response.data.message || '刪除點數系統失敗');
+    }
   } catch (err) {
     console.error('刪除點數系統失敗:', err);
-    alert('刪除點數系統失敗，請稍後再試');
+    
+    if (err.response) {
+      alert(err.response.data.message || '刪除點數系統失敗');
+    } else if (err.request) {
+      alert('無法連線到伺服器，請檢查網路連線');
+    } else {
+      alert('刪除點數系統失敗，請稍後再試');
+    }
   } finally {
     isDeleting.value = false;
   }

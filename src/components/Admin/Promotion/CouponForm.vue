@@ -7,7 +7,7 @@
           <button type="button" class="btn-close" @click="$emit('close')"></button>
         </div>
         <div class="modal-body">
-          <form @submit.prevent="handleSubmit">
+          <form @submit.prevent="handleSubmit" novalidate>
             <!-- 名稱 -->
             <div class="mb-3">
               <label for="name" class="form-label">名稱</label>
@@ -18,7 +18,10 @@
                 v-model="form.name"
                 required
                 placeholder="例如：生日優惠券、新會員優惠"
+                :class="{ 'is-invalid': nameError }"
+                @blur="validateName"
               />
+              <div class="invalid-feedback">{{ nameError }}</div>
             </div>
 
             <!-- 優惠券類型 -->
@@ -67,7 +70,10 @@
                   required
                   min="1"
                   placeholder="100"
+                  :class="{ 'is-invalid': discountError }"
+                  @blur="validateDiscount"
                 />
+                <div class="invalid-feedback">{{ discountError }}</div>
               </div>
               <div class="form-text">使用此優惠券可直接折抵指定金額</div>
             </div>
@@ -125,6 +131,7 @@
                   <button type="button" class="btn btn-primary" @click="addItem" :disabled="!itemSelector.item">確認</button>
                 </div>
               </div>
+              <div v-if="itemsError" class="text-danger mt-2">{{ itemsError }}</div>
             </div>
 
             <!-- 有效期間 -->
@@ -133,11 +140,25 @@
               <div class="row">
                 <div class="col-md-6">
                   <label for="startAt" class="form-label">開始日期</label>
-                  <input type="date" class="form-control" id="startAt" v-model="form.startAt" />
+                  <input 
+                    type="date" 
+                    class="form-control" 
+                    id="startAt" 
+                    v-model="form.startAt" 
+                    :class="{ 'is-invalid': dateError }"
+                  />
                 </div>
                 <div class="col-md-6">
                   <label for="expireAt" class="form-label">結束日期</label>
-                  <input type="date" class="form-control" id="expireAt" v-model="form.expireAt" />
+                  <input 
+                    type="date" 
+                    class="form-control" 
+                    id="expireAt" 
+                    v-model="form.expireAt" 
+                    :class="{ 'is-invalid': dateError }"
+                    @blur="validateDates"
+                  />
+                  <div class="invalid-feedback">{{ dateError }}</div>
                 </div>
               </div>
               <div class="form-text">不設定則為無限期</div>
@@ -168,6 +189,11 @@
               </label>
             </div>
 
+            <!-- 錯誤訊息 -->
+            <div v-if="errorMessage" class="alert alert-danger" role="alert">
+              {{ errorMessage }}
+            </div>
+
             <!-- 表單按鈕 -->
             <div class="d-flex justify-content-end gap-2">
               <button
@@ -180,7 +206,7 @@
               <button
                 type="submit"
                 class="btn btn-primary"
-                :disabled="isSubmitting || !isFormValid"
+                :disabled="isSubmitting"
               >
                 <span
                   v-if="isSubmitting"
@@ -220,6 +246,13 @@ const form = reactive({
   expireAt: ''
 });
 
+// 錯誤訊息
+const nameError = ref('');
+const discountError = ref('');
+const itemsError = ref('');
+const dateError = ref('');
+const errorMessage = ref('');
+
 // 商品選擇器狀態
 const showItemSelector = ref(false);
 const itemSelector = reactive({
@@ -234,14 +267,33 @@ const isSubmitting = ref(false);
 
 // 初始化表單
 const initForm = () => {
+  // 清空錯誤訊息
+  nameError.value = '';
+  discountError.value = '';
+  itemsError.value = '';
+  dateError.value = '';
+  errorMessage.value = '';
+
   if (props.editingCoupon) {
     // 編輯模式 - 複製現有優惠券數據
     form.name = props.editingCoupon.name;
     form.type = props.editingCoupon.type;
     form.discount = props.editingCoupon.discount || 0;
-    form.items = props.editingCoupon.items ? [...props.editingCoupon.items] : [];
     form.description = props.editingCoupon.description || '';
     form.active = props.editingCoupon.active;
+    
+    // 處理項目
+    if (props.editingCoupon.items && props.editingCoupon.items.itemId) {
+      // 單一項目
+      form.items = [{
+        itemModel: props.editingCoupon.items.itemModel,
+        itemId: props.editingCoupon.items.itemId,
+        name: props.editingCoupon.items.name || '未命名商品',
+        amount: props.editingCoupon.items.amount || 1
+      }];
+    } else {
+      form.items = [];
+    }
     
     // 處理日期格式
     if (props.editingCoupon.startAt) {
@@ -268,12 +320,64 @@ const initForm = () => {
   }
 };
 
+// 表單驗證
+const validateName = () => {
+  if (!form.name.trim()) {
+    nameError.value = '優惠券名稱不能為空';
+    return false;
+  }
+  nameError.value = '';
+  return true;
+};
+
+const validateDiscount = () => {
+  if (form.type === 'discount') {
+    if (!form.discount || form.discount <= 0) {
+      discountError.value = '折扣金額必須大於0';
+      return false;
+    }
+  }
+  discountError.value = '';
+  return true;
+};
+
+const validateItems = () => {
+  if (form.type === 'exchange' && form.items.length === 0) {
+    itemsError.value = '請選擇至少一項兌換商品';
+    return false;
+  }
+  itemsError.value = '';
+  return true;
+};
+
+const validateDates = () => {
+  if (form.startAt && form.expireAt) {
+    if (new Date(form.expireAt) <= new Date(form.startAt)) {
+      dateError.value = '結束日期必須晚於開始日期';
+      return false;
+    }
+  }
+  dateError.value = '';
+  return true;
+};
+
+const validateForm = () => {
+  const isNameValid = validateName();
+  const isDiscountValid = validateDiscount();
+  const areItemsValid = validateItems();
+  const areDatesValid = validateDates();
+  
+  return isNameValid && isDiscountValid && areItemsValid && areDatesValid;
+};
+
 // 處理類型變更
 const handleTypeChange = () => {
   if (form.type === 'discount') {
     form.items = [];
+    itemsError.value = '';
   } else {
     form.discount = 0;
+    discountError.value = '';
   }
 };
 
@@ -296,11 +400,23 @@ const fetchItems = async () => {
     }
     
     const response = await api.dish.getAll(endpoint);
-    availableItems.value = response.data;
+    if (response.data.success) {
+      availableItems.value = response.data.dishes || [];
+    } else {
+      availableItems.value = [];
+      errorMessage.value = '獲取商品列表失敗';
+    }
     itemSelector.item = null;
   } catch (error) {
     console.error('獲取商品失敗:', error);
     availableItems.value = [];
+    if (error.response) {
+      errorMessage.value = error.response.data.message || '獲取商品失敗';
+    } else if (error.request) {
+      errorMessage.value = '無法連線到伺服器';
+    } else {
+      errorMessage.value = '發生錯誤，請稍後再試';
+    }
   }
 };
 
@@ -315,6 +431,9 @@ const addItem = () => {
     amount: itemSelector.amount || 1
   });
   
+  // 清除項目錯誤
+  itemsError.value = '';
+  
   // 重置選擇器
   itemSelector.item = null;
   itemSelector.amount = 1;
@@ -326,27 +445,15 @@ const removeItem = (index) => {
   form.items.splice(index, 1);
 };
 
-// 表單驗證
-const isFormValid = computed(() => {
-  if (!form.name.trim()) return false;
-  
-  if (form.type === 'discount') {
-    if (!form.discount || form.discount <= 0) return false;
-  } else if (form.type === 'exchange') {
-    if (form.items.length === 0) return false;
-  }
-  
-  // 如果設定了結束日期，確保它在開始日期之後
-  if (form.startAt && form.expireAt) {
-    if (new Date(form.expireAt) <= new Date(form.startAt)) return false;
-  }
-  
-  return true;
-});
-
 // 提交表單
 const handleSubmit = async () => {
-  if (!isFormValid.value) return;
+  // 重置錯誤訊息
+  errorMessage.value = '';
+  
+  // 驗證表單
+  if (!validateForm()) {
+    return;
+  }
   
   try {
     isSubmitting.value = true;
@@ -362,35 +469,51 @@ const handleSubmit = async () => {
     // 根據類型添加不同字段
     if (form.type === 'discount') {
       couponData.discount = form.discount;
-    } else {
-      couponData.items = form.items;
+    } else if (form.type === 'exchange' && form.items.length > 0) {
+      // 只取第一個項目，符合API格式
+      couponData.items = {
+        itemModel: form.items[0].itemModel,
+        itemId: form.items[0].itemId,
+        amount: form.items[0].amount || 1
+      };
     }
     
     // 添加日期 (如果有)
     if (form.startAt) {
-      couponData.startAt = new Date(form.startAt);
+      couponData.startAt = form.startAt;
     }
     
     if (form.expireAt) {
-      couponData.expireAt = new Date(form.expireAt);
+      couponData.expireAt = form.expireAt;
     }
     
+    let response;
     if (props.editingCoupon) {
       // 更新現有優惠券
-      await api.coupon.update(props.editingCoupon._id, couponData);
+      response = await api.coupon.update(props.editingCoupon._id, couponData);
     } else {
       // 創建新優惠券
-      await api.coupon.create(couponData);
+      response = await api.coupon.create(couponData);
     }
     
-    // 通知父組件保存成功
-    emit('save');
-    
-    // 關閉模態框
-    emit('close');
+    if (response.data.success) {
+      // 通知父組件保存成功
+      emit('save');
+      
+      // 關閉模態框
+      emit('close');
+    } else {
+      errorMessage.value = response.data.message || '保存優惠券失敗';
+    }
   } catch (error) {
     console.error('保存優惠券失敗:', error);
-    alert('保存優惠券失敗，請稍後再試');
+    if (error.response) {
+      errorMessage.value = error.response.data.message || '保存優惠券失敗';
+    } else if (error.request) {
+      errorMessage.value = '無法連線到伺服器';
+    } else {
+      errorMessage.value = '發生錯誤，請稍後再試';
+    }
   } finally {
     isSubmitting.value = false;
   }

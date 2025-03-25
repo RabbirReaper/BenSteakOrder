@@ -58,8 +58,8 @@
                   <div v-if="coupon.type === 'discount'">
                     折抵 ${{ coupon.discount }}
                   </div>
-                  <div v-else-if="coupon.items && coupon.items.length > 0">
-                    兌換商品: {{ formatExchangeItems(coupon.items) }}
+                  <div v-else-if="coupon.items && coupon.items.itemId">
+                    兌換商品: {{ formatExchangeItem(coupon.items) }}
                   </div>
                 </td>
                 <td>
@@ -155,23 +155,37 @@ const fetchCoupons = async () => {
     loading.value = true;
     error.value = null;
     const response = await api.coupon.getAll();
-    coupons.value = response.data;
+    
+    if (response.data.success) {
+      coupons.value = response.data.coupons || [];
+    } else {
+      error.value = response.data.message || '獲取優惠券資料失敗';
+      coupons.value = [];
+    }
   } catch (err) {
     console.error('獲取優惠券失敗:', err);
-    error.value = '獲取優惠券資料失敗，請稍後再試';
+    if (err.response) {
+      error.value = err.response.data.message || '獲取優惠券資料失敗';
+    } else if (err.request) {
+      error.value = '無法連線到伺服器，請檢查網路連線';
+    } else {
+      error.value = '獲取優惠券資料失敗，請稍後再試';
+    }
+    coupons.value = [];
   } finally {
     loading.value = false;
   }
 };
 
-// 格式化兌換商品
-const formatExchangeItems = (items) => {
-  if (!items || items.length === 0) return '無';
-
-  return items.map(item => {
-    const amount = item.amount || 1;
-    return `${item.name || '未知商品'} x ${amount}`;
-  }).join(', ');
+// 格式化兌換商品 (單一商品)
+const formatExchangeItem = (item) => {
+  if (!item || !item.itemId) return '無';
+  
+  // 從 populate 處理過的 itemId 取得名稱，或使用商品模型和 ID
+  const itemName = item.itemId.name || '未知商品';
+  const amount = item.amount || 1;
+  
+  return `${itemName} x ${amount}`;
 };
 
 // 格式化日期範圍
@@ -209,11 +223,23 @@ const isActive = (coupon) => {
 const toggleCouponStatus = async (id, status) => {
   try {
     isUpdating.value = true;
-    await api.coupon.update(id, { active: status });
-    await fetchCoupons();
+    const response = await api.coupon.update(id, { active: status });
+    
+    if (response.data.success) {
+      await fetchCoupons();
+    } else {
+      alert(response.data.message || `${status ? '啟用' : '停用'}優惠券失敗`);
+    }
   } catch (err) {
     console.error(`${status ? '啟用' : '停用'}優惠券失敗:`, err);
-    alert(`${status ? '啟用' : '停用'}優惠券失敗，請稍後再試`);
+    
+    if (err.response) {
+      alert(err.response.data.message || `${status ? '啟用' : '停用'}優惠券失敗`);
+    } else if (err.request) {
+      alert('無法連線到伺服器，請檢查網路連線');
+    } else {
+      alert(`${status ? '啟用' : '停用'}優惠券失敗，請稍後再試`);
+    }
   } finally {
     isUpdating.value = false;
   }
@@ -249,12 +275,24 @@ const deleteCoupon = async () => {
 
   try {
     isDeleting.value = true;
-    await api.coupon.delete(selectedCoupon.value._id);
-    Modal.getInstance(confirmDeleteModal.value).hide();
-    await fetchCoupons();
+    const response = await api.coupon.delete(selectedCoupon.value._id);
+    
+    if (response.data.success) {
+      Modal.getInstance(confirmDeleteModal.value).hide();
+      await fetchCoupons();
+    } else {
+      alert(response.data.message || '刪除優惠券失敗');
+    }
   } catch (err) {
     console.error('刪除優惠券失敗:', err);
-    alert('刪除優惠券失敗，請稍後再試');
+    
+    if (err.response) {
+      alert(err.response.data.message || '刪除優惠券失敗');
+    } else if (err.request) {
+      alert('無法連線到伺服器，請檢查網路連線');
+    } else {
+      alert('刪除優惠券失敗，請稍後再試');
+    }
   } finally {
     isDeleting.value = false;
   }

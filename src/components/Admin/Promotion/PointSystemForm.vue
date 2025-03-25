@@ -7,7 +7,7 @@
           <button type="button" class="btn-close" @click="$emit('close')"></button>
         </div>
         <div class="modal-body">
-          <form @submit.prevent="handleSubmit">
+          <form @submit.prevent="handleSubmit" novalidate>
             <!-- 名稱 -->
             <div class="mb-3">
               <label for="name" class="form-label">名稱</label>
@@ -18,7 +18,10 @@
                 v-model="form.name"
                 required
                 placeholder="例如：標準點數、VIP 點數、特殊活動"
+                :class="{ 'is-invalid': nameError }"
+                @blur="validateName"
               />
+              <div class="invalid-feedback">{{ nameError }}</div>
             </div>
 
             <!-- 最低消費金額 -->
@@ -34,7 +37,10 @@
                   required
                   min="0"
                   placeholder="100"
+                  :class="{ 'is-invalid': minAmountError }"
+                  @blur="validateMinAmount"
                 />
+                <div class="invalid-feedback">{{ minAmountError }}</div>
               </div>
               <div class="form-text">消費金額必須大於或等於此金額才能獲得點數</div>
             </div>
@@ -50,6 +56,8 @@
                   v-model="form.formula"
                   required
                   placeholder="Math.floor(x * 0.01)"
+                  :class="{ 'is-invalid': formulaError }"
+                  @blur="validateFormula"
                 />
                 <button
                   type="button"
@@ -58,16 +66,13 @@
                 >
                   測試
                 </button>
+                <div class="invalid-feedback">{{ formulaError }}</div>
               </div>
               <div class="form-text">
                 請使用 JavaScript 語法，x 為消費金額。例如：<code>Math.floor(x * 0.01)</code> 表示每 100 元 1 點
               </div>
               <div v-if="testResult !== null" class="alert alert-info mt-2">
                 測試結果：消費 $1000 可獲得 {{ testResult }} 點
-              </div>
-              <div v-if="formulaError" class="alert alert-danger mt-2">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                公式測試失敗：{{ formulaError }}
               </div>
             </div>
 
@@ -94,6 +99,12 @@
               <label class="form-check-label" for="active">
                 立即啟用此點數系統 (將停用其他點數系統)
               </label>
+            </div>
+
+            <!-- 錯誤訊息顯示 -->
+            <div v-if="errorMessage" class="alert alert-danger" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              {{ errorMessage }}
             </div>
 
             <!-- 表單按鈕 -->
@@ -127,13 +138,13 @@
 </template>
 
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, reactive, defineEmits } from 'vue';
 import api from '@/api';
 
 const emit = defineEmits(['close', 'save']);
 
 // 表單數據
-const form = ref({
+const form = reactive({
   name: '',
   minAmount: 100,
   formula: 'Math.floor(x * 0.01)',
@@ -141,53 +152,127 @@ const form = ref({
   active: false
 });
 
+// 錯誤訊息
+const nameError = ref('');
+const minAmountError = ref('');
+const formulaError = ref('');
+const errorMessage = ref('');
+
 // 狀態
 const isSubmitting = ref(false);
 const testResult = ref(null);
-const formulaError = ref(null);
+
+// 表單驗證
+const validateName = () => {
+  if (!form.name.trim()) {
+    nameError.value = '請輸入點數系統名稱';
+    return false;
+  }
+  nameError.value = '';
+  return true;
+};
+
+const validateMinAmount = () => {
+  if (form.minAmount === undefined || form.minAmount === null) {
+    minAmountError.value = '請輸入最低消費金額';
+    return false;
+  }
+  if (form.minAmount < 0) {
+    minAmountError.value = '最低消費金額不能為負數';
+    return false;
+  }
+  minAmountError.value = '';
+  return true;
+};
+
+const validateFormula = () => {
+  if (!form.formula.trim()) {
+    formulaError.value = '請輸入計算公式';
+    return false;
+  }
+  
+  try {
+    // 測試公式是否有效
+    api.pointSystem.testFormula(form.formula, 1000);
+    formulaError.value = '';
+    return true;
+  } catch (error) {
+    formulaError.value = '公式格式錯誤: ' + error.message;
+    return false;
+  }
+};
+
+const validateForm = () => {
+  const isNameValid = validateName();
+  const isMinAmountValid = validateMinAmount();
+  const isFormulaValid = validateFormula();
+  
+  return isNameValid && isMinAmountValid && isFormulaValid;
+};
 
 // 測試公式
 const testFormula = () => {
+  errorMessage.value = '';
+  testResult.value = null;
+  
+  if (!form.formula) {
+    formulaError.value = '請輸入計算公式';
+    return;
+  }
+  
   try {
-    formulaError.value = null;
-    testResult.value = null;
-    
-    if (!form.value.formula) {
-      formulaError.value = '請輸入計算公式';
-      return;
-    }
-    
-    testResult.value = api.pointSystem.testFormula(form.value.formula, 1000);
+    testResult.value = api.pointSystem.testFormula(form.formula, 1000);
+    formulaError.value = '';
   } catch (error) {
-    formulaError.value = error.message;
+    formulaError.value = '公式格式錯誤: ' + error.message;
+    console.error('公式測試失敗:', error);
   }
 };
 
 // 提交表單
 const handleSubmit = async () => {
+  // 清空錯誤訊息
+  errorMessage.value = '';
+  
+  // 驗證表單
+  if (!validateForm()) {
+    return;
+  }
+  
   try {
     isSubmitting.value = true;
     
-    // 再次測試公式，確保格式正確
-    try {
-      api.pointSystem.testFormula(form.value.formula, 1000);
-    } catch (error) {
-      formulaError.value = error.message;
-      isSubmitting.value = false;
-      return;
-    }
-    
     // 創建點數系統
-    await api.pointSystem.create(form.value);
+    const response = await api.pointSystem.create({
+      name: form.name,
+      minAmount: form.minAmount,
+      formula: form.formula,
+      description: form.description || '',
+      active: form.active
+    });
     
-    // 通知父組件保存成功
-    emit('save');
-    
-    // 關閉模態框
-    emit('close');
+    if (response.data.success) {
+      // 通知父組件保存成功
+      emit('save');
+      
+      // 關閉模態框
+      emit('close');
+    } else {
+      errorMessage.value = response.data.message || '新增點數系統失敗';
+    }
   } catch (error) {
     console.error('新增點數系統失敗:', error);
-    alert('新增點數系統失敗，請稍後再試');
+    
+    if (error.response) {
+      // 伺服器回應了錯誤
+      errorMessage.value = error.response.data.message || '新增點數系統失敗';
+    } else if (error.request) {
+      // 請求發送了但沒有收到回應
+      errorMessage.value = '無法連線到伺服器，請檢查網路連線';
+    } else {
+      // 發送請求時發生錯誤
+      errorMessage.value = '發生錯誤，請稍後再試';
+    }
   } finally {
     isSubmitting.value = false;
   }
