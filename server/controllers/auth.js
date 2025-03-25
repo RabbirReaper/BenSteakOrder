@@ -8,7 +8,7 @@ export const authLogin = async (req, res) => {
     const admin = await Admin.findOne({ name });
 
     if (!admin) {
-      return res.status(401).send('用戶名或密碼錯誤');
+      return res.status(401).json({ success: false, message: '用戶名或密碼錯誤' });
     }
 
     const validPassword = await bcrypt.compare(password, admin.password);
@@ -18,17 +18,17 @@ export const authLogin = async (req, res) => {
       if (admin.role === 'store_admin') {
         req.session.store_id = admin.managedStore;
       }
-      return res.send({
+      return res.json({
         success: true,
         role: admin.role,
         storeId: admin.managedStore || null
       });
     } else {
-      return res.status(401).send('用戶名或密碼錯誤');
+      return res.status(401).json({ success: false, message: '用戶名或密碼錯誤' });
     }
   } catch (error) {
     console.error('Login error:', error);
-    return res.status(500).send('伺服器錯誤');
+    return res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -39,11 +39,11 @@ export const createAdmin = async (req, res) => {
 
     // 驗證資料
     if (!name || !password) {
-      return res.status(400).send('Name and password are required');
+      return res.status(400).json({ success: false, message: 'Name and password are required' });
     }
 
     if (role === 'store_admin' && !managedStore) {
-      return res.status(400).send('Store admin must have a managed store');
+      return res.status(400).json({ success: false, message: 'Store admin must have a managed store' });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -57,10 +57,10 @@ export const createAdmin = async (req, res) => {
     });
 
     await newAdmin.save();
-    res.status(201).send('Admin created successfully');
+    res.status(201).json({ success: true, message: 'Admin created successfully' });
   } catch (error) {
     console.error('Create admin error:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -68,7 +68,7 @@ export const createAdmin = async (req, res) => {
 export const logout = (req, res) => {
   req.session.user_id = null;
   req.session.customer_id = null;
-  res.send('Logout successful');
+  res.json({ success: true, message: 'Logout successful' });
 };
 
 // 獲取當前用戶信息
@@ -97,19 +97,19 @@ export const getCurrentUser = (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     if (!req.session.user_id) {
-      return res.status(401).send('Unauthorized');
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
     const userId = req.params.id;
     const result = await Admin.findByIdAndDelete(userId);
 
     if (!result) {
-      return res.status(404).send('User not found');
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    res.send('User deleted successfully');
+    res.json({ success: true, message: 'User deleted successfully' });
   } catch (error) {
     console.error('Delete user error:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

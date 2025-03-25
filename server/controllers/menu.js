@@ -3,13 +3,16 @@ import Menu from '../models/Menus/Menu.js';
 // 獲取所有菜單
 export const getAllMenus = async (req, res) => {
   try {
-    const menu = await Menu.find({});
-    if (!menu) return res.status(404).json({ error: 'Menu not found' });
+    const menus = await Menu.find({});
+    if (!menus) return res.status(404).json({ success: false, message: 'Menu not found' });
 
-    res.json(menu);
+    res.json({
+      success: true,
+      menus
+    });
   } catch (error) {
     console.error('Error getting menu:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -18,12 +21,15 @@ export const getMenuById = async (req, res) => {
   try {
     const { id } = req.params;
     const menu = await Menu.findById(id);
-    if (!menu) return res.status(404).json({ error: 'Menu not found' });
+    if (!menu) return res.status(404).json({ success: false, message: 'Menu not found' });
 
-    res.json(menu);
+    res.json({
+      success: true,
+      menu
+    });
   } catch (error) {
     console.error('Error getting menu:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -33,10 +39,14 @@ export const createMenu = async (req, res) => {
     const newMenu = new Menu(req.body);
     await newMenu.save();
 
-    res.send('Menu created successfully');
+    res.json({
+      success: true,
+      message: 'Menu created successfully',
+      menu: newMenu
+    });
   } catch (error) {
     console.error('Error creating menu:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -44,12 +54,20 @@ export const createMenu = async (req, res) => {
 export const updateMenu = async (req, res) => {
   try {
     const { id } = req.params;
-    await Menu.findByIdAndUpdate(id, req.body);
+    const updatedMenu = await Menu.findByIdAndUpdate(id, req.body, { new: true });
+    
+    if (!updatedMenu) {
+      return res.status(404).json({ success: false, message: 'Menu not found' });
+    }
 
-    res.send('Menu updated successfully');
+    res.json({
+      success: true,
+      message: 'Menu updated successfully',
+      menu: updatedMenu
+    });
   } catch (error) {
     console.error('Error updating menu:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -57,11 +75,18 @@ export const updateMenu = async (req, res) => {
 export const deleteMenu = async (req, res) => {
   try {
     const { id } = req.params;
-    await Menu.findByIdAndDelete(id);
+    const deletedMenu = await Menu.findByIdAndDelete(id);
+    
+    if (!deletedMenu) {
+      return res.status(404).json({ success: false, message: 'Menu not found' });
+    }
 
-    res.send('Menu deleted successfully');
+    res.json({
+      success: true,
+      message: 'Menu deleted successfully'
+    });
   } catch (error) {
     console.error('Error deleting menu:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

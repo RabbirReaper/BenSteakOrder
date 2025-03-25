@@ -8,25 +8,26 @@ export const customerLogin = async (req, res) => {
     const customer = await Customer.findOne({ phoneNumber });
 
     if (!customer) {
-      return res.status(401).send('電話號碼或密碼錯誤');
+      return res.status(401).json({ success: false, message: '電話號碼或密碼錯誤' });
     }
 
     const validPassword = await bcrypt.compare(password, customer.password);
     if (validPassword) {
       req.session.customer_id = customer._id;
       req.session.role = 'customer';
-      return res.send({
+      return res.json({
         success: true,
         name: customer.name
       });
     } else {
-      return res.send({
-        success: false
+      return res.json({
+        success: false,
+        message: '電話號碼或密碼錯誤'
       });
     }
   } catch (error) {
     console.error('Login error:', error);
-    return res.status(500).send('伺服器錯誤');
+    return res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -37,13 +38,13 @@ export const customerRegister = async (req, res) => {
 
     // 檢查必填欄位
     if (!name || !phoneNumber) {
-      return res.status(400).send('姓名和電話號碼為必填欄位');
+      return res.status(400).json({ success: false, message: '姓名和電話號碼為必填欄位' });
     }
 
     // 檢查電話號碼是否已存在
     const existingCustomer = await Customer.findOne({ phoneNumber });
     if (existingCustomer) {
-      return res.status(400).send('此電話號碼已被註冊');
+      return res.status(400).json({ success: false, message: '此電話號碼已被註冊' });
     }
 
     // 密碼加密
@@ -61,10 +62,10 @@ export const customerRegister = async (req, res) => {
     });
 
     await newCustomer.save();
-    res.status(201).send('註冊成功');
+    res.status(201).json({ success: true, message: '註冊成功' });
   } catch (error) {
     console.error('Customer registration error:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -74,15 +75,18 @@ export const checkPhoneExists = async (req, res) => {
     const { phoneNumber } = req.params;
 
     if (!phoneNumber) {
-      return res.status(400).send('電話號碼為必填參數');
+      return res.status(400).json({ success: false, message: '電話號碼為必填參數' });
     }
 
     const customer = await Customer.findOne({ phoneNumber });
 
-    return res.json({ exists: !!customer });
+    return res.json({
+      success: true,
+      exists: !!customer
+    });
   } catch (error) {
     console.error('Check phone error:', error);
-    return res.status(500).send('伺服器錯誤');
+    return res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -90,7 +94,7 @@ export const checkPhoneExists = async (req, res) => {
 export const getCustomerProfile = async (req, res) => {
   try {
     if (!req.session.customer_id) {
-      return res.status(401).send('請先登入');
+      return res.status(401).json({ success: false, message: '請先登入' });
     }
 
     const customer = await Customer.findById(req.session.customer_id)
@@ -98,13 +102,16 @@ export const getCustomerProfile = async (req, res) => {
       .populate('coupons');
 
     if (!customer) {
-      return res.status(404).send('找不到客戶資料');
+      return res.status(404).json({ success: false, message: '找不到客戶資料' });
     }
 
-    res.json(customer);
+    res.json({
+      success: true,
+      profile: customer
+    });
   } catch (error) {
     console.error('Get profile error:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -112,14 +119,14 @@ export const getCustomerProfile = async (req, res) => {
 export const updateCustomerProfile = async (req, res) => {
   try {
     if (!req.session.customer_id) {
-      return res.status(401).send('請先登入');
+      return res.status(401).json({ success: false, message: '請先登入' });
     }
 
     const { name, birthday, gender, address } = req.body;
 
     // 驗證資料
     if (!name) {
-      return res.status(400).send('姓名為必填欄位');
+      return res.status(400).json({ success: false, message: '姓名為必填欄位' });
     }
 
     // 更新資料
@@ -135,13 +142,16 @@ export const updateCustomerProfile = async (req, res) => {
     ).select('-password');
 
     if (!updatedCustomer) {
-      return res.status(404).send('找不到客戶資料');
+      return res.status(404).json({ success: false, message: '找不到客戶資料' });
     }
 
-    res.json(updatedCustomer);
+    res.json({
+      success: true,
+      profile: updatedCustomer
+    });
   } catch (error) {
     console.error('Update profile error:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -149,31 +159,31 @@ export const updateCustomerProfile = async (req, res) => {
 export const changePassword = async (req, res) => {
   try {
     if (!req.session.customer_id) {
-      return res.status(401).send('請先登入');
+      return res.status(401).json({ success: false, message: '請先登入' });
     }
 
     const { currentPassword, newPassword } = req.body;
 
     // 驗證資料
     if (!currentPassword || !newPassword) {
-      return res.status(400).send('目前密碼和新密碼為必填欄位');
+      return res.status(400).json({ success: false, message: '目前密碼和新密碼為必填欄位' });
     }
 
     // 檢查密碼長度
     if (newPassword.length < 8 || newPassword.length > 32) {
-      return res.status(400).send('密碼長度必須為 8-32 個字元');
+      return res.status(400).json({ success: false, message: '密碼長度必須為 8-32 個字元' });
     }
 
     // 查找用戶
     const customer = await Customer.findById(req.session.customer_id);
     if (!customer) {
-      return res.status(404).send('找不到客戶資料');
+      return res.status(404).json({ success: false, message: '找不到客戶資料' });
     }
 
     // 驗證目前密碼
     const validPassword = currentPassword === customer.password || await bcrypt.compare(currentPassword, customer.password);
     if (!validPassword) {
-      return res.status(401).send('目前密碼不正確');
+      return res.status(401).json({ success: false, message: '目前密碼不正確' });
     }
 
     // 加密新密碼
@@ -184,10 +194,10 @@ export const changePassword = async (req, res) => {
     customer.password = hashedPassword;
     await customer.save();
 
-    res.send('密碼修改成功');
+    res.json({ success: true, message: '密碼修改成功' });
   } catch (error) {
     console.error('Change password error:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -198,18 +208,18 @@ export const resetPassword = async (req, res) => {
 
     // 驗證資料
     if (!phoneNumber || !newPassword) {
-      return res.status(400).send('電話號碼和新密碼為必填欄位');
+      return res.status(400).json({ success: false, message: '電話號碼和新密碼為必填欄位' });
     }
 
     // 檢查密碼長度
     if (newPassword.length < 8 || newPassword.length > 32) {
-      return res.status(400).send('密碼長度必須為 8-32 個字元');
+      return res.status(400).json({ success: false, message: '密碼長度必須為 8-32 個字元' });
     }
 
     // 查找用戶
     const customer = await Customer.findOne({ phoneNumber });
     if (!customer) {
-      return res.status(404).send('找不到客戶資料');
+      return res.status(404).json({ success: false, message: '找不到客戶資料' });
     }
 
     // 加密新密碼
@@ -220,10 +230,10 @@ export const resetPassword = async (req, res) => {
     customer.password = hashedPassword;
     await customer.save();
 
-    res.send('密碼重設成功');
+    res.json({ success: true, message: '密碼重設成功' });
   } catch (error) {
     console.error('Reset password error:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -231,7 +241,7 @@ export const resetPassword = async (req, res) => {
 export const getCustomerOrders = async (req, res) => {
   try {
     if (!req.session.customer_id) {
-      return res.status(401).send('請先登入');
+      return res.status(401).json({ success: false, message: '請先登入' });
     }
 
     const customer = await Customer.findById(req.session.customer_id)
@@ -247,12 +257,15 @@ export const getCustomerOrders = async (req, res) => {
       });
 
     if (!customer) {
-      return res.status(404).send('找不到客戶資料');
+      return res.status(404).json({ success: false, message: '找不到客戶資料' });
     }
 
-    res.json(customer.orders);
+    res.json({
+      success: true,
+      orders: customer.orders
+    });
   } catch (error) {
     console.error('Get orders error:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };

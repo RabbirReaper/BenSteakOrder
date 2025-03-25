@@ -21,13 +21,13 @@ export const uploadImage = async (req, res) => {
       transformation: [{ quality: "auto", fetch_format: "auto" }]
     });
     
-    // console.log("Success! Image uploaded.");
-    // console.log("- Public ID:", result.public_id);
-    // console.log("- URL:", result.secure_url);
-    res.json(result);
+    res.json({
+      success: true,
+      ...result
+    });
   } catch (error) {
     console.error("Error uploading image:", error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -39,11 +39,14 @@ export const modifyImage = async (req, res) => {
       public_id: publicId,
       resource_type: 'image'
     });
-    // console.log("Image modified:", result);
-    res.json(result);
+    
+    res.json({
+      success: true,
+      ...result
+    });
   } catch (error) {
     console.error("Error modifying image:", error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -52,10 +55,13 @@ export const deleteImage = async (req, res) => {
   try {
     const { publicId } = req.body;
     const result = await cloudinary.uploader.destroy(publicId);
-    // console.log("Image deleted:", result);
-    res.json(result);
+    
+    res.json({
+      success: true,
+      ...result
+    });
   } catch (error) {
     console.error("Error deleting image:", error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

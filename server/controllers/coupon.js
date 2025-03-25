@@ -11,10 +11,13 @@ export const getAllCoupons = async (req, res) => {
         select: 'name price image',
       });
     
-    res.json(coupons);
+    res.json({
+      success: true,
+      coupons
+    });
   } catch (error) {
     console.error('Error getting coupons:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -28,13 +31,16 @@ export const getCouponById = async (req, res) => {
     });
     
     if (!coupon) {
-      return res.status(404).send('優惠券不存在');
+      return res.status(404).json({ success: false, message: '優惠券不存在' });
     }
     
-    res.json(coupon);
+    res.json({
+      success: true,
+      coupon
+    });
   } catch (error) {
     console.error('Error getting coupon:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -54,16 +60,16 @@ export const createCoupon = async (req, res) => {
     
     // 基本驗證
     if (!name || !type) {
-      return res.status(400).send('名稱和類型為必填欄位');
+      return res.status(400).json({ success: false, message: '名稱和類型為必填欄位' });
     }
     
     // 根據不同類型進行額外驗證
     if (type === 'discount' && (discount === undefined || discount <= 0)) {
-      return res.status(400).send('折扣類型必須指定折扣金額');
+      return res.status(400).json({ success: false, message: '折扣類型必須指定折扣金額' });
     }
     
     if (type === 'exchange' && (!items || !items.itemId || !items.itemModel)) {
-      return res.status(400).send('兌換類型必須指定商品');
+      return res.status(400).json({ success: false, message: '兌換類型必須指定商品' });
     }
     
     // 創建新優惠券
@@ -79,10 +85,13 @@ export const createCoupon = async (req, res) => {
     });
     
     await newCoupon.save();
-    res.status(201).json(newCoupon);
+    res.status(201).json({
+      success: true,
+      coupon: newCoupon
+    });
   } catch (error) {
     console.error('Error creating coupon:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -104,7 +113,7 @@ export const updateCoupon = async (req, res) => {
     // 檢查優惠券是否存在
     const existingCoupon = await Coupon.findById(id);
     if (!existingCoupon) {
-      return res.status(404).send('優惠券不存在');
+      return res.status(404).json({ success: false, message: '優惠券不存在' });
     }
     
     // 更新資料
@@ -122,13 +131,13 @@ export const updateCoupon = async (req, res) => {
       
       if (type === 'discount') {
         if (discount === undefined || discount <= 0) {
-          return res.status(400).send('折扣類型必須指定折扣金額');
+          return res.status(400).json({ success: false, message: '折扣類型必須指定折扣金額' });
         }
         updateData.discount = discount;
         updateData.items = undefined;
       } else if (type === 'exchange') {
         if (!items || !items.itemId || !items.itemModel) {
-          return res.status(400).send('兌換類型必須指定商品');
+          return res.status(400).json({ success: false, message: '兌換類型必須指定商品' });
         }
         updateData.items = items;
         updateData.discount = undefined;
@@ -148,10 +157,13 @@ export const updateCoupon = async (req, res) => {
         select: 'name price image',
       });
     
-    res.json(updatedCoupon);
+    res.json({
+      success: true,
+      coupon: updatedCoupon
+    });
   } catch (error) {
     console.error('Error updating coupon:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -163,12 +175,12 @@ export const deleteCoupon = async (req, res) => {
     const result = await Coupon.findByIdAndDelete(id);
     
     if (!result) {
-      return res.status(404).send('優惠券不存在');
+      return res.status(404).json({ success: false, message: '優惠券不存在' });
     }
     
-    res.send('優惠券已成功刪除');
+    res.json({ success: true, message: '優惠券已成功刪除' });
   } catch (error) {
     console.error('Error deleting coupon:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };

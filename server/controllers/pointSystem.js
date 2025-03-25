@@ -4,10 +4,13 @@ import PointSystem from '../models/Orders/PointSystem.js';
 export const getAllPointSystems = async (req, res) => {
   try {
     const pointSystems = await PointSystem.find().sort({ active: -1, name: 1 });
-    res.json(pointSystems);
+    res.json({
+      success: true,
+      pointSystems
+    });
   } catch (error) {
     console.error('Error getting point systems:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -18,13 +21,16 @@ export const getPointSystemById = async (req, res) => {
     const pointSystem = await PointSystem.findById(id);
     
     if (!pointSystem) {
-      return res.status(404).send('點數系統設定不存在');
+      return res.status(404).json({ success: false, message: '點數系統設定不存在' });
     }
     
-    res.json(pointSystem);
+    res.json({
+      success: true,
+      pointSystem
+    });
   } catch (error) {
     console.error('Error getting point system:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -35,7 +41,7 @@ export const createPointSystem = async (req, res) => {
     
     // 基本驗證
     if (!name || !formula || minAmount === undefined) {
-      return res.status(400).send('名稱、公式和最低消費金額為必填欄位');
+      return res.status(400).json({ success: false, message: '名稱、公式和最低消費金額為必填欄位' });
     }
     
     // 如果新的點數系統設定要設為啟用狀態，先把其他的設為停用
@@ -52,10 +58,13 @@ export const createPointSystem = async (req, res) => {
     });
     
     await newPointSystem.save();
-    res.status(201).json(newPointSystem);
+    res.status(201).json({
+      success: true,
+      pointSystem: newPointSystem
+    });
   } catch (error) {
     console.error('Error creating point system:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -67,7 +76,7 @@ export const updatePointSystem = async (req, res) => {
     
     // 只允許更新啟用狀態
     if (active === undefined) {
-      return res.status(400).send('只允許更新啟用狀態');
+      return res.status(400).json({ success: false, message: '只允許更新啟用狀態' });
     }
     
     // 如果要設為啟用狀態，先把其他的設為停用
@@ -82,13 +91,16 @@ export const updatePointSystem = async (req, res) => {
     );
     
     if (!pointSystem) {
-      return res.status(404).send('點數系統設定不存在');
+      return res.status(404).json({ success: false, message: '點數系統設定不存在' });
     }
     
-    res.json(pointSystem);
+    res.json({
+      success: true,
+      pointSystem
+    });
   } catch (error) {
     console.error('Error updating point system:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };
 
@@ -99,18 +111,21 @@ export const deletePointSystem = async (req, res) => {
     
     const pointSystem = await PointSystem.findById(id);
     if (!pointSystem) {
-      return res.status(404).send('點數系統設定不存在');
+      return res.status(404).json({ success: false, message: '點數系統設定不存在' });
     }
     
     // 禁止刪除已啟用的點數系統設定
     if (pointSystem.active) {
-      return res.status(400).send('無法刪除已啟用的點數系統設定');
+      return res.status(400).json({ success: false, message: '無法刪除已啟用的點數系統設定' });
     }
     
     await PointSystem.findByIdAndDelete(id);
-    res.send('點數系統設定已成功刪除');
+    res.json({ 
+      success: true, 
+      message: '點數系統設定已成功刪除' 
+    });
   } catch (error) {
     console.error('Error deleting point system:', error);
-    res.status(500).send('伺服器錯誤');
+    res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };

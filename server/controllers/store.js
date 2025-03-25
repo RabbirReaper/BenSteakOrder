@@ -3,13 +3,16 @@ import Store from '../models/Stores/Store.js';
 // 獲取所有店家
 export const getAllStores = async (req, res) => {
   try {
-    const store = await Store.find({});
-    if (!store) return res.status(404).json({ error: 'Store not found' });
+    const stores = await Store.find({});
+    if (!stores) return res.status(404).json({ success: false, message: 'Store not found' });
 
-    res.json(store);
+    res.json({
+      success: true,
+      stores
+    });
   } catch (error) {
     console.error('Error getting store:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -18,12 +21,15 @@ export const getStoreById = async (req, res) => {
   try {
     const { id } = req.params;
     const store = await Store.findById(id).populate('menuItem');
-    if (!store) return res.status(404).json({ error: 'Store not found' });
+    if (!store) return res.status(404).json({ success: false, message: 'Store not found' });
 
-    res.json(store);
+    res.json({
+      success: true,
+      store
+    });
   } catch (error) {
     console.error('Error getting store:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -33,10 +39,14 @@ export const createStore = async (req, res) => {
     const newStore = new Store(req.body);
     await newStore.save();
 
-    res.send('Store created successfully');
+    res.json({
+      success: true,
+      message: 'Store created successfully',
+      store: newStore
+    });
   } catch (error) {
     console.error('Error creating store:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -44,12 +54,20 @@ export const createStore = async (req, res) => {
 export const updateStore = async (req, res) => {
   try {
     const { id } = req.params;
-    await Store.findByIdAndUpdate(id, req.body);
+    const updatedStore = await Store.findByIdAndUpdate(id, req.body, { new: true });
+    
+    if (!updatedStore) {
+      return res.status(404).json({ success: false, message: 'Store not found' });
+    }
 
-    res.send('Store updated successfully');
+    res.json({
+      success: true,
+      message: 'Store updated successfully',
+      store: updatedStore
+    });
   } catch (error) {
     console.error('Error updating store:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -57,11 +75,18 @@ export const updateStore = async (req, res) => {
 export const deleteStore = async (req, res) => {
   try {
     const { id } = req.params;
-    await Store.findByIdAndDelete(id);
+    const deletedStore = await Store.findByIdAndDelete(id);
+    
+    if (!deletedStore) {
+      return res.status(404).json({ success: false, message: 'Store not found' });
+    }
 
-    res.send('Store deleted successfully');
+    res.json({
+      success: true,
+      message: 'Store deleted successfully'
+    });
   } catch (error) {
     console.error('Error deleting store:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

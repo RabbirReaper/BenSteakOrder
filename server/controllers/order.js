@@ -23,12 +23,15 @@ export const getOrdersByTimeRange = async (req, res) => {
       .populate('items.options.addons')
       .populate('items.options.additionalMeats');
 
-    if (!orders) return res.status(404).json({ error: 'Order not found' });
-    // console.log(JSON.stringify(orders[0], null, 2)); // 查看第一筆訂單的完整結構
-    res.json(orders);
+    if (!orders) return res.status(404).json({ success: false, message: 'Order not found' });
+    
+    res.json({
+      success: true,
+      orders
+    });
   } catch (error) {
     console.error('Error getting orders:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -56,10 +59,13 @@ export const getStoreOrdersByTimeRange = async (req, res) => {
       .populate('items.options.addons') // 展開加料 Addon
       .populate('items.options.additionalMeats'); // 展開額外加肉
 
-    res.json(orders);
+    res.json({
+      success: true,
+      orders
+    });
   } catch (error) {
     console.error('Error getting orders for store:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -80,10 +86,13 @@ export const getTodayStoreOrders = async (req, res) => {
       .populate('items.options.addons') // 展開加料 Addon
       .populate('items.options.additionalMeats'); // 展開額外加肉
 
-    res.json(orders);
+    res.json({
+      success: true,
+      orders
+    });
   } catch (err) {
     console.error('Error getting orders for store:', err);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -97,12 +106,15 @@ export const getOrderNumber = async (req, res) => {
       createdAt: { $gte: startUTC, $lt: endUTC },
     }).sort({ _id: -1 });
 
-    if (!lastOrder) return res.json({ number: 1 });
+    if (!lastOrder) return res.json({ success: true, number: 1 });
 
-    res.json({ number: Number(lastOrder.orderNumber) + 1 });
+    res.json({ 
+      success: true, 
+      number: Number(lastOrder.orderNumber) + 1 
+    });
   } catch (error) {
     console.error('Error getting order number:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -119,12 +131,15 @@ export const getOrderById = async (req, res) => {
       .populate('items.options.addons') // 展開加料 Addon
       .populate('items.options.additionalMeats'); // 展開額外加肉
 
-    if (!order) return res.status(404).json({ error: 'Order not found' });
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
     
-    res.json(order);
+    res.json({
+      success: true,
+      order
+    });
   } catch (error) {
     console.error('Error getting order:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -133,10 +148,14 @@ export const createOrder = async (req, res) => {
   try {
     const newOrder = new Order(req.body);
     const savedOrder = await newOrder.save();
-    res.json({ id: savedOrder._id });
+    res.json({ 
+      success: true, 
+      id: savedOrder._id,
+      order: savedOrder
+    });
   } catch (error) {
     console.error('Error creating order:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -144,12 +163,20 @@ export const createOrder = async (req, res) => {
 export const updateOrder = async (req, res) => {
   try {
     const { id } = req.params;
-    await Order.findByIdAndUpdate(id, req.body);
+    const updatedOrder = await Order.findByIdAndUpdate(id, req.body, { new: true });
+    
+    if (!updatedOrder) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
 
-    res.send('Order updated successfully');
+    res.json({
+      success: true,
+      message: 'Order updated successfully',
+      order: updatedOrder
+    });
   } catch (error) {
     console.error('Error updating order:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -157,11 +184,18 @@ export const updateOrder = async (req, res) => {
 export const deleteOrder = async (req, res) => {
   try {
     const { id } = req.params;
-    await Order.findByIdAndDelete(id);
+    const deletedOrder = await Order.findByIdAndDelete(id);
+    
+    if (!deletedOrder) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
 
-    res.send('Order deleted successfully');
+    res.json({
+      success: true,
+      message: 'Order deleted successfully'
+    });
   } catch (error) {
     console.error('Error deleting order:', error);
-    res.status(500).send('Internal server error');
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
