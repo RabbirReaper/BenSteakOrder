@@ -164,19 +164,22 @@ describe('AuthLoginView.vue', () => {
     // 設置輸入值
     await wrapper.find('input#username').setValue('testuser')
     await wrapper.find('input#password').setValue('testpass')
-    
-    // 模擬API網絡錯誤
-    api.auth.adminLogin.mockRejectedValue(new Error('Network Error'))
-    
+  
+    // 模擬 API 網絡錯誤，讓 error.request 存在
+    api.auth.adminLogin.mockRejectedValue({
+      request: {}, // 這行讓 error.request 存在，模擬沒有伺服器回應的情況
+      message: 'Network Error'
+    })
+  
     // 提交表單
     await wrapper.find('form').trigger('submit.prevent')
-    
+  
     // 驗證錯誤訊息
     await vi.waitFor(() => {
-      expect(wrapper.find('.alert-danger').exists()).toBe(true)
       expect(wrapper.find('.alert-danger').text()).toBe('無法連線到伺服器')
     })
   })
+  
   
   it('登入前應該清空錯誤訊息', async () => {
     // 首先讓一個登入失敗以顯示錯誤訊息
