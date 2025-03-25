@@ -15,6 +15,13 @@
       <p>正在載入訂單資料...</p>
     </div>
 
+    <!-- 錯誤提示 -->
+    <div v-else-if="orderState.error" class="alert alert-danger text-center my-5">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <span>{{ orderState.errorMessage }}</span>
+      <button class="btn btn-sm btn-danger ms-3" @click="fetchDayOrders">重試</button>
+    </div>
+
     <!-- 無資料提示 -->
     <div v-else-if="orderState.dayOrders.length === 0" class="alert alert-info text-center my-5">
       <i class="bi bi-info-circle-fill me-2"></i>
@@ -133,6 +140,8 @@ const orderState = reactive({
   dateParam: route.params.date,
   dayOrders: [],
   loading: true,
+  error: false,
+  errorMessage: '',
   selectedOrder: null,
   showOrderModal: false
 });
@@ -140,6 +149,8 @@ const orderState = reactive({
 // 獲取當天訂單資料
 const fetchDayOrders = async () => {
   orderState.loading = true;
+  orderState.error = false;
+  orderState.errorMessage = '';
 
   try {
     const startDate = new Date(orderState.dateParam);
@@ -149,10 +160,27 @@ const fetchDayOrders = async () => {
     endDate.setHours(23, 59, 59, 999);
 
     const response = await api.order.getByTimeRange(startDate, endDate);
-    orderState.dayOrders = response.data;
+    
+    // 檢查 API 回應是否成功
+    if (response.data.success) {
+      orderState.dayOrders = response.data.orders;
+    } else {
+      orderState.error = true;
+      orderState.errorMessage = response.data.message || '獲取當天訂單資料失敗';
+    }
   } catch (error) {
+    orderState.error = true;
+    if (error.response) {
+      // 伺服器有回應但狀態碼不是 2xx
+      orderState.errorMessage = error.response.data.message || '獲取當天訂單資料失敗';
+    } else if (error.request) {
+      // 沒有收到伺服器的回應（可能是網路錯誤）
+      orderState.errorMessage = '無法連線到伺服器';
+    } else {
+      // 其他錯誤（例如程式錯誤）
+      orderState.errorMessage = '發生錯誤，請稍後再試';
+    }
     console.error('獲取當天訂單資料失敗:', error);
-    alert('獲取當天訂單資料失敗，請重試');
   } finally {
     orderState.loading = false;
   }
