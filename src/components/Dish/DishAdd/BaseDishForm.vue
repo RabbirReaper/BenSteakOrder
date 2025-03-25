@@ -2,7 +2,7 @@
   <form class="needs-validation" @submit.prevent="handleSubmit" novalidate>
     <!-- 基本字段 -->
     <div class="mb-3">
-      <label :for="nameId" class="form-label">{{ formTitle }} Name</label>
+      <label :for="nameId" class="form-label">{{ formTitle }} 名稱</label>
       <input 
         type="text" 
         class="form-control" 
@@ -12,32 +12,32 @@
         required
       >
       <div class="invalid-feedback">
-        Please enter a {{ formTitle.toLowerCase() }} name.
+        請輸入{{ formTitle }}名稱。
       </div>
     </div>
 
     <!-- 牛排類別選擇（如果是主餐）-->
     <div v-if="apiEndpoint === 'mainDish'" class="mb-3">
-      <label class="form-label">Category</label>
+      <label class="form-label">類別</label>
       <div class="d-flex gap-3">
         <div class="form-check">
           <input class="form-check-input" type="radio" id="steak" value="Steak" v-model="form.category" required>
-          <label class="form-check-label" for="steak">Steak</label>
+          <label class="form-check-label" for="steak">牛排類</label>
         </div>
         <div class="form-check">
           <input class="form-check-input" type="radio" id="nonSteak" value="Non-Steak" v-model="form.category" required>
-          <label class="form-check-label" for="nonSteak">Non-Steak</label>
+          <label class="form-check-label" for="nonSteak">非牛排類</label>
         </div>
       </div>
       <div class="invalid-feedback" v-if="errors.category">
-        Please select a category.
+        請選擇一個類別。
       </div>
     </div>
 
     <!-- 圖片上傳區塊 (僅當需要圖片時) -->
     <template v-if="requiresImage">
       <div class="mb-3">
-        <label for="imageUpload" class="form-label">{{ isEdit ? 'Update' : 'Upload' }} Image</label>
+        <label for="imageUpload" class="form-label">{{ isEdit ? '更新' : '上傳' }}圖片</label>
         <div class="input-group mb-3">
           <input 
             type="file" 
@@ -52,19 +52,19 @@
           <div class="progress-bar progress-bar-striped progress-bar-animated" 
                role="progressbar" 
                style="width: 100%">
-            Uploading...
+            上傳中...
           </div>
         </div>
         <div v-if="form.image && form.image.url" class="mt-2">
-          <img :src="form.image.url" :alt="form.image.alt || 'Preview'" class="img-thumbnail" style="max-height: 200px">
+          <img :src="form.image.url" :alt="form.image.alt || '預覽'" class="img-thumbnail" style="max-height: 200px">
         </div>
         <div class="invalid-feedback" v-if="errors.image">
-          Please upload an image.
+          請上傳一張圖片。
         </div>
       </div>
 
       <div class="mb-3">
-        <label for="imageAlt" class="form-label">Image Description</label>
+        <label for="imageAlt" class="form-label">圖片描述</label>
         <input 
           type="text" 
           class="form-control" 
@@ -74,14 +74,14 @@
           required
         >
         <div class="invalid-feedback">
-          Please enter an image description.
+          請輸入圖片描述。
         </div>
       </div>
     </template>
 
     <!-- 價格字段 -->
     <div class="mb-3">
-      <label for="price" class="form-label">Price</label>
+      <label for="price" class="form-label">價格</label>
       <div class="input-group">
         <span class="input-group-text">$</span>
         <input 
@@ -95,7 +95,7 @@
           required
         >
         <div class="invalid-feedback">
-          Please enter a valid price (greater than 0).
+          請輸入有效的價格（大於 0）。
         </div>
       </div>
     </div>
@@ -104,10 +104,10 @@
     <template v-if="apiEndpoint === 'mainDish'">
       <!-- 醬料選項 -->
       <div class="mb-3">
-        <label class="form-label">Sauce Options</label>
+        <label class="form-label">醬料選項</label>
         <div class="d-flex gap-2 mb-2">
-          <input type="text" class="form-control" v-model="newSauce" placeholder="Add new sauce">
-          <button type="button" class="btn btn-outline-primary" @click="addSauce">Add</button>
+          <input type="text" class="form-control" v-model="newSauce" placeholder="新增醬料">
+          <button type="button" class="btn btn-outline-primary" @click="addSauce">新增</button>
         </div>
         <div class="d-flex flex-wrap gap-2">
           <span v-for="(sauce, index) in form.sauceOptions" :key="index"
@@ -120,10 +120,10 @@
 
       <!-- 牛排熟度選項 -->
       <div class="mb-3" v-if="form.category === 'Steak'">
-        <label class="form-label">Steak Doneness Options</label>
+        <label class="form-label">牛排熟度選項</label>
         <div class="d-flex gap-2 mb-2">
-          <input type="text" class="form-control" v-model="newDoneness" placeholder="Add steak doneness">
-          <button type="button" class="btn btn-outline-primary" @click="addDoneness">Add</button>
+          <input type="text" class="form-control" v-model="newDoneness" placeholder="新增熟度選項">
+          <button type="button" class="btn btn-outline-primary" @click="addDoneness">新增</button>
         </div>
         <div class="d-flex flex-wrap gap-2">
           <span v-for="(doneness, index) in form.steakDoneness" :key="index"
@@ -133,16 +133,16 @@
           </span>
         </div>
         <div class="invalid-feedback" v-if="errors.steakDoneness">
-          Please add at least one doneness option.
+          請至少添加一個熟度選項。
         </div>
       </div>
 
       <!-- 額外選項 -->
       <div class="mb-3">
-        <label class="form-label">Extra Options</label>
+        <label class="form-label">額外選項</label>
         <div class="d-flex gap-2 mb-2">
-          <input type="text" class="form-control" v-model="newExtra" placeholder="Add new option">
-          <button type="button" class="btn btn-outline-primary" @click="addExtra">Add</button>
+          <input type="text" class="form-control" v-model="newExtra" placeholder="新增選項">
+          <button type="button" class="btn btn-outline-primary" @click="addExtra">新增</button>
         </div>
         <div class="d-flex flex-wrap gap-2">
           <span v-for="(option, index) in form.extraOptions" :key="index"
@@ -155,13 +155,13 @@
 
       <!-- 加點價格 -->
       <div class="mb-3">
-        <label for="extraPrice" class="form-label">Extra Price (如果為0代表不開放加點)</label>
+        <label for="extraPrice" class="form-label">加點價格 (如果為0代表不開放加點)</label>
         <div class="input-group">
           <span class="input-group-text">$</span>
           <input type="number" class="form-control" :class="{ 'is-invalid': errors.extraPrice }" id="extraPrice"
             v-model.number="form.extraPrice" min="0" step="1">
           <div class="invalid-feedback">
-            Extra price cannot be negative.
+            加點價格不能為負數。
           </div>
         </div>
       </div>
@@ -169,7 +169,7 @@
 
     <!-- 描述字段 (僅當需要描述時) -->
     <div v-if="requiresDescription" class="mb-3">
-      <label for="description" class="form-label">Description</label>
+      <label for="description" class="form-label">描述</label>
       <textarea 
         class="form-control" 
         id="description" 
@@ -179,19 +179,19 @@
         :required="requiresDescription"
       ></textarea>
       <div class="invalid-feedback">
-        Please enter a description.
+        請輸入描述。
       </div>
     </div>
 
     <!-- 提交和取消按鈕區 -->
     <div v-if="isEdit" class="d-flex gap-2">
       <button class="btn btn-primary flex-grow-1" type="submit" :disabled="isSubmitting || isUploading">
-        {{ isSubmitting ? 'Saving...' : `Update ${formTitle}` }}
+        {{ isSubmitting ? '儲存中...' : `更新${formTitle}` }}
       </button>
-      <button class="btn btn-secondary" type="button" @click="handleCancel">Cancel</button>
+      <button class="btn btn-secondary" type="button" @click="handleCancel">取消</button>
     </div>
     <button v-else class="btn btn-primary w-100" type="submit" :disabled="isSubmitting || isUploading">
-      {{ isSubmitting ? 'Saving...' : `Add ${formTitle}` }}
+      {{ isSubmitting ? '儲存中...' : `新增${formTitle}` }}
     </button>
   </form>
 </template>
@@ -203,7 +203,7 @@ import api from '@/api' // 引入 API 模組
 
 const props = defineProps({
   // 基本屬性
-  formTitle: { type: String, required: true }, // 例如 "Main Dish", "Else Dish" 等
+  formTitle: { type: String, required: true }, // 例如 "主餐", "附餐" 等
   apiEndpoint: { type: String, required: true }, // 例如 "mainDish", "elseDish" 等
   initialData: { type: Object, default: () => ({}) },
   
@@ -221,7 +221,7 @@ const emit = defineEmits(['cancel', 'delete']);
 const router = useRouter();
 
 // 預設值設定
-const defaultSauceOptions = ['蘑菇醬', '綜合醬', '黑胡椒醬','不加醬'];
+const defaultSauceOptions = ['蘑菇醬', '綜合醬', '黑胡椒醬', '不加醬'];
 const defaultExtraOptions = ['麵換蛋', '麵換花椰菜', '加麵', '不要麵包'];
 const defaultSteakDoneness = ['5分熟', '7分熟', '9分熟'];
 
@@ -232,6 +232,7 @@ const selectedImage = ref(null);
 const newSauce = ref('');
 const newExtra = ref('');
 const newDoneness = ref('');
+const errorMessage = ref(''); // 存儲錯誤訊息
 
 // 基本表單數據 - 不同類型的表單有不同的初始值
 const form = ref({
@@ -348,6 +349,9 @@ const removeExtra = (index) => {
 
 // 表單驗證邏輯
 const validateForm = () => {
+  // 清空錯誤訊息
+  errorMessage.value = '';
+  
   errors.value.name = !form.value.name.trim();
   errors.value.price = !form.value.price || form.value.price <= 0;
   
@@ -384,7 +388,7 @@ const handleImageSelect = (event) => {
   const previewUrl = URL.createObjectURL(file);
   form.value.image.url = previewUrl;
   
-  // 如果沒有 Alt 文字，使用檔案名
+  // 如果沒有 Alt 文字，使用檔案名或餐點名稱
   if (!form.value.image.alt) {
     form.value.image.alt = form.value.name || file.name;
   }
@@ -395,6 +399,7 @@ const uploadImage = async () => {
   if (!selectedImage.value) return true; // 如果沒有新選擇的圖片，不需上傳
   
   isUploading.value = true;
+  errorMessage.value = ''; // 清空錯誤訊息
   
   try {
     // 轉換文件為 base64
@@ -409,14 +414,30 @@ const uploadImage = async () => {
       response = await api.image.upload(base64Image);
     }
     
-    // 更新 form 的圖片資訊
-    form.value.image.url = response.data.secure_url;
-    form.value.image.publicId = response.data.public_id;
-
-    return true;
+    // 檢查 API 響應
+    if (response.data.success) {
+      // 更新 form 的圖片資訊
+      form.value.image.url = response.data.secure_url;
+      form.value.image.publicId = response.data.public_id;
+      return true;
+    } else {
+      errorMessage.value = response.data.message || '圖片上傳失敗';
+      return false;
+    }
   } catch (error) {
-    console.error('Error uploading image:', error);
-    alert('Image upload failed. Please try again.');
+    console.error('圖片上傳錯誤:', error);
+    
+    if (error.response) {
+      // 伺服器有回應但狀態碼不是 2xx
+      errorMessage.value = error.response.data.message || '圖片上傳失敗';
+    } else if (error.request) {
+      // 沒有收到伺服器的回應（可能是網路錯誤）
+      errorMessage.value = '無法連線到伺服器';
+    } else {
+      // 其他錯誤
+      errorMessage.value = '圖片上傳發生錯誤，請稍後再試';
+    }
+    
     return false;
   } finally {
     isUploading.value = false;
@@ -430,31 +451,52 @@ const handleSubmit = async () => {
   }
   
   isSubmitting.value = true;
+  errorMessage.value = ''; // 清空錯誤訊息
   
   try {
     // 首先上傳圖片（如果有選擇新圖片）
     if (props.requiresImage && selectedImage.value) {
       const uploadSuccess = await uploadImage();
-      if (!uploadSuccess) return;
+      if (!uploadSuccess) {
+        isSubmitting.value = false;
+        return;
+      }
     }
     
     // 準備表單數據 - 深拷貝避免引用問題
     const formData = JSON.parse(JSON.stringify(form.value));
     
+    let response;
+    
     // 編輯模式
     if (props.isEdit && props.itemId) {
-      await api.dish.update(props.apiEndpoint, props.itemId, formData);
+      response = await api.dish.update(props.apiEndpoint, props.itemId, formData);
     } 
     // 新增模式
     else {
-      await api.dish.create(props.apiEndpoint, formData);
+      response = await api.dish.create(props.apiEndpoint, formData);
     }
     
-    // 重定向回列表頁
-    router.push('/admin/dish/show');
+    // 檢查 API 響應
+    if (response.data.success) {
+      // 重定向回列表頁
+      router.push('/admin/dish/show');
+    } else {
+      errorMessage.value = response.data.message || `${props.isEdit ? '更新' : '新增'}${formTitle}失敗`;
+    }
   } catch (error) {
-    console.error(`Error ${props.isEdit ? 'updating' : 'adding'} ${props.formTitle}:`, error);
-    alert(`Failed to ${props.isEdit ? 'update' : 'add'} ${props.formTitle}. Please try again.`);
+    console.error(`${props.isEdit ? '更新' : '新增'}${props.formTitle}錯誤:`, error);
+    
+    if (error.response) {
+      // 伺服器有回應但狀態碼不是 2xx
+      errorMessage.value = error.response.data.message || `${props.isEdit ? '更新' : '新增'}${props.formTitle}失敗`;
+    } else if (error.request) {
+      // 沒有收到伺服器的回應（可能是網路錯誤）
+      errorMessage.value = '無法連線到伺服器';
+    } else {
+      // 其他錯誤
+      errorMessage.value = `發生錯誤，請稍後再試`;
+    }
   } finally {
     isSubmitting.value = false;
   }
