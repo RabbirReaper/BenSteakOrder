@@ -51,7 +51,7 @@ const handleLogin = async () => {
       }
     }
   } catch (error) {
-    errorMessage.value = error.response.data.message
+    errorMessage.value = error.response ? error.response.data.message : '無法連線到伺服器'
   }
 }
 </script>
