@@ -45,8 +45,13 @@
                 <button class="btn btn-outline-primary btn-sm" @click.stop="goToEdit(menu._id)">
                   編輯
                 </button>
-                <button class="btn btn-outline-danger btn-sm" @click.stop="confirmDelete(menu)">
-                  刪除
+                <button 
+                  class="btn btn-outline-danger btn-sm" 
+                  @click.stop="confirmDelete(menu)"
+                  :disabled="isDeleting === menu._id"
+                >
+                  <span v-if="isDeleting === menu._id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  {{ isDeleting === menu._id ? '刪除中' : '刪除' }}
                 </button>
               </div>
             </div>
@@ -71,22 +76,40 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api'
+
 const router = useRouter()
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const menus = ref([])
 const loading = ref(true)
 const error = ref(null)
+const isDeleting = ref(null) // 記錄目前正在刪除的菜單ID
 
 // 獲取所有菜單
 const fetchMenus = async () => {
   try {
     loading.value = true
     error.value = null
-    const response = await await api.menu.getAll()
-    menus.value = response.data
+    
+    const response = await api.menu.getAll()
+    
+    if (response.data.success) {
+      menus.value = response.data.menus || []
+    } else {
+      error.value = response.data.message || '獲取菜單列表失敗'
+      console.error('API error:', response.data.message)
+    }
   } catch (err) {
-    error.value = '獲取菜單列表失敗，請稍後再試'
     console.error('Error fetching menus:', err)
+    
+    if (err.response) {
+      // 伺服器有回應但狀態碼不是 2xx
+      error.value = err.response.data.message || '伺服器回應錯誤'
+    } else if (err.request) {
+      // 沒有收到伺服器的回應（可能是網路錯誤）
+      error.value = '無法連線到伺服器'
+    } else {
+      // 其他錯誤（例如程式錯誤）
+      error.value = '獲取菜單列表失敗，請稍後再試'
+    }
   } finally {
     loading.value = false
   }
@@ -95,14 +118,9 @@ const fetchMenus = async () => {
 // 計算總項目數
 const getTotalItems = (menu) => {
   return menu.list.reduce((total, category) => {
-    return total + category.items.length
+    return total + (category.items ? category.items.length : 0)
   }, 0)
 }
-
-// 跳轉到菜單詳情頁
-// const goToMenu = (id) => {
-// 	router.push(`/menu/${id}`)
-// }
 
 // 跳轉到編輯頁面
 const goToEdit = (id) => {
@@ -113,11 +131,31 @@ const goToEdit = (id) => {
 const confirmDelete = async (menu) => {
   if (confirm(`確定要刪除菜單 "${menu.name}" 嗎？`)) {
     try {
-      await api.menu.delete(menu._id)
-      await fetchMenus() // 重新獲取列表
+      isDeleting.value = menu._id // 設置正在刪除的菜單ID
+      
+      const response = await api.menu.delete(menu._id)
+      
+      if (response.data.success) {
+        // 刪除成功，重新獲取列表
+        await fetchMenus()
+      } else {
+        alert(response.data.message || '刪除失敗，請稍後再試')
+        console.error('API error:', response.data.message)
+      }
     } catch (err) {
-      alert('刪除失敗，請稍後再試')
       console.error('Error deleting menu:', err)
+      
+      let errorMessage = '刪除失敗，請稍後再試'
+      
+      if (err.response) {
+        errorMessage = err.response.data.message || '伺服器回應錯誤'
+      } else if (err.request) {
+        errorMessage = '無法連線到伺服器'
+      }
+      
+      alert(errorMessage)
+    } finally {
+      isDeleting.value = null // 無論成功或失敗，都清除刪除狀態
     }
   }
 }
