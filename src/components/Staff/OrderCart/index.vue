@@ -383,6 +383,7 @@ const printOrder = () => {
 const submitOrder = async () => {
   try {
     await orderStore.checkout(storeId);
+    orderStore.setActiveComponent('Orders');
   } catch (error) {
     console.error('提交訂單失敗:', error);
     
