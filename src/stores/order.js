@@ -476,16 +476,9 @@ export const useOrderStore = defineStore('order', {
         }
         
         const store = storeResponse.data.store;
-        
-        // 獲取菜單細節
-        const menuResponse = await api.menu.getById(store.menuItem);
-        
-        if (!menuResponse.data.success) {
-          throw new Error(menuResponse.data.message || '獲取菜單資訊失敗');
-        }
-        
+        // console.log('store',store)
         // 初始化菜單數據
-        this.initMenuData(menuResponse.data.menu, store);
+        this.initMenuData(store.menuItem);
         
         // 加載餐點詳細資料
         await this.fetchDishData();
