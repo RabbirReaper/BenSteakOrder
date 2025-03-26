@@ -45,22 +45,11 @@
         登入
       </button>
     </div>
-  </div>
 
-  <!-- 登入失敗的 Modal -->
-  <div class="modal fade" id="loginFailModal" tabindex="-1" ref="loginFailModal">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">登入失敗</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>{{ errorMessage || '密碼錯誤，請重新輸入。' }}</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">確定</button>
-        </div>
+    <div v-if="errorMessage" class="alert alert-danger mt-3 mb-0 p-3 d-flex align-items-center" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+      <div>
+        {{ errorMessage || '密碼錯誤，請重新輸入。' }}
       </div>
     </div>
   </div>
@@ -70,21 +59,19 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import api from '@/api';
-import { Modal } from 'bootstrap';
 
 const router = useRouter();
 const route = useRoute();
-const phoneNumber = ref('');
+const phoneNumber = route.query.phone || localStorage.getItem('phoneNumber') || '';
 const password = ref('');
 const showPassword = ref(false);
 const isLoading = ref(false);
-const loginFailModal = ref(null);
 const errorMessage = ref('');
 
 // 格式化電話號碼顯示
 const formattedPhone = computed(() => {
   const countryCode = localStorage.getItem('countryCode') || '+886';
-  const phone = phoneNumber.value;
+  const phone = phoneNumber;
 
   if (countryCode === '+886' && phone.startsWith('09')) {
     return `(${countryCode}) ${phone}`;
@@ -107,7 +94,7 @@ const login = async () => {
     errorMessage.value = '';
 
     try {
-      const response = await api.customer.login(phoneNumber.value, password.value);
+      const response = await api.customer.login(phoneNumber, password.value);
 
       if (response.data.success) {
         // 登入成功，儲存使用者狀態
@@ -122,7 +109,6 @@ const login = async () => {
       } else {
         // 登入失敗 (API 回傳成功但驗證失敗的情況)
         errorMessage.value = response.data.message || '密碼錯誤，請重新輸入。';
-        showLoginFailModal();
       }
     } catch (error) {
       console.error('登入失敗:', error);
@@ -133,7 +119,6 @@ const login = async () => {
       } else {
         errorMessage.value = '登入失敗，請稍後再試。';
       }
-      showLoginFailModal();
     }
   } finally {
     isLoading.value = false;
