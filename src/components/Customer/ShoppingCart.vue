@@ -186,7 +186,7 @@
 
     <!-- Fixed Bottom Button -->
     <div v-if="cart.length > 0"
-      class="checkout-button position-fixed bottom-0 start-25 w-100 bg-white p-3 shadow-lg d-flex justify-content-center"
+      class="checkout-button position-fixed bottom-0 start-50 translate-middle-x mb-4 w-100 bg-white p-3 shadow-lg d-flex justify-content-center"
       style="max-width: 768px;">
       <div class="container-button" style="max-width: 768px;">
         <button class="btn w-100 py-2 checkout-btn" @click="showConfirmation" :disabled="isSubmitDisabled">
@@ -226,7 +226,28 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">返回修改</button>
-            <button type="button" class="btn btn-primary" @click="submitOrder">確認送出</button>
+            <button type="button" class="btn btn-primary" @click="submitOrder" :disabled="isSubmitting">
+              <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
+              確認送出
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="errorModalLabel">訂單建立失敗</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>{{ errorMessage || '訂單建立失敗，請稍後再試。' }}</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">確定</button>
           </div>
         </div>
       </div>
@@ -262,42 +283,44 @@ const emit = defineEmits(['goBack', 'editItem', 'orderSubmitted']);
 
 const route = useRoute();
 const router = useRouter();
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// Query parameters
+// 查詢參數
 const queryPickupMethod = route.query.pickupMethod;
 const queryTable = route.query.table;
 
-// State
+// 表單狀態
 const orderRemarks = ref('');
 const selectedCoupon = ref('');
 const pickupTime = ref('asap');
 const scheduledTime = ref('');
 const paymentMethod = ref('現金');
 const confirmModal = ref(null);
+const errorModal = ref(null);
 const couponDiscount = ref(0);
+const errorMessage = ref('');
+const isSubmitting = ref(false);
 
-// Pickup method state
-const pickupMethod = ref(queryPickupMethod || 'selfPickup'); // Default to self-pickup
-const tableNumber = ref(queryTable || ''); // For dine-in
-const deliveryAddress = ref(''); // For delivery
-const deliveryFee = ref(0); // Delivery fee
+// 取餐方式狀態
+const pickupMethod = ref(queryPickupMethod || 'selfPickup'); // 預設為自取
+const tableNumber = ref(queryTable || ''); // 內用時的桌號
+const deliveryAddress = ref(''); // 外送地址
+const deliveryFee = ref(0); // 外送費用
 
-// Sample available coupons (would be fetched from API in real implementation)
+// 優惠券列表（實際應用中應從 API 獲取）
 const availableCoupons = ref([
   { id: 'coupon1', name: '新會員折扣', value: 50 },
   { id: 'coupon2', name: '生日特惠', value: 100 },
   { id: 'coupon3', name: '滿千折百', value: 100 }
 ]);
 
-// Minimum pickup time (current time + 15 minutes)
+// 最小取餐時間（當前時間 + 15 分鐘）
 const minPickupTime = computed(() => {
   const date = new Date();
   date.setMinutes(date.getMinutes() + 15);
   return date.toISOString().slice(0, 16);
 });
 
-// Check if submit button should be disabled
+// 檢查提交按鈕是否應該禁用
 const isSubmitDisabled = computed(() => {
   if (pickupMethod.value === 'dineIn' && !tableNumber.value) {
     return true;
@@ -311,27 +334,33 @@ const isSubmitDisabled = computed(() => {
   return false;
 });
 
+// 計算小計
 const calculateSubtotal = () => {
   return props.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 };
 
+// 計算總計
 const calculateTotal = () => {
   const subtotal = parseFloat(calculateSubtotal());
   return (subtotal - couponDiscount.value + deliveryFee.value);
 };
 
+// 格式化加點顯示
 const formatAddons = (addons) => {
   return addons.map(addon => addon.name).join(', ');
 };
 
+// 格式化加點肉品顯示
 const formatAdditionalMeats = (additionalMeats) => {
   return additionalMeats.map(meat => meat.name).join(', ');
 };
 
+// 格式化付款方式
 const formatPaymentMethod = () => {
-  return '現場支付'
+  return '現場支付';
 };
 
+// 格式化取餐方式
 const formatPickupMethod = () => {
   const methods = {
     'dineIn': '內用',
@@ -341,6 +370,7 @@ const formatPickupMethod = () => {
   return methods[pickupMethod.value] || pickupMethod.value;
 };
 
+// 格式化預定時間
 const formatScheduledTime = () => {
   if (!scheduledTime.value) return '';
 
@@ -352,34 +382,57 @@ const formatScheduledTime = () => {
   }
 };
 
+// 返回上一頁
 const goBack = () => {
   emit('goBack');
 };
 
+// 編輯購物車項目
 const editItem = (index) => {
   emit('editItem', index);
 };
 
+// 顯示確認對話框
 const showConfirmation = () => {
   confirmModal.value.show();
 };
 
+// 顯示錯誤對話框
+const showErrorModal = () => {
+  errorModal.value.show();
+};
+
+// 獲取訂單流水號
 const generateOrderNumber = async () => {
   try {
     const response = await api.order.getOrderNumber();
-    return response.data.number;
+    if (response.data.success) {
+      return response.data.number;
+    } else {
+      throw new Error(response.data.message || '獲取訂單編號失敗');
+    }
   } catch (error) {
     console.error('獲取訂單編號失敗:', error);
-    throw error; // 或者其他錯誤處理方式
+    errorMessage.value = '獲取訂單編號失敗，請稍後再試';
+    throw error;
   }
 };
 
-const isSubmitting = ref(false);
-
+// 提交訂單
 const submitOrder = async () => {
-  if(isSubmitting.value) return;
-  isSubmitting.value = true;
+  if (isSubmitting.value) return;
+  
   try {
+    isSubmitting.value = true;
+    errorMessage.value = '';
+    
+    // 確保表單驗證通過
+    if (isSubmitDisabled.value) {
+      errorMessage.value = '請填寫所有必要資訊';
+      showErrorModal();
+      return;
+    }
+    
     const orderItems = props.cart.map(item => ({
       itemModel: item.itemModel,
       itemId: item.id,
@@ -403,6 +456,7 @@ const submitOrder = async () => {
 
     const pickupTimeValue = pickupTime.value === 'asap' ? null : scheduledTime.value;
 
+    // 準備訂單資料
     const orderData = {
       store: props.storeId,
       orderNumber: String(await generateOrderNumber()),
@@ -421,23 +475,41 @@ const submitOrder = async () => {
       couponId: selectedCoupon.value || null
     };
 
-    // console.log('Submitting order:', orderData);
-    const { data: newOrder } = await api.order.create(orderData);
-    
-    confirmModal.value.hide();
-
-    // Emit event that order was submitted
-    emit('orderSubmitted', newOrder);
-
-    // Redirect to confirmation page
-    router.push(`/confirmation/${newOrder.id}`);
-  } catch (error) {
-    console.error('Error creating order:', error);
-    alert('訂單建立失敗，請重試');
+    // 提交訂單到 API
+    try {
+      const response = await api.order.create(orderData);
+      
+      if (response.data.success) {
+        // 訂單成功建立
+        confirmModal.value.hide();
+        
+        // 觸發事件通知父組件訂單已提交
+        emit('orderSubmitted', response.data);
+        
+        // 跳轉到確認頁面
+        router.push(`/confirmation/${response.data.id}`);
+      } else {
+        // API 返回成功但處理失敗
+        errorMessage.value = response.data.message || '訂單建立失敗，請稍後再試';
+        showErrorModal();
+      }
+    } catch (error) {
+      console.error('訂單建立失敗:', error);
+      if (error.response) {
+        errorMessage.value = error.response.data.message || '訂單建立失敗，請稍後再試';
+      } else if (error.request) {
+        errorMessage.value = '無法連線到伺服器，請檢查您的網路連接';
+      } else {
+        errorMessage.value = '訂單建立失敗，請稍後再試';
+      }
+      showErrorModal();
+    }
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
-// Watch for coupon selection
+// 監聽優惠券選擇變更
 const updateCouponDiscount = () => {
   if (selectedCoupon.value) {
     const coupon = availableCoupons.value.find(c => c.id === selectedCoupon.value);
@@ -449,36 +521,43 @@ const updateCouponDiscount = () => {
   couponDiscount.value = 0;
 };
 
-// Set delivery fee when pickup method changes
+// 監聽取餐方式變更，設置外送費
 watch(pickupMethod, (newValue) => {
   if (newValue === 'delivery') {
-    deliveryFee.value = 60; // Set a default delivery fee
+    deliveryFee.value = 60; // 外送預設費用
   } else {
     deliveryFee.value = 0;
   }
 });
 
-// Initialize Bootstrap modal
+// 初始化 Bootstrap 模態框
 const initModal = () => {
-  // Import Bootstrap's modal JavaScript
   import('bootstrap/js/dist/modal').then(module => {
     const Modal = module.default;
 
-    // Initialize confirmation modal
+    // 初始化確認訂單模態框
     const confirmOrderModalElement = document.getElementById('confirmOrderModal');
     if (confirmOrderModalElement) {
       confirmModal.value = new Modal(confirmOrderModalElement);
+    }
+    
+    // 初始化錯誤訊息模態框
+    const errorModalElement = document.getElementById('errorModal');
+    if (errorModalElement) {
+      errorModal.value = new Modal(errorModalElement);
     }
   });
 };
 
 onMounted(() => {
   initModal();
+  
+  // 設置默認預約時間
   if (!scheduledTime.value) {
     scheduledTime.value = minPickupTime.value;
   }
-
-  // Watch for coupon changes
+  
+  // 監聽優惠券變更
   watch(selectedCoupon, updateCouponDiscount);
 });
 </script>
