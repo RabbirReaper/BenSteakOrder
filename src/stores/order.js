@@ -373,9 +373,9 @@ export const useOrderStore = defineStore('order', {
           pointsDiscount: this.discount,
           totalMoney: this.total,
           orderStatus: 'Unpaid',
-          tableNumber: pickupMethod === '內用' ? this.tableNumber : undefined,
+          tableNumber: pickupMethod === '內用' ? this.tableNumber|0 : undefined,
           remarks: this.remarks,
-          deliveryAddress: pickupMethod === '外送' ? this.deliveryAddress : undefined,
+          deliveryAddress: pickupMethod === '外送' ? this.deliveryAddress : 0,
           items: orderItems
         };
         

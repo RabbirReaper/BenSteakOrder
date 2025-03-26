@@ -2,7 +2,7 @@
   <div class="container-fluid p-0">
     <div class="component-header bg-secondary text-white p-3">
       <h4>訂單管理 {{ orderStore.currentDate }}</h4>
-      <div class="d-flex justify-content-between align-items-center mt-2">
+      <!-- <div class="d-flex justify-content-between align-items-center mt-2">
         <div class="d-flex align-items-center">
           <div class="input-group input-group-sm me-2" style="max-width: 200px;">
             <input type="date" class="form-control" v-model="selectedDate" :max="orderStore.maxDate">
@@ -26,7 +26,7 @@
             <option value="Canceled">已取消</option>
           </select>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- 錯誤提示 -->
