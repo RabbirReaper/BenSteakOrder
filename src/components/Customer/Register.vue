@@ -274,8 +274,8 @@ const sendVerificationCode = async () => {
   try {
     isLoading.value = true;
 
-    // 這裡應該調用實際的 API 來發送驗證碼
-    // 模擬 API 調用
+    // 模擬 API 調用，實際項目中應該調用實際的 API
+    // 注意: 此處為模擬驗證碼發送，實際項目應根據 API 格式調整
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // 顯示驗證碼輸入
@@ -306,8 +306,7 @@ const resendVerificationCode = async () => {
   try {
     isLoading.value = true;
 
-    // 這裡應該調用實際的 API 來重發驗證碼
-    // 模擬 API 調用
+    // 模擬 API 調用，實際項目中應該調用實際的 API
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // 重置驗證碼
@@ -352,8 +351,7 @@ const verifyCode = async () => {
     // 獲取完整的驗證碼
     const code = verificationCodeDigits.value.join('');
 
-    // 這裡應該調用實際的 API 來驗證驗證碼
-    // 模擬 API 調用
+    // 模擬 API 調用，實際項目中應該調用實際的 API
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // 模擬驗證 - 假設任何 6 位數驗證碼都是有效的
@@ -372,89 +370,4 @@ const verifyCode = async () => {
     isVerifyingCode.value = false;
   }
 };
-
-// 提交註冊信息
-const submitRegistration = async () => {
-  if (!isFormValid.value) return;
-
-  try {
-    isSubmitting.value = true;
-
-    // 準備註冊數據
-    const registrationData = {
-      name: registrationForm.value.name,
-      phoneNumber: phoneNumber.value,
-      password: registrationForm.value.password,
-      birthday: registrationForm.value.birthday || null,
-      gender: registrationForm.value.gender || null,
-      address: registrationForm.value.address || null
-    };
-
-    try {
-      // 使用實際的 API 註冊
-      await api.customer.register(
-        registrationData.name,
-        registrationData.phoneNumber,
-        registrationData.password,
-        registrationData.birthday,
-        registrationData.gender,
-        registrationData.address
-      );
-
-      // 保存使用者名稱到 localStorage
-      localStorage.setItem('customerName', registrationData.name);
-
-      // 註冊成功，顯示成功 Modal
-      showRegisterSuccessModal();
-    } catch (error) {
-      console.error('註冊失敗:', error);
-      alert(error.response?.data || '註冊失敗，請稍後再試。');
-    }
-
-  } catch (error) {
-    console.error('提交註冊信息失敗:', error);
-    alert('提交失敗，請稍後再試。');
-  } finally {
-    isSubmitting.value = false;
-  }
-};
-
-// 顯示註冊成功 Modal
-const showRegisterSuccessModal = () => {
-  if (registerSuccessModal.value) {
-    const modal = new Modal(registerSuccessModal.value);
-    modal.show();
-  }
-};
-
-// 前往登入頁面
-const goToLogin = () => {
-  // 關閉 Modal
-  if (registerSuccessModal.value) {
-    const modal = Modal.getInstance(registerSuccessModal.value);
-    if (modal) {
-      modal.hide();
-    }
-  }
-
-  // 獲取 store_id
-  const storeId = route.query.store_id || localStorage.getItem('store_Id') || '1';
-
-  // 跳轉到登入頁面
-  router.push({
-    name: 'customer-login-password',
-    query: {
-      phone: phoneNumber.value,
-      store_id: storeId
-    }
-  });
-};
-
-onMounted(() => {
-  // 從 URL 獲取電話號碼
-  phoneNumber.value = route.query.phone || localStorage.getItem('phoneNumber') || '';
-
-  // 初始化 Modal
-  registerSuccessModal.value = document.getElementById('registerSuccessModal');
-});
 </script>

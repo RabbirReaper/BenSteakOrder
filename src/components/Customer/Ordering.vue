@@ -78,7 +78,7 @@ const tableNumber = ref(queryTable || '0');
 const selectedItem = ref(null);
 const cart = ref([]);
 const showCart = ref(false);
-
+const errorMessage = ref('');
 
 // 用戶狀態
 const isLoggedIn = computed(() => {
@@ -99,79 +99,108 @@ const goToAccount = () => {
   router.push('/customer/my-account');
 };
 
-// 使用原始檔案中的函數，保持其邏輯不變
+// 獲取店家資訊
 const fetchStore = async () => {
   try {
     const response = await api.store.getById(storeId);
-    store.value = response.data;
-    // console.log(store.value);
+    
+    if (response.data.success) {
+      store.value = response.data.store;
+    } else {
+      errorMessage.value = response.data.message || '獲取店家資訊失敗，請稍後再試。';
+      console.error('Error fetching store:', errorMessage.value);
+    }
   } catch (error) {
     console.error('Error fetching store:', error);
+    if (error.response) {
+      errorMessage.value = error.response.data.message || '獲取店家資訊失敗，請稍後再試。';
+    } else if (error.request) {
+      errorMessage.value = '無法連線到伺服器，請檢查您的網路連接。';
+    } else {
+      errorMessage.value = '獲取店家資訊失敗，請稍後再試。';
+    }
     router.push('/');
   }
 };
 
+// 獲取菜單資訊
 const fetchMenu = async () => {
-  menu.value = store.value.menuItem;
-  
-  // 創建一個映射，從 itemId 到 itemModel
-  const dishModelMapping = {};
-  
-  // 創建一個集合，用於追踪已處理的 itemId
-  const processedItemIds = new Set();
-  
-  // 收集所有需要請求的項目
-  const itemsToFetch = [];
-  
-  if (menu.value && menu.value.list) {
-    menu.value.list.forEach(category => {
-      category.items.forEach(item => {
-        const itemId = item.itemId;
-        const itemModel = item.itemModel;
-        
-        // 更新映射
-        dishModelMapping[itemId] = itemModel;
-        
-        // 只有未處理過的 itemId 才添加到請求列表
-        if (!processedItemIds.has(itemId)) {
-          processedItemIds.add(itemId);
+  try {
+    menu.value = store.value.menuItem;
+    
+    // 創建一個映射，從 itemId 到 itemModel
+    const dishModelMapping = {};
+    
+    // 創建一個集合，用於追踪已處理的 itemId
+    const processedItemIds = new Set();
+    
+    // 收集所有需要請求的項目
+    const itemsToFetch = [];
+    
+    if (menu.value && menu.value.list) {
+      menu.value.list.forEach(category => {
+        category.items.forEach(item => {
+          const itemId = item.itemId;
+          const itemModel = item.itemModel;
           
-          const endpoint = `${itemModel.charAt(0).toLowerCase() + itemModel.slice(1)}`;
-          itemsToFetch.push({
-            id: itemId,
-            model: itemModel,
-            endpoint: endpoint
-          });
-        }
+          // 更新映射
+          dishModelMapping[itemId] = itemModel;
+          
+          // 只有未處理過的 itemId 才添加到請求列表
+          if (!processedItemIds.has(itemId)) {
+            processedItemIds.add(itemId);
+            
+            const endpoint = `${itemModel.charAt(0).toLowerCase() + itemModel.slice(1)}`;
+            itemsToFetch.push({
+              id: itemId,
+              model: itemModel,
+              endpoint: endpoint
+            });
+          }
+        });
       });
-    });
-  }
-  
-  // 發送所有請求
-  const itemPromises = itemsToFetch.map(item => 
-    api.dish.getById(item.endpoint, item.id)
-  );
-  
-  // 等待所有請求完成
-  const itemResponses = await Promise.all(itemPromises);
-  
-  // 處理響應結果
-  menuItems.value = itemResponses.map((response, index) => {
-    const item = itemsToFetch[index];
-    return {
-      ...response.data,
-      itemModel: item.model
-    };
-  });
+    }
+    
+    // 發送所有請求
+    const itemPromises = itemsToFetch.map(item => 
+      api.dish.getById(item.endpoint, item.id)
+      .then(response => {
+        if (response.data.success) {
+          return {
+            ...response.data.dish,
+            itemModel: item.model
+          };
+        } else {
+          throw new Error(response.data.message || `獲取菜單項目 ${item.id} 失敗`);
+        }
+      })
+    );
+    
+    // 等待所有請求完成
+    const itemResponses = await Promise.all(itemPromises);
+    menuItems.value = itemResponses;
 
-  // 獲取加點配料
-  const { data: addons } = await api.dish.getAll('addon');
-  addonItems.value = addons;
+    // 獲取加點配料
+    try {
+      const response = await api.dish.getAll('addon');
+      if (response.data.success) {
+        addonItems.value = response.data.dishes;
+      } else {
+        throw new Error(response.data.message || '獲取加點配料失敗');
+      }
+    } catch (error) {
+      console.error('Error fetching addons:', error);
+      addonItems.value = [];
+    }
+  } catch (error) {
+    console.error('Error fetching menu items:', error);
+    menuItems.value = [];
+  }
 };
 
+// 處理菜單項選擇
 const openItemDetails = (item) => {
   selectedItem.value = item;
-  // console.log(item);
 };
 
 const closeItemDetails = () => {
@@ -180,9 +209,7 @@ const closeItemDetails = () => {
 
 const addToCart = (item) => {
   cart.value.push(item);
-  // console.log(cart.value);
 };
-
 
 const updateCartItemQuantity = (index, change) => {
   const newQuantity = cart.value[index].quantity + change;
@@ -229,7 +256,6 @@ const editCartItem = (index) => {
 
 const handleOrderSubmitted = (order) => {
   // Clear the cart after order is submitted
-  // console.log('Order submitted:', order);
   cart.value = [];
   showCart.value = false;
 };
@@ -242,8 +268,7 @@ const calculateTotal = () => {
   return cart.value.reduce((total, item) => total + (item.price * item.quantity), 0);
 };
 
-
-// 保持原始檔案的 onMounted 邏輯，這很重要
+// 初始化資料
 onMounted(async () => {
   if (!store.value.name) {
     await fetchStore();

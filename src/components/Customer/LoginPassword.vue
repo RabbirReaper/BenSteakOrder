@@ -56,7 +56,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>密碼錯誤，請重新輸入。</p>
+          <p>{{ errorMessage || '密碼錯誤，請重新輸入。' }}</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" data-bs-dismiss="modal">確定</button>
@@ -79,6 +79,7 @@ const password = ref('');
 const showPassword = ref(false);
 const isLoading = ref(false);
 const loginFailModal = ref(null);
+const errorMessage = ref('');
 
 // 格式化電話號碼顯示
 const formattedPhone = computed(() => {
@@ -103,6 +104,7 @@ const login = async () => {
 
   try {
     isLoading.value = true;
+    errorMessage.value = '';
 
     try {
       const response = await api.customer.login(phoneNumber.value, password.value);
@@ -119,44 +121,22 @@ const login = async () => {
         router.push(`/customer/ordering/${storeId}`);
       } else {
         // 登入失敗 (API 回傳成功但驗證失敗的情況)
+        errorMessage.value = response.data.message || '密碼錯誤，請重新輸入。';
         showLoginFailModal();
       }
     } catch (error) {
-      console.error('登入失敗伺服器問題:', error);
-      alert(error.response?.data || '登入失敗，請稍後再試。');
+      console.error('登入失敗:', error);
+      if (error.response) {
+        errorMessage.value = error.response.data.message || '登入失敗，請稍後再試。';
+      } else if (error.request) {
+        errorMessage.value = '無法連線到伺服器，請檢查您的網路連接。';
+      } else {
+        errorMessage.value = '登入失敗，請稍後再試。';
+      }
+      showLoginFailModal();
     }
   } finally {
     isLoading.value = false;
   }
 };
-
-// 顯示登入失敗的 Modal
-const showLoginFailModal = () => {
-  if (loginFailModal.value) {
-    const modal = new Modal(loginFailModal.value);
-    modal.show();
-  }
-};
-
-onMounted(() => {
-  // 從 URL 獲取電話號碼
-  phoneNumber.value = route.query.phone || localStorage.getItem('phoneNumber') || '';
-
-  // 初始化 Modal
-  loginFailModal.value = document.getElementById('loginFailModal');
-});
 </script>
-
-<style scoped>
-.login-password-container {
-  max-width: 500px;
-  margin: 0 auto;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-}
-
-.phone-display {
-  font-size: 1.1rem;
-  font-weight: 500;
-}
-</style>

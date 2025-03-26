@@ -95,30 +95,42 @@ const checkPhoneNumber = async () => {
     // 使用 API 檢查電話號碼是否存在
     try {
       const response = await api.customer.checkPhoneExists(phoneNumber.value);
-      const isRegistered = response.data.exists;
       
-      if (isRegistered) {
-        // 已註冊，跳轉到密碼輸入頁面
-        router.push({
-          name: 'customer-login-password',
-          query: { 
-            phone: phoneNumber.value,
-            store_id: storeId
-          }
-        });
+      if (response.data.success) {
+        const isRegistered = response.data.exists;
+        
+        if (isRegistered) {
+          // 已註冊，跳轉到密碼輸入頁面
+          router.push({
+            name: 'customer-login-password',
+            query: { 
+              phone: phoneNumber.value,
+              store_id: storeId
+            }
+          });
+        } else {
+          // 未註冊，跳轉到註冊頁面
+          router.push({
+            name: 'customer-register',
+            query: { 
+              phone: phoneNumber.value,
+              store_id: storeId 
+            }
+          });
+        }
       } else {
-        // 未註冊，跳轉到註冊頁面
-        router.push({
-          name: 'customer-register',
-          query: { 
-            phone: phoneNumber.value,
-            store_id: storeId 
-          }
-        });
+        // API返回成功但結果處理失敗
+        alert('檢查電話號碼時出現錯誤，請稍後再試。');
       }
     } catch (error) {
       console.error('檢查電話號碼失敗:', error);
-      alert('檢查電話號碼時出現錯誤，請稍後再試。');
+      if (error.response) {
+        alert(error.response.data.message || '檢查電話號碼時出現錯誤，請稍後再試。');
+      } else if (error.request) {
+        alert('無法連線到伺服器，請檢查您的網路連接。');
+      } else {
+        alert('檢查電話號碼時出現錯誤，請稍後再試。');
+      }
     }
   } finally {
     isLoading.value = false;
@@ -130,11 +142,17 @@ const fetchStoreInfo = async () => {
   try {
     // 從 API 獲取店家信息
     const response = await api.store.getById(storeId);
-    storeName.value = response.data.name || '';
     
-    // 設置餐廳圖片
-    if (response.data.image && response.data.image.url) {
-      restaurantImage.value = response.data.image.url;
+    if (response.data.success) {
+      const storeData = response.data.store;
+      storeName.value = storeData.name || '';
+      
+      // 設置餐廳圖片
+      if (storeData.image && storeData.image.url) {
+        restaurantImage.value = storeData.image.url;
+      }
+    } else {
+      console.error('獲取店家信息失敗:', response.data.message);
     }
   } catch (error) {
     console.error('獲取店家信息失敗:', error);
@@ -142,7 +160,9 @@ const fetchStoreInfo = async () => {
 };
 
 onMounted(() => {
-  fetchStoreInfo();
+  if (storeId) {
+    fetchStoreInfo();
+  }
 });
 </script>
 

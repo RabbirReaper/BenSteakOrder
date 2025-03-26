@@ -126,6 +126,7 @@ import { Modal } from 'bootstrap';
 const router = useRouter();
 const isSubmitting = ref(false);
 const saveSuccessModal = ref(null);
+const errorMessage = ref('');
 
 // 個人資料表單
 const profileForm = ref({
@@ -159,24 +160,38 @@ const goBack = () => {
 const saveProfile = async () => {
   try {
     isSubmitting.value = true;
+    errorMessage.value = '';
     
-    const response = await api.customer.updateProfile({
-      name: profileForm.value.name,
-      birthday: profileForm.value.birthday || null,
-      gender: profileForm.value.gender || null,
-      address: profileForm.value.address || null
-    });
-    
-    if (response.data) {
-      // 保存成功，顯示成功提示
-      showSaveSuccessModal();
+    try {
+      const response = await api.customer.updateProfile({
+        name: profileForm.value.name,
+        birthday: profileForm.value.birthday || null,
+        gender: profileForm.value.gender || null,
+        address: profileForm.value.address || null
+      });
       
-      // 更新本地存儲的用戶名
-      localStorage.setItem('customerName', profileForm.value.name);
+      if (response.data.success) {
+        // 保存成功，顯示成功提示
+        showSaveSuccessModal();
+        
+        // 更新本地存儲的用戶名
+        localStorage.setItem('customerName', profileForm.value.name);
+      } else {
+        // API 返回成功但處理失敗
+        errorMessage.value = response.data.message || '保存失敗，請稍後再試。';
+        alert(errorMessage.value);
+      }
+    } catch (error) {
+      console.error('保存個人資料失敗:', error);
+      if (error.response) {
+        errorMessage.value = error.response.data.message || '保存失敗，請稍後再試。';
+      } else if (error.request) {
+        errorMessage.value = '無法連線到伺服器，請檢查您的網路連接。';
+      } else {
+        errorMessage.value = '保存失敗，請稍後再試。';
+      }
+      alert(errorMessage.value);
     }
-  } catch (error) {
-    console.error('保存個人資料失敗:', error);
-    alert('保存失敗，請稍後再試。');
   } finally {
     isSubmitting.value = false;
   }
@@ -196,22 +211,34 @@ const fetchCustomerData = async () => {
     // 嘗試使用 API 獲取會員資料
     try {
       const response = await api.customer.getProfile();
-      // 如果成功獲取到資料，使用 API 返回的資料
-      if (response.data) {
+      
+      if (response.data.success) {
+        // 如果成功獲取到資料，使用 API 返回的資料
+        const profile = response.data.profile;
         profileForm.value = {
-          name: response.data.name,
-          phoneNumber: response.data.phoneNumber,
-          birthday: response.data.birthday ? new Date(response.data.birthday).toISOString().split('T')[0] : '',
-          gender: response.data.gender || '',
-          address: response.data.address || ''
+          name: profile.name,
+          phoneNumber: profile.phoneNumber,
+          birthday: profile.birthday ? new Date(profile.birthday).toISOString().split('T')[0] : '',
+          gender: profile.gender || '',
+          address: profile.address || ''
+        };
+      } else {
+        console.warn('API 獲取會員資料失敗:', response.data.message);
+        // 如果 API 請求成功但處理失敗，回退使用本地存儲的資料
+        profileForm.value = {
+          name: localStorage.getItem('customerName') || '',
+          phoneNumber: localStorage.getItem('phoneNumber') || '',
+          birthday: '',
+          gender: '',
+          address: ''
         };
       }
     } catch (apiError) {
       console.warn('API 獲取會員資料失敗，使用本地資料:', apiError);
       // 如果 API 請求失敗，回退使用本地存儲的資料
       profileForm.value = {
-        name: localStorage.getItem('customerName'),
-        phoneNumber: localStorage.getItem('phoneNumber'),
+        name: localStorage.getItem('customerName') || '',
+        phoneNumber: localStorage.getItem('phoneNumber') || '',
         birthday: '',
         gender: '',
         address: ''

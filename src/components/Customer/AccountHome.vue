@@ -92,6 +92,7 @@ const customer = ref({
   coupons: []
 });
 const storeId = localStorage.getItem('store_Id') || '1';
+const errorMessage = ref('');
 
 // 獲取用戶名首字母作為頭像
 const userInitial = computed(() => {
@@ -123,27 +124,58 @@ const goBack = () => {
 const logout = async () => {
   try {
     // 調用登出 API
-    await api.auth.logout();
-
-    // 清除本地存儲
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('customerName');
-
-    // 跳轉到點餐頁面
-    router.push(`/customer/ordering/${storeId}`);
+    const response = await api.auth.logout();
+    
+    if (response.data.success) {
+      // 清除本地存儲
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('customerName');
+      
+      // 跳轉到點餐頁面
+      router.push(`/customer/ordering/${storeId}`);
+    } else {
+      errorMessage.value = response.data.message || '登出失敗，請稍後再試。';
+      alert(errorMessage.value);
+    }
   } catch (error) {
     console.error('登出失敗:', error);
-    alert('登出失敗，請稍後再試。');
+    if (error.response) {
+      errorMessage.value = error.response.data.message || '登出失敗，請稍後再試。';
+    } else if (error.request) {
+      errorMessage.value = '無法連線到伺服器，請檢查您的網路連接。';
+    } else {
+      errorMessage.value = '登出失敗，請稍後再試。';
+    }
+    alert(errorMessage.value);
   }
 };
 
 // 獲取會員資料
 const fetchCustomerData = async () => {
   try {
-    customer.value = {
-      name: localStorage.getItem('customerName'),
-      phoneNumber: localStorage.getItem('phoneNumber'),
-    };
+    // 嘗試使用 API 獲取會員資料
+    try {
+      const response = await api.customer.getProfile();
+      
+      if (response.data.success) {
+        // 如果成功獲取到資料，使用 API 返回的資料
+        customer.value = response.data.profile;
+      } else {
+        console.warn('API 獲取會員資料失敗:', response.data.message);
+        // 回退使用本地存儲的資料
+        customer.value = {
+          name: localStorage.getItem('customerName') || '',
+          phoneNumber: localStorage.getItem('phoneNumber') || '',
+        };
+      }
+    } catch (apiError) {
+      console.warn('API 獲取會員資料失敗，使用本地資料:', apiError);
+      // 如果 API 請求失敗，回退使用本地存儲的資料
+      customer.value = {
+        name: localStorage.getItem('customerName') || '',
+        phoneNumber: localStorage.getItem('phoneNumber') || '',
+      };
+    }
   } catch (error) {
     console.error('獲取會員資料失敗:', error);
     alert('獲取會員資料失敗，請稍後再試。');

@@ -122,7 +122,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>目前密碼不正確，請重新輸入。</p>
+          <p>{{ errorMessage || '目前密碼不正確，請重新輸入。' }}</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" data-bs-dismiss="modal">確定</button>
@@ -144,6 +144,7 @@ const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
 const updateSuccessModal = ref(null);
 const updateFailModal = ref(null);
+const errorMessage = ref('');
 
 // 密碼表單
 const passwordForm = ref({
@@ -186,29 +187,41 @@ const updatePassword = async () => {
   
   try {
     isSubmitting.value = true;
+    errorMessage.value = '';
     
-    // 這裡應該調用實際的 API 來更新密碼
-    // 模擬 API 調用
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // 模擬驗證 - 假設目前密碼是 "123456"
-    if (passwordForm.value.currentPassword === '123456') {
-      // 更新成功
-      showUpdateSuccessModal();
-      // 清空表單
-      passwordForm.value = {
-        currentPassword: '',
-        newPassword: '',
-        confirmNewPassword: ''
-      };
-    } else {
-      // 目前密碼錯誤
+    try {
+      // 呼叫 API 更新密碼
+      const response = await api.customer.changePassword(
+        passwordForm.value.currentPassword,
+        passwordForm.value.newPassword
+      );
+      
+      if (response.data.success) {
+        // 更新成功
+        showUpdateSuccessModal();
+        
+        // 清空表單
+        passwordForm.value = {
+          currentPassword: '',
+          newPassword: '',
+          confirmNewPassword: ''
+        };
+      } else {
+        // API 返回成功但處理失敗
+        errorMessage.value = response.data.message || '目前密碼不正確，請重新輸入。';
+        showUpdateFailModal();
+      }
+    } catch (error) {
+      console.error('更新密碼失敗:', error);
+      if (error.response) {
+        errorMessage.value = error.response.data.message || '更新密碼失敗，請稍後再試。';
+      } else if (error.request) {
+        errorMessage.value = '無法連線到伺服器，請檢查您的網路連接。';
+      } else {
+        errorMessage.value = '更新密碼失敗，請稍後再試。';
+      }
       showUpdateFailModal();
     }
-    
-  } catch (error) {
-    console.error('更新密碼失敗:', error);
-    alert('更新失敗，請稍後再試。');
   } finally {
     isSubmitting.value = false;
   }

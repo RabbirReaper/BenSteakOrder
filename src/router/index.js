@@ -148,7 +148,7 @@ const router = createRouter({
       path: '/staff/:storeId',
       name: 'staff',
       component: StaffOrder,
-      meta: { requiresAuth: true, role: 'store_admin' }, // 需要登入
+      meta: { requiresAuth: false, role: 'store_admin' }, // 需要登入
     },
     {
       path: '/confirmation/:orderId',

@@ -119,6 +119,7 @@ const router = useRouter();
 const isLoading = ref(true);
 const activeTab = ref('all');
 const orders = ref([]);
+const errorMessage = ref('');
 
 // 返回上一頁
 const goBack = () => {
@@ -215,94 +216,114 @@ const viewOrderDetail = (order) => {
 const fetchOrders = async () => {
   try {
     isLoading.value = true;
-    
-    // 這裡應該調用實際的 API 來獲取訂單資訊
-    // 模擬 API 調用
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // 模擬數據
-    orders.value = [
-      {
-        _id: '1',
-        orderNumber: 'O2023101501',
-        createdAt: '2023-10-15T18:30:00',
-        orderStatus: 'Completed',
-        pickupMethod: '內用',
-        items: [
-          {
-            itemId: { name: '美國頂級牛排' },
-            amount: 1,
-            thisMoney: 450
-          },
-          {
-            itemId: { name: '德國豬腳' },
-            amount: 1,
-            thisMoney: 350
-          },
-          {
-            itemId: { name: '凱薩沙拉' },
-            amount: 1,
-            thisMoney: 120
-          },
-          {
-            itemId: { name: '紅酒' },
-            amount: 2,
-            thisMoney: 300
-          }
-        ],
-        totalMoney: 1220,
-        store: { name: '奔野牛排 信義店' }
-      },
-      {
-        _id: '2',
-        orderNumber: 'O2023101001',
-        createdAt: '2023-10-10T12:15:00',
-        orderStatus: 'Completed',
-        pickupMethod: '自取',
-        items: [
-          {
-            itemId: { name: 'T骨牛排' },
-            amount: 2,
-            thisMoney: 900
-          },
-          {
-            itemId: { name: '松露薯條' },
-            amount: 1,
-            thisMoney: 150
-          }
-        ],
-        totalMoney: 1050,
-        store: { name: '奔野牛排 西門店' }
-      },
-      {
-        _id: '3',
-        orderNumber: 'O2023102001',
-        createdAt: '2023-10-20T19:45:00',
-        orderStatus: 'Unpaid',
-        pickupMethod: '內用',
-        items: [
-          {
-            itemId: { name: '和牛漢堡排' },
-            amount: 1,
-            thisMoney: 280
-          },
-          {
-            itemId: { name: '起司薯條' },
-            amount: 1,
-            thisMoney: 120
-          }
-        ],
-        totalMoney: 400,
-        store: { name: '奔野牛排 信義店' }
+    errorMessage.value = '';
+
+    // 呼叫 API 獲取客戶訂單
+    try {
+      const response = await api.customer.getOrders();
+      
+      if (response.data.success) {
+        orders.value = response.data.orders || [];
+      } else {
+        console.error('獲取訂單失敗:', response.data.message);
+        errorMessage.value = response.data.message || '獲取訂單失敗，請稍後再試。';
+        // 使用模擬數據
+        useMockData();
       }
-    ];
-    
-  } catch (error) {
-    console.error('獲取訂單資訊失敗:', error);
-    alert('獲取訂單資訊失敗，請稍後再試。');
+    } catch (error) {
+      console.error('獲取訂單失敗:', error);
+      if (error.response) {
+        errorMessage.value = error.response.data.message || '獲取訂單失敗，請稍後再試。';
+      } else if (error.request) {
+        errorMessage.value = '無法連線到伺服器，請檢查您的網路連接。';
+      } else {
+        errorMessage.value = '獲取訂單失敗，請稍後再試。';
+      }
+      // 使用模擬數據
+      useMockData();
+    }
   } finally {
     isLoading.value = false;
   }
+};
+
+// 使用模擬數據（當 API 請求失敗時）
+const useMockData = () => {
+  orders.value = [
+    {
+      _id: '1',
+      orderNumber: 'O2023101501',
+      createdAt: '2023-10-15T18:30:00',
+      orderStatus: 'Completed',
+      pickupMethod: '內用',
+      items: [
+        {
+          itemId: { name: '美國頂級牛排' },
+          amount: 1,
+          thisMoney: 450
+        },
+        {
+          itemId: { name: '德國豬腳' },
+          amount: 1,
+          thisMoney: 350
+        },
+        {
+          itemId: { name: '凱薩沙拉' },
+          amount: 1,
+          thisMoney: 120
+        },
+        {
+          itemId: { name: '紅酒' },
+          amount: 2,
+          thisMoney: 300
+        }
+      ],
+      totalMoney: 1220,
+      store: { name: '奔野牛排 信義店' }
+    },
+    {
+      _id: '2',
+      orderNumber: 'O2023101001',
+      createdAt: '2023-10-10T12:15:00',
+      orderStatus: 'Completed',
+      pickupMethod: '自取',
+      items: [
+        {
+          itemId: { name: 'T骨牛排' },
+          amount: 2,
+          thisMoney: 900
+        },
+        {
+          itemId: { name: '松露薯條' },
+          amount: 1,
+          thisMoney: 150
+        }
+      ],
+      totalMoney: 1050,
+      store: { name: '奔野牛排 西門店' }
+    },
+    {
+      _id: '3',
+      orderNumber: 'O2023102001',
+      createdAt: '2023-10-20T19:45:00',
+      orderStatus: 'Unpaid',
+      pickupMethod: '內用',
+      items: [
+        {
+          itemId: { name: '和牛漢堡排' },
+          amount: 1,
+          thisMoney: 280
+        },
+        {
+          itemId: { name: '起司薯條' },
+          amount: 1,
+          thisMoney: 120
+        }
+      ],
+      totalMoney: 400,
+      store: { name: '奔野牛排 信義店' }
+    }
+  ];
 };
 
 onMounted(() => {
