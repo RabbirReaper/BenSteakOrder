@@ -166,36 +166,29 @@ const isLoading = ref(false);
 const errorMessage = ref('');
 
 // 加載菜單數據
+// 加載菜單數據
 const fetchMenuData = async () => {
   isLoading.value = true;
   errorMessage.value = '';
-  
+
   try {
     // 獲取店家資訊（包括菜單）
     const storeResponse = await api.store.getById(props.storeId);
-    
+
     if (!storeResponse.data.success) {
       throw new Error(storeResponse.data.message || '獲取店家資訊失敗');
     }
-    
+
     const store = storeResponse.data.store;
-    
-    // 獲取菜單細節
-    const menuResponse = await api.menu.getById(store.menuItem);
-    
-    if (!menuResponse.data.success) {
-      throw new Error(menuResponse.data.message || '獲取菜單資訊失敗');
-    }
-    
+
     // 初始化菜單數據
-    orderStore.initMenuData(menuResponse.data.menu, store);
-    
+    orderStore.initMenuData(store.menuItem);
+
     // 加載餐點詳細資料
     await loadDishDetails();
-    
   } catch (error) {
     console.error('獲取菜單數據錯誤:', error);
-    
+
     if (error.response) {
       // 伺服器回應錯誤
       errorMessage.value = error.response.data.message || '獲取菜單時發生錯誤';
@@ -222,7 +215,7 @@ const loadDishDetails = async () => {
     const addonsPromise = api.dish.getAll('addon');
     // 加載生肉資料
     const rawMeatPromise = api.dish.getAll('rawMeat');
-    
+
     // 平行處理所有請求
     const [mainDishesRes, elseDishesRes, addonsRes, rawMeatRes] = await Promise.all([
       mainDishesPromise,
@@ -230,13 +223,13 @@ const loadDishDetails = async () => {
       addonsPromise,
       rawMeatPromise
     ]);
-    
+
     // 檢查回應是否成功
-    if (!mainDishesRes.data.success || !elseDishesRes.data.success || 
-        !addonsRes.data.success || !rawMeatRes.data.success) {
+    if (!mainDishesRes.data.success || !elseDishesRes.data.success ||
+      !addonsRes.data.success || !rawMeatRes.data.success) {
       throw new Error('獲取餐點詳細資料失敗');
     }
-    
+
     // 更新 store 中的餐點詳細資料
     orderStore.setDishesData({
       mainDishes: mainDishesRes.data.dishes,
@@ -244,7 +237,7 @@ const loadDishDetails = async () => {
       addons: addonsRes.data.dishes,
       rawMeat: rawMeatRes.data.dishes
     });
-    
+
   } catch (error) {
     console.error('加載餐點詳細資料錯誤:', error);
     throw error; // 將錯誤傳遞給上層函數

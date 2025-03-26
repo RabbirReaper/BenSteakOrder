@@ -1,361 +1,345 @@
+// src/stores/order.js
 import { defineStore } from 'pinia';
 import api from '@/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 export const useOrderStore = defineStore('order', {
   state: () => ({
-    // 購物車狀態
-    cart: [],
-    currentItem: null,
-    currentItemIndex: null,
-    adjustment: 0,
-    discount: 0,
-
-    // 訂單狀態
-    selectedOrder: null,
-    todayOrders: [],
-
-    // 菜單狀態
+    activeComponent: 'DineIn', // DineIn, TakeOut, Orders
+    
+    // 菜單數據
     menuData: {
       mainDishes: [],
       elseDishes: [],
-      addons: []
+      addons: [],
+      rawMeat: [],
+      menuStructure: null,
     },
-
-    // 組件狀態
-    activeComponent: 'Orders',
-
-    // 提交狀態
-    isCheckingOut: false
+    
+    // 購物車
+    cart: [],
+    currentItem: null,
+    currentItemIndex: null,
+    adjustment: 0, // 調帳金額 (正數為減少, 負數為增加)
+    discount: 0, // 折扣金額
+    tableNumber: '', // 桌號 (內用才需要)
+    remarks: '', // 備註
+    deliveryAddress: '', // 外送地址 (外送才需要)
+    isCheckingOut: false, // 是否正在結帳
+    
+    // 訂單管理
+    todayOrders: [],
+    selectedOrder: null,
+    currentDate: null,
+    maxDate: null, // 最大可選日期 (今天)
   }),
-
+  
   getters: {
-    // 計算當前日期
-    currentDate: () => {
-      const now = new Date();
-      return `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
-    },
-
-    // 計算子總額
+    // 購物車小計
     subtotal: (state) => {
       return state.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
     },
-
-    // 計算總額
+    
+    // 購物車總計
     total: (state) => {
-      return state.subtotal + state.adjustment - state.discount;
+      return Math.max(0, state.subtotal - state.adjustment - state.discount);
     },
-
-    // 今日日期上限
-    maxDate: () => {
-      const now = new Date();
-      // 加上 8 小時的毫秒數來獲得 UTC+8 時間
-      const utc8Date = new Date(now.getTime() + (8 * 60 * 60 * 1000));
-      // 格式化為 YYYY-MM-DD
-      return utc8Date.toISOString().split('T')[0];
-    },
-
-    // 獲取所有可加點的肉類
+    
+    // 取得可以加點的肉類
     additionalMeatDishes: (state) => {
-      if (!state.menuData || !state.menuData.mainDishes) return [];
-
-      // 返回 extraPrice != 0 的肉類單品
-      return state.menuData.mainDishes.filter(dish => dish.extraPrice != 0);
+      return state.menuData.mainDishes.filter(dish => 
+        dish.extraPrice !== 0
+      );
     }
   },
-
+  
   actions: {
-    // ======= 購物車操作 =======
-
-    // 直接添加菜品到購物車
-    addDishToCart(dish, type) {
-      // 創建新的購物車項目
-      const newItem = {
-        name: dish.name,
-        price: dish.price,
-        itemModel: type,
-        id: dish._id,
-        quantity: 1,
-        doneness: dish.category === 'Steak' && dish.steakDoneness ? dish.steakDoneness[0] : '',
-        sauce: dish.sauceOptions && dish.sauceOptions.length ? '蘑菇醬' : '',
-        addons: [],
-        additionalMeats: [],
-        extraOptions: [],
-        remarks: ''
-      };
-
-      // 添加到購物車
-      this.cart.push(newItem);
-
-      // 設置當前項目為新添加的項目
-      this.currentItem = { ...newItem };
-      this.currentItemIndex = this.cart.length - 1;
-    },
-
-    // 添加到購物車
-    // addToCart(item) {
-    //   if (this.currentItemIndex !== null) {
-    //     // 更新現有項目
-    //     this.cart[this.currentItemIndex] = { ...item };
-    //   } else {
-    //     // 添加新項目
-    //     this.cart.push({ ...item });
-    //   }
-    //   // 重置當前項目和索引
-    //   this.resetCurrentItem();
-    // },
-
-    // 從購物車中移除項目
-    removeFromCart(index) {
-      this.cart.splice(index, 1);
-
-      // 如果刪除的是當前正在編輯的項目，重置當前項目
-      if (this.currentItemIndex === index) {
-        this.resetCurrentItem();
-      } else if (this.currentItemIndex > index) {
-        // 如果刪除的項目在當前編輯項目之前，需要調整索引
-        this.currentItemIndex--;
-      }
-    },
-
-    // 更新購物車中項目的數量
-    updateQuantity(index, change) {
-      const newQuantity = this.cart[index].quantity + change;
-
-      if (newQuantity > 0) {
-        this.cart[index].quantity = newQuantity;
-      } else if (newQuantity <= 0) {
-        this.removeFromCart(index);
-      }
-    },
-
-    // 選擇當前項目進行編輯
-    selectCurrentItem(item, index) {
-      this.currentItem = item ? { ...item } : null;
-      this.currentItemIndex = index;
-
-      // 如果選擇了項目進行編輯，立即在購物車中創建臨時版本
-      if (index !== null) {
-        // 創建原始副本用於參考
-        this.cart[index] = { ...item };
-      }
-    },
-
-    // 重置當前項目
-    resetCurrentItem() {
-      this.currentItem = null;
-      this.currentItemIndex = null;
-    },
-
-    // 清空購物車
-    clearCart() {
-      this.currentItem = null;
-      this.currentItemIndex = null;
-      this.cart = [];
-      this.adjustment = 0;
-      this.discount = 0;
-      // 同時清除選中的訂單
-      this.selectedOrder = null;
-    },
-
-    // ======= 菜品選擇操作 =======
-
-    // 選擇菜品
-    selectDish(dish, type) {
-      // 創建新的當前項目
-      this.currentItem = {
-        name: dish.name,
-        price: dish.price,
-        itemModel: type,
-        id: dish._id,
-        quantity: 1,
-        doneness: dish.category === 'Steak' && dish.steakDoneness ? dish.steakDoneness[0] : '',
-        sauce: dish.sauceOptions && dish.sauceOptions.length ? '不加醬' : '',
-        addons: [],
-        additionalMeats: [],
-        extraOptions: [],
-        remarks: ''
-      };
-      this.currentItemIndex = null;
-    },
-
-    // 選擇熟度
-    selectDoneness(doneness) {
-      if (this.currentItem) {
-        this.currentItem.doneness = doneness;
-        this.syncCurrentItemToCart();
-      }
-    },
-
-    // 選擇醬料
-    selectSauce(sauce) {
-      if (this.currentItem) {
-        this.currentItem.sauce = sauce;
-        this.syncCurrentItemToCart();
-      }
-    },
-
-    // 切換額外選項
-    toggleExtraOption(option) {
-      if (!this.currentItem) return;
-
-      const index = this.currentItem.extraOptions.indexOf(option);
-      if (index > -1) {
-        this.currentItem.extraOptions.splice(index, 1);
-      } else {
-        this.currentItem.extraOptions.push(option);
-      }
-      this.syncCurrentItemToCart();
-    },
-
-    // 檢查額外選項是否已選擇
-    isExtraOptionSelected(option) {
-      return this.currentItem && this.currentItem.extraOptions.includes(option);
-    },
-
-    // 選擇加點
-    toggleAddon(addon) {
-      if (!this.currentItem) return;
-
-      const index = this.currentItem.addons.findIndex(a => a._id === addon._id);
-      if (index > -1) {
-        // 移除加點並扣除價格
-        this.currentItem.addons.splice(index, 1);
-        this.currentItem.price -= addon.price;
-      } else {
-        // 添加加點並增加價格
-        this.currentItem.addons.push(addon);
-        this.currentItem.price += addon.price;
-      }
-      this.syncCurrentItemToCart();
-    },
-
-    // 檢查加點是否已選擇
-    isAddonSelected(addon) {
-      return this.currentItem && this.currentItem.addons.some(a => a._id === addon._id);
-    },
-
-    // 選擇其他肉類單品
-    toggleAdditionalMeat(meat) {
-      if (!this.currentItem) return;
-
-      const index = this.currentItem.additionalMeats.findIndex(m => m._id === meat._id);
-      if (index > -1) {
-        // 移除肉類並扣除額外價格
-        this.currentItem.additionalMeats.splice(index, 1);
-        this.currentItem.price -= meat.extraPrice;
-      } else {
-        // 添加肉類並增加額外價格
-        this.currentItem.additionalMeats.push(meat);
-        this.currentItem.price += meat.extraPrice;
-      }
-      this.syncCurrentItemToCart();
-    },
-
-    // 檢查其他肉類單品是否已選擇
-    isAdditionalMeatSelected(meat) {
-      return this.currentItem && this.currentItem.additionalMeats.some(m => m._id === meat._id);
-    },
-
-    // 即時同步當前項目到購物車
-    syncCurrentItemToCart() {
-      if (this.currentItemIndex !== null && this.currentItem) {
-        // 直接更新購物車中的項目
-        this.cart[this.currentItemIndex] = { ...this.currentItem };
-      }
-    },
-
-    // 設置調整金額
-    setAdjustment(value) {
-      this.adjustment = value;
-    },
-
-    // 設置折扣金額
-    setDiscount(value) {
-      this.discount = value;
-    },
-
-    // ======= 訂單操作 =======
-
     // 設置活動組件
     setActiveComponent(component) {
-      // 先記錄之前的組件
-      const prevComponent = this.activeComponent;
-
-      // 更新當前活動組件
       this.activeComponent = component;
-
-      // 切換到訂單頁面時清空購物車
-      if (component === 'Orders') {
-        this.clearCart();
-      }
-      // 如果從訂單頁面切換到其他頁面，也清空購物車和選中訂單
-      else if (prevComponent === 'Orders') {
-        this.clearCart();
-      }
-      // 如果在非訂單頁面之間切換，且有選中訂單，則載入訂單到購物車
-      // 這部分可以移除，除非你確實需要在切換非訂單頁面時載入選中訂單
-      // else if (this.selectedOrder) {
-      //   this.loadOrderToCart(this.selectedOrder);
-      // }
-    },
-
-    // 從訂單加載項目到購物車
-    loadOrderToCart(order) {
-      this.clearCart();
-      if (!order || !order.items) return;
-
-      order.items.forEach(item => {
-        // 轉換訂單項目格式為購物車項目格式
-        const cartItem = {
-          id: item.itemId._id,
-          itemModel: item.itemModel,
-          name: item.itemId.name,
-          price: item.thisMoney / item.amount,
-          quantity: item.amount,
-          doneness: item.options?.doneness || null,
-          sauce: item.options?.sauce || null,
-          addons: item.options?.addons || [],
-          additionalMeats: item.options?.additionalMeats || [],
-          extraOptions: item.options?.extraOptions || [],
-          remarks: item.options?.remarks || ''
-        };
-        this.cart.push(cartItem);
-      });
-
-      // 設置訂單的調整和折扣
-      this.adjustment = order.discounts || 0;
-      this.discount = order.pointsDiscount || 0;
-    },
-
-    // 選擇一個訂單
-    selectOrder(order) {
-      this.selectedOrder = order;
-      if (this.activeComponent === 'Orders') {
-        // 只顯示訂單詳情，不加載到購物車
-      } else {
-        // 其他頁面則加載訂單到購物車
-        this.loadOrderToCart(order);
-      }
-    },
-
-    // 取消訂單
-    cancelOrder() {
-      if (confirm('確定要取消此訂單嗎？')) {
-        this.clearCart();
+      
+      // 如果切換到新組件，重置選中的訂單
+      if (component !== 'Orders') {
         this.selectedOrder = null;
       }
     },
+    
+    // 初始化菜單數據結構
+    initMenuData(menu) {
+      this.menuData.menuStructure = menu;
+    },
+    
+    // 設置詳細的餐點數據
+    setDishesData(dishes) {
+      this.menuData.mainDishes = dishes.mainDishes;
+      this.menuData.elseDishes = dishes.elseDishes;
+      this.menuData.addons = dishes.addons;
+      this.menuData.rawMeat = dishes.rawMeat;
+    },
 
+    // 添加餐點到購物車
+    addDishToCart(dish, type) {
+      // 創建新項目
+      const newItem = {
+        id: dish._id,
+        itemModel: type,
+        name: dish.name,
+        price: dish.price,
+        quantity: 1,
+        doneness: dish.category === 'Steak' ? dish.steakDoneness[0] : null,
+        sauce: dish.sauceOptions && dish.sauceOptions.length > 0 ? dish.sauceOptions[0] : null,
+        addons: [],
+        additionalMeats: [],
+        extraOptions: [],
+        remarks: ''
+      };
+      
+      // 設置當前編輯項目
+      this.currentItem = { ...newItem };
+      this.currentItemIndex = this.cart.length;
+      
+      // 添加到購物車
+      this.cart.push(newItem);
+    },
+    
+    // 從購物車中移除項目
+    removeFromCart(index) {
+      this.cart.splice(index, 1);
+      
+      // 如果刪除的是當前編輯項目，清除當前編輯狀態
+      if (this.currentItemIndex === index) {
+        this.clearCurrentItem();
+      } else if (this.currentItemIndex > index) {
+        // 調整索引
+        this.currentItemIndex--;
+      }
+    },
+    
+    // 更新購物車中項目的數量
+    updateQuantity(index, change) {
+      const newQuantity = this.cart[index].quantity + change;
+      if (newQuantity > 0) {
+        this.cart[index].quantity = newQuantity;
+        
+        // 如果正在編輯此項目，同步更新當前項目
+        if (this.currentItemIndex === index && this.currentItem) {
+          this.currentItem.quantity = newQuantity;
+        }
+      }
+    },
+    
+    // 選擇當前編輯的項目
+    selectCurrentItem(item, index) {
+      this.currentItem = { ...item };
+      this.currentItemIndex = index;
+    },
+    
+    // 清除當前編輯的項目
+    clearCurrentItem() {
+      this.currentItem = null;
+      this.currentItemIndex = null;
+    },
+
+    // 設置熟度
+    selectDoneness(doneness) {
+      if (this.currentItem) {
+        this.currentItem.doneness = doneness;
+        
+        // 同步更新購物車中的項目
+        if (this.currentItemIndex !== null) {
+          this.cart[this.currentItemIndex].doneness = doneness;
+        }
+      }
+    },
+    
+    // 設置醬料
+    selectSauce(sauce) {
+      if (this.currentItem) {
+        this.currentItem.sauce = sauce;
+        
+        // 同步更新購物車中的項目
+        if (this.currentItemIndex !== null) {
+          this.cart[this.currentItemIndex].sauce = sauce;
+        }
+      }
+    },
+    
+    // 切換額外選項
+    toggleExtraOption(option) {
+      if (this.currentItem) {
+        const options = [...(this.currentItem.extraOptions || [])];
+        const index = options.indexOf(option);
+        
+        if (index === -1) {
+          options.push(option);
+        } else {
+          options.splice(index, 1);
+        }
+        
+        this.currentItem.extraOptions = options;
+        
+        // 同步更新購物車中的項目
+        if (this.currentItemIndex !== null) {
+          this.cart[this.currentItemIndex].extraOptions = [...options];
+        }
+      }
+    },
+    
+    // 檢查額外選項是否已選擇
+    isExtraOptionSelected(option) {
+      return this.currentItem && 
+             this.currentItem.extraOptions && 
+             this.currentItem.extraOptions.includes(option);
+    },
+    
+    // 切換加點配料
+    toggleAddon(addon) {
+      if (this.currentItem) {
+        const addons = [...(this.currentItem.addons || [])];
+        const index = addons.findIndex(item => item._id === addon._id);
+        
+        if (index === -1) {
+          addons.push(addon);
+        } else {
+          addons.splice(index, 1);
+        }
+        
+        this.currentItem.addons = addons;
+        
+        // 更新價格
+        this.updateItemPrice();
+        
+        // 同步更新購物車中的項目
+        if (this.currentItemIndex !== null) {
+          this.cart[this.currentItemIndex].addons = [...addons];
+          this.cart[this.currentItemIndex].price = this.currentItem.price;
+        }
+      }
+    },
+    
+    // 檢查加點配料是否已選擇
+    isAddonSelected(addon) {
+      return this.currentItem && 
+             this.currentItem.addons && 
+             this.currentItem.addons.some(item => item._id === addon._id);
+    },
+    
+    // 切換加點肉品
+    toggleAdditionalMeat(meat) {
+      if (this.currentItem) {
+        const meats = [...(this.currentItem.additionalMeats || [])];
+        const index = meats.findIndex(item => item._id === meat._id);
+        
+        if (index === -1) {
+          meats.push(meat);
+        } else {
+          meats.splice(index, 1);
+        }
+        
+        this.currentItem.additionalMeats = meats;
+        
+        // 更新價格
+        this.updateItemPrice();
+        
+        // 同步更新購物車中的項目
+        if (this.currentItemIndex !== null) {
+          this.cart[this.currentItemIndex].additionalMeats = [...meats];
+          this.cart[this.currentItemIndex].price = this.currentItem.price;
+        }
+      }
+    },
+    
+    // 檢查加點肉品是否已選擇
+    isAdditionalMeatSelected(meat) {
+      return this.currentItem && 
+             this.currentItem.additionalMeats && 
+             this.currentItem.additionalMeats.some(item => item._id === meat._id);
+    },
+    
+    // 更新項目價格 (包括加料和額外肉品)
+    updateItemPrice() {
+      if (this.currentItem && this.currentItemIndex !== null) {
+        const baseItem = this.currentItem.itemModel === 'MainDish' 
+          ? this.menuData.mainDishes.find(d => d._id === this.currentItem.id)
+          : this.menuData.elseDishes.find(d => d._id === this.currentItem.id);
+          
+        if (!baseItem) return;
+        
+        // 基本價格
+        let price = baseItem.price;
+        
+        // 加點配料價格
+        if (this.currentItem.addons && this.currentItem.addons.length) {
+          price += this.currentItem.addons.reduce((sum, addon) => sum + addon.price, 0);
+        }
+        
+        // 加點肉品價格
+        if (this.currentItem.additionalMeats && this.currentItem.additionalMeats.length) {
+          price += this.currentItem.additionalMeats.reduce((sum, meat) => sum + meat.extraPrice, 0);
+        }
+        
+        this.currentItem.price = price;
+      }
+    },
+    
+    // 設置調帳金額
+    setAdjustment(amount) {
+      this.adjustment = amount;
+    },
+    
+    // 設置折扣金額
+    setDiscount(amount) {
+      this.discount = amount;
+    },
+    
+    // 設置桌號
+    setTableNumber(number) {
+      this.tableNumber = number;
+    },
+    
+    // 設置備註
+    setRemarks(remarks) {
+      this.remarks = remarks;
+    },
+    
+    // 設置外送地址
+    setDeliveryAddress(address) {
+      this.deliveryAddress = address;
+    },
+    
+    // 取消訂單 (清空購物車)
+    cancelOrder() {
+      // 確認是否要取消
+      if (this.cart.length > 0) {
+        if (confirm('確定要取消訂單嗎？')) {
+          this.cart = [];
+          this.currentItem = null;
+          this.currentItemIndex = null;
+          this.adjustment = 0;
+          this.discount = 0;
+          this.tableNumber = '';
+          this.remarks = '';
+          this.deliveryAddress = '';
+        }
+      }
+    },
+    
     // 結帳
-    async checkout(storeId, pickupMethod) {
-      if (this.cart.length === 0) return;
-      if(this.isCheckingOut) return;
+    async checkout(storeId) {
+      if (this.cart.length === 0 || this.isCheckingOut) return;
+      
       this.isCheckingOut = true;
-
+      
       try {
-        // 整理購物車項目
+        // 獲取訂單編號
+        const numberResponse = await api.order.getOrderNumber();
+        
+        if (!numberResponse.data.success) {
+          throw new Error(numberResponse.data.message || '獲取訂單編號失敗');
+        }
+        
+        const orderNumber = String(numberResponse.data.number);
+        
+        // 准備訂單數據
         const orderItems = this.cart.map(item => ({
           itemModel: item.itemModel,
           itemId: item.id,
@@ -363,269 +347,309 @@ export const useOrderStore = defineStore('order', {
           options: {
             doneness: item.doneness,
             sauce: item.sauce,
-            addons: item.addons.map(a => a._id || a),
+            addons: item.addons.map(addon => addon._id),
             extraOptions: item.extraOptions,
-            additionalMeats: item.additionalMeats?.map(m => m._id || m) || [],
-            remarks: item.remarks,
+            additionalMeats: item.additionalMeats.map(meat => meat._id),
+            remarks: item.remarks
           },
           thisMoney: item.price * item.quantity
         }));
-
-        // 生成訂單號碼
-        const orderNumberRes = await api.order.getOrderNumber();
-        const orderNumber = orderNumberRes.data.number;
-
-        // 創建訂單數據
+        
+        // 決定取餐方式
+        let pickupMethod = '自取'; // 默認為自取
+        if (this.activeComponent === 'DineIn') {
+          pickupMethod = '內用';
+        }
+        
+        // 創建訂單
         const orderData = {
           store: storeId,
-          orderNumber: String(orderNumber),
-          platform: 'pos',
-          pickupMethod: pickupMethod || this.activeComponent === 'DineIn' ? '內用' : '自取',
-          paymentMethod: '現金', // 預設為現金
+          orderNumber,
+          platform: 'POS',
+          pickupMethod,
+          paymentMethod: '現金', // 默認為現金
           orderAmount: this.subtotal,
           discounts: this.adjustment,
           pointsDiscount: this.discount,
           totalMoney: this.total,
-          tableNumber: this.activeComponent === 'DineIn' ? 0 : null,
-          items: orderItems,
-          remarks: null,
+          orderStatus: 'Unpaid',
+          tableNumber: pickupMethod === '內用' ? this.tableNumber : undefined,
+          remarks: this.remarks,
+          deliveryAddress: pickupMethod === '外送' ? this.deliveryAddress : undefined,
+          items: orderItems
         };
-
-        // 創建新訂單
-        const { data: newOrder } = await api.order.create(orderData);
-        // alert(`訂單建立成功，訂單編號: ${orderNumber}`);
-
-        // 清空購物車
-        this.clearCart();
-
-        // 刷新訂單列表
+        
+        const response = await api.order.create(orderData);
+        
+        if (!response.data.success) {
+          throw new Error(response.data.message || '創建訂單失敗');
+        }
+        
+        // 創建成功，清空購物車
+        this.cart = [];
+        this.currentItem = null;
+        this.currentItemIndex = null;
+        this.adjustment = 0;
+        this.discount = 0;
+        this.tableNumber = '';
+        this.remarks = '';
+        this.deliveryAddress = '';
+        
+        // 更新今日訂單列表
         await this.fetchTodayOrders(storeId);
-
-        // 切換到訂單頁面
-        this.setActiveComponent('Orders');
-        this.isCheckingOut = false;
-        return newOrder;
+        
+        // 成功提示
+        // alert(`訂單 #${orderNumber} 已成功建立!`);
       } catch (error) {
         console.error('結帳失敗:', error);
-        alert('結帳失敗，請重試');
-        return null;
+        
+        let errorMsg = '結帳失敗，請稍後再試';
+        
+        if (error.response) {
+          // 伺服器有回應但狀態碼不是 2xx
+          errorMsg = error.response.data.message || '伺服器錯誤，請稍後再試';
+        } else if (error.request) {
+          // 沒有收到伺服器回應
+          errorMsg = '無法連線到伺服器，請檢查網絡連接';
+        } else {
+          // 其他錯誤
+          errorMsg = error.message || '發生未知錯誤';
+        }
+        
+        // alert(errorMsg);
+        throw error; // 將錯誤向上拋出，以便調用者可以處理
+      } finally {
+        this.isCheckingOut = false;
       }
     },
-
-    // ======= 數據獲取 =======
-
-    // 獲取菜單數據
-    async fetchMenuData() {
-      try {
-        // 獲取主餐
-        const mainDishesRes = await api.dish.getAll('mainDish');
-        this.menuData.mainDishes = mainDishesRes.data;
-
-        // 獲取附餐
-        const elseDishesRes = await api.dish.getAll('elseDish');
-        this.menuData.elseDishes = elseDishesRes.data;
-
-        // 獲取加點配料
-        const addonsRes = await api.dish.getAll('addon');
-        this.menuData.addons = addonsRes.data;
-      } catch (error) {
-        console.error("獲取菜單數據失敗:", error);
-      }
-    },
-
-    // 獲取今日訂單
+    
+    // 獲取今日訂單列表
     async fetchTodayOrders(storeId) {
       try {
         const response = await api.order.getTodayStoreOrders(storeId);
-        this.todayOrders = response.data;
+        
+        if (!response.data.success) {
+          throw new Error(response.data.message || '獲取訂單失敗');
+        }
+        
+        this.todayOrders = response.data.orders;
+        
+        // 設置當前日期
+        const today = new Date();
+        this.maxDate = today.toISOString().split('T')[0];
+        this.currentDate = this.formatDate(today);
       } catch (error) {
-        console.error("獲取今日訂單失敗:", error);
+        console.error('獲取今日訂單失敗:', error);
+        throw error;
       }
     },
-
-    // 按日期範圍獲取訂單
-    async fetchOrdersByDateRange(storeId, selectedDate) {
-      try {
-        // 創建日期範圍
-        const start = new Date(selectedDate);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(selectedDate);
-        end.setHours(23, 59, 59, 999);
-
-        // 使用 query 參數
-        const response = await api.order.getStoreOrdersByTimeRange(storeId, start, end);
-
-        this.todayOrders = response.data;
-      } catch (error) {
-        console.error('獲取訂單失敗:', error);
-      }
-    },
-
-    // 獲取訂單詳情
+    
+    // 獲取單個訂單詳情
     async fetchOrderDetails(orderId) {
       try {
-        // 直接從本地數據中查找訂單，而不是發送 API 請求
-        const foundOrder = this.todayOrders.find(order => order._id === orderId);
-
-        if (foundOrder) {
-          return foundOrder;
-        } else {
-          console.error('訂單在本地數據中找不到:', orderId);
-          return null;
+        const response = await api.order.getById(orderId);
+        
+        if (!response.data.success) {
+          throw new Error(response.data.message || '獲取訂單詳情失敗');
         }
+        
+        return response.data.order;
       } catch (error) {
         console.error('獲取訂單詳情失敗:', error);
-        return null;
+        throw error;
       }
     },
-
-    // 更新訂單狀態
-    async updateOrderStatus(orderId, status) {
-      if (!confirm(`確定要將訂單狀態更新為${this.formatStatus(status)}嗎？`)) {
-        return false;
-      }
-
+    
+    // 選擇訂單（在訂單管理頁面顯示）
+    selectOrder(order) {
+      this.selectedOrder = order;
+    },
+    
+    // 刷新所有數據
+    async refreshData(storeId) {
       try {
-        await api.order.updateStatus(orderId, status);
-
-        // 更新本地數據
-        this.todayOrders = this.todayOrders.map(order => {
-          if (order._id === orderId) {
-            return { ...order, orderStatus: status };
-          }
-          return order;
-        });
-
-        if (this.selectedOrder && this.selectedOrder._id === orderId) {
-          this.selectedOrder.orderStatus = status;
+        // 重新獲取菜單數據
+        const storeResponse = await api.store.getById(storeId);
+        
+        if (!storeResponse.data.success) {
+          throw new Error(storeResponse.data.message || '獲取店家資訊失敗');
         }
-
-        return true;
+        
+        const store = storeResponse.data.store;
+        
+        // 獲取菜單細節
+        const menuResponse = await api.menu.getById(store.menuItem);
+        
+        if (!menuResponse.data.success) {
+          throw new Error(menuResponse.data.message || '獲取菜單資訊失敗');
+        }
+        
+        // 初始化菜單數據
+        this.initMenuData(menuResponse.data.menu, store);
+        
+        // 加載餐點詳細資料
+        await this.fetchDishData();
+        
+        // 更新今日訂單
+        await this.fetchTodayOrders(storeId);
+        
+        // 提示刷新成功
+        // alert('數據已成功更新！');
       } catch (error) {
-        console.error('更新訂單狀態失敗:', error);
-        return false;
+        console.error('刷新數據失敗:', error);
+        
+        let errorMsg = '刷新數據失敗';
+        
+        if (error.response) {
+          errorMsg = error.response.data.message || '伺服器錯誤';
+        } else if (error.request) {
+          errorMsg = '無法連線到伺服器';
+        } else {
+          errorMsg = error.message || '發生未知錯誤';
+        }
+        
+        // alert(errorMsg);
+        throw error;
       }
     },
-
-    // ======= 工具函數 =======
-
-    // 格式化日期時間
-    formatDateTime(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleString('zh-TW');
+    
+    // 加載所有菜單相關數據
+    async fetchMenuData() {
+      try {
+        // 先檢查是否已有數據
+        if (this.menuData.mainDishes.length > 0) return;
+        
+        await this.fetchDishData();
+      } catch (error) {
+        console.error('獲取菜單數據失敗:', error);
+        throw error;
+      }
     },
-
-    // 格式化時間
+    
+    // 獲取所有餐點數據
+    async fetchDishData() {
+      try {
+        // 加載主餐資料
+        const mainDishesPromise = api.dish.getAll('mainDish');
+        // 加載附餐資料
+        const elseDishesPromise = api.dish.getAll('elseDish');
+        // 加載配料資料
+        const addonsPromise = api.dish.getAll('addon');
+        // 加載生肉資料
+        const rawMeatPromise = api.dish.getAll('rawMeat');
+        
+        // 平行處理所有請求
+        const [mainDishesRes, elseDishesRes, addonsRes, rawMeatRes] = await Promise.all([
+          mainDishesPromise,
+          elseDishesPromise,
+          addonsPromise,
+          rawMeatPromise
+        ]);
+        
+        // 檢查回應是否成功
+        if (!mainDishesRes.data.success || !elseDishesRes.data.success || 
+            !addonsRes.data.success || !rawMeatRes.data.success) {
+          throw new Error('獲取餐點詳細資料失敗');
+        }
+        
+        // 更新 store 中的餐點詳細資料
+        this.setDishesData({
+          mainDishes: mainDishesRes.data.dishes,
+          elseDishes: elseDishesRes.data.dishes,
+          addons: addonsRes.data.dishes,
+          rawMeat: rawMeatRes.data.dishes
+        });
+      } catch (error) {
+        console.error('獲取餐點數據失敗:', error);
+        throw error;
+      }
+    },
+    
+    // 設置當前日期 (顯示用)
+    setCurrentDate(date) {
+      if (date) {
+        const formattedDate = this.formatDate(new Date(date));
+        this.currentDate = formattedDate;
+      }
+    },
+    
+    // 設置今日訂單
+    setTodayOrders(orders) {
+      this.todayOrders = orders;
+    },
+    
+    // 格式化日期 (YYYY-MM-DD)
+    formatDate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    },
+    
+    // 格式化時間 (HH:MM)
     formatTime(dateString) {
       const date = new Date(dateString);
-      const hours = date.getHours().toString().padStart(2, '0');
-      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
       return `${hours}:${minutes}`;
     },
-
-    // 格式化狀態
+    
+    // 格式化日期時間 (YYYY-MM-DD HH:MM)
+    formatDateTime(dateString) {
+      const date = new Date(dateString);
+      const formattedDate = this.formatDate(date);
+      const formattedTime = this.formatTime(dateString);
+      return `${formattedDate} ${formattedTime}`;
+    },
+    
+    // 格式化訂單狀態
     formatStatus(status) {
-      switch (status) {
-        case 'Completed':
-          return '已完成';
-        case 'Canceled':
-          return '已取消';
-        case 'Unpaid':
-          return '未結帳';
-        default:
-          return status;
-      }
+      const statusMap = {
+        'Unpaid': '未結帳',
+        'Completed': '已完成',
+        'Canceled': '已取消'
+      };
+      return statusMap[status] || status;
     },
-
-    // 獲取取餐方式的樣式類
-    getPickupMethodClass(method) {
-      switch (method) {
-        case '內用':
-          return 'badge bg-primary';
-        case '自取':
-          return 'badge bg-success';
-        case '外送':
-          return 'badge bg-warning text-dark';
-        default:
-          return 'badge bg-secondary';
-      }
-    },
-
-    // 獲取狀態的樣式類
+    
+    // 取得訂單狀態樣式類
     getStatusClass(status) {
-      switch (status) {
-        case 'Completed':
-          return 'badge bg-success';
-        case 'Canceled':
-          return 'badge bg-danger';
-        case 'Unpaid':
-          return 'badge bg-warning text-dark';
-        default:
-          return 'badge bg-secondary';
-      }
+      const classMap = {
+        'Unpaid': 'badge bg-warning',
+        'Completed': 'badge bg-success',
+        'Canceled': 'badge bg-danger'
+      };
+      return classMap[status] || 'badge bg-secondary';
     },
-
+    
+    // 取得取餐方式樣式類
+    getPickupMethodClass(method) {
+      const classMap = {
+        '內用': 'badge bg-primary',
+        '自取': 'badge bg-success',
+        '外送': 'badge bg-info text-dark'
+      };
+      return classMap[method] || 'badge bg-secondary';
+    },
+    
     // 格式化加點配料
     formatAddons(addons) {
-      if (!addons || addons.length === 0) return '';
-
-      return addons.map(addon => {
-        if (typeof addon === 'object' && addon !== null) {
-          return addon.name || "未知加點";
-        }
-        return "加點項目";
-      }).join(', ');
+      if (!addons || !addons.length) return '';
+      return addons.map(addon => addon.name || "未知加點").join(', ');
     },
-
+    
     // 格式化額外肉品
     formatAdditionalMeats(meats) {
-      if (!meats || meats.length === 0) return '';
-
-      return meats.map(meat => {
-        if (typeof meat === 'object' && meat !== null) {
-          return meat.name || "未知肉品";
-        }
-        return "肉品項目";
-      }).join(', ');
+      if (!meats || !meats.length) return '';
+      return meats.map(meat => meat.name || "未知肉品").join(', ');
     },
-
-    // 獲取餐點名稱
+    
+    // 獲取項目名稱 (用於訂單詳情顯示)
     getItemName(item) {
-      if (!item || !item.itemId) return "未知餐點";
-
-      return item.itemId.name
-    },
-
-    // 計算總價格
-    calculateTotalPrice(dish, addons, additionalMeats) {
-      let totalPrice = dish.price;
-
-      // 加上所有配料的價格
-      if (addons && addons.length) {
-        addons.forEach(addon => {
-          if (addon && addon.price) {
-            totalPrice += addon.price;
-          }
-        });
+      if (item && item.itemId) {
+        return item.itemId.name || "未知項目";
       }
-
-      // 加上所有額外肉類的價格
-      if (additionalMeats && additionalMeats.length) {
-        additionalMeats.forEach(meat => {
-          if (meat && meat.extraPrice) {
-            totalPrice += meat.extraPrice;
-          }
-        });
-      }
-
-      return totalPrice;
-    },
-
-    // 重新整理所有數據
-    async refreshData(storeId) {
-      await this.fetchMenuData();
-      await this.fetchTodayOrders(storeId);
+      return "未知項目";
     }
   }
 });

@@ -212,26 +212,18 @@ const fetchMenuData = async () => {
   try {
     // 獲取店家資訊（包括菜單）
     const storeResponse = await api.store.getById(props.storeId);
-    
+
     if (!storeResponse.data.success) {
       throw new Error(storeResponse.data.message || '獲取店家資訊失敗');
     }
-    
+
     const store = storeResponse.data.store;
-    
-    // 獲取菜單細節
-    const menuResponse = await api.menu.getById(store.menuItem);
-    
-    if (!menuResponse.data.success) {
-      throw new Error(menuResponse.data.message || '獲取菜單資訊失敗');
-    }
-    
+
     // 初始化菜單數據
-    orderStore.initMenuData(menuResponse.data.menu, store);
-    
+    orderStore.initMenuData(store.menuItem);
+
     // 加載餐點詳細資料
     await loadDishDetails();
-    
   } catch (error) {
     console.error('獲取菜單數據錯誤:', error);
     
