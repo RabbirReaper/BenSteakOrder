@@ -1,65 +1,76 @@
 <template>
   <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1>分店列表</h1>
-      <router-link to="./add" class="btn btn-primary">
-        新增分店
-      </router-link>
-    </div>
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="mb-0">新增店家</h2>
+          </div>
+          <div class="card-body">
+            <form @submit.prevent="handleSubmit">
+              <div class="mb-3">
+                <label for="storeName" class="form-label">店家名稱</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="storeName"
+                  v-model="storeForm.name"
+                  required
+                />
+              </div>
 
-    <!-- 店家列表 -->
-    <div class="row">
-      <div v-if="isLoading" class="col-12 text-center">
-        <div class="spinner-border" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-      </div>
+              <!-- 店家圖片上傳 -->
+              <div class="mb-3">
+                <label for="imageUpload" class="form-label">店家圖片</label>
+                <div class="input-group mb-3">
+                  <input type="file" class="form-control" id="imageUpload" @change="handleImageSelect" accept="image/*">
+                </div>
+                <div v-if="imagePreview" class="mt-2">
+                  <img :src="imagePreview" :alt="storeForm.image.alt || '圖片預覽'" class="img-thumbnail" style="max-height: 200px">
+                </div>
+                <div class="invalid-feedback" v-if="errors.image">
+                  請上傳圖片
+                </div>
+              </div>
 
-      <div v-else-if="stores.length === 0" class="col-12">
-        <div class="alert alert-info">
-          目前還沒有任何分店資料
-        </div>
-      </div>
+              <div class="mb-3">
+                <label for="imageAlt" class="form-label">圖片描述</label>
+                <input type="text" class="form-control" :class="{ 'is-invalid': errors.imageAlt }" id="imageAlt"
+                  v-model="storeForm.image.alt">
+                <div class="invalid-feedback">
+                  請輸入圖片描述
+                </div>
+              </div>
 
-      <div v-else class="col-12">
-        <div v-if="errorMessage" class="alert alert-danger mb-3" role="alert">
-          {{ errorMessage }}
-        </div>
-        
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>分店名稱</th>
-                <th>公告數量</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="store in stores" :key="store._id">
-                <td>{{ store.name }}</td>
-                <td>{{ store.announcements?.length || 0 }}</td>
-                <td>
-                  <div class="btn-group">
-                    <router-link 
-                      :to="`./${store._id}`" 
-                      class="btn btn-sm btn-outline-primary"
-                    >
-                      編輯
-                    </router-link>
-                    <button 
-                      class="btn btn-sm btn-outline-danger"
-                      @click="handleDelete(store._id, store.name)"
-                      :disabled="isDeleting === store._id"
-                    >
-                      <span v-if="isDeleting === store._id" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                      刪除
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+              <div class="mb-3">
+                <label for="menuSelect" class="form-label">選擇菜單</label>
+                <select 
+                  class="form-select"
+                  id="menuSelect"
+                  v-model="storeForm.menuItem"
+                  required
+                >
+                  <option value="">請選擇菜單</option>
+                  <option 
+                    v-for="menu in menus" 
+                    :key="menu._id"
+                    :value="menu._id"
+                  >
+                    {{ menu.name }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="d-flex justify-content-between">
+                <router-link to="./show" class="btn btn-secondary">
+                  返回
+                </router-link>
+                <button type="submit" class="btn btn-primary" :disabled="loading">
+                  {{ loading ? '儲存中...' : '儲存' }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -67,88 +78,127 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import api from '@/api'
+import { useRouter } from 'vue-router'
 
-// 使用 ref 創建響應式狀態
-const stores = ref([]);
-const isLoading = ref(true);
-const errorMessage = ref('');
-const isDeleting = ref(null); // 用來追蹤正在刪除的店家 ID
+const router = useRouter()
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
-// 獲取所有店家資料
-const fetchStores = async () => {
-  errorMessage.value = ''; // 清空錯誤信息
-  isLoading.value = true;
+const loading = ref(false)
+const menus = ref([])
+
+// 圖片相關
+const selectedImage = ref(null)
+const imagePreview = ref(null)
+
+const errors = reactive({
+  image: false,
+  imageAlt: false
+})
+
+const storeForm = ref({
+  name: '',
+  menuItem: '',
+  image: {
+    url: '',
+    publicId: '',
+    alt: ''
+  }
+})
+
+// 獲取所有菜單
+const fetchMenus = async () => {
+  try {
+    const response = await api.menu.getAll()
+    menus.value = response.data
+  } catch (error) {
+    console.error('獲取菜單失敗:', error)
+    alert('獲取菜單失敗')
+  }
+}
+
+// 選擇圖片時的處理
+const handleImageSelect = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  
+  // 儲存選擇的檔案，等待提交表單時上傳
+  selectedImage.value = file
+  
+  // 創建本地預覽
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    imagePreview.value = e.target.result
+  }
+  reader.readAsDataURL(file)
+  
+  // 如果未輸入圖片描述，自動設定為店家名稱
+  if (!storeForm.value.image.alt) {
+    storeForm.value.image.alt = storeForm.value.name || '店家圖片'
+  }
+}
+
+// 上傳圖片到伺服器
+const uploadImage = async () => {
+  if (!selectedImage.value) return null
   
   try {
-    const response = await api.store.getAll();
-    if (response.data.success) {
-      stores.value = response.data.stores;
-    } else {
-      errorMessage.value = response.data.message || '獲取店家資料失敗';
-    }
+    // 轉換檔案為 base64
+    const base64Image = await api.image.fileToBase64(selectedImage.value);
+    
+    // 上傳新圖片
+    const response = await api.image.upload(base64Image) 
+
+    return response.data
   } catch (error) {
-    console.error('獲取店家資料失敗:', error);
-    if (error.response) {
-      // 伺服器有回應但狀態碼不是 2xx
-      errorMessage.value = error.response.data.message || '獲取店家資料失敗';
-    } else if (error.request) {
-      // 沒有收到伺服器的回應（可能是網路錯誤）
-      errorMessage.value = '無法連線到伺服器';
-    } else {
-      // 其他錯誤
-      errorMessage.value = '發生錯誤，請稍後再試';
-    }
-  } finally {
-    isLoading.value = false;
+    console.error('圖片上傳失敗:', error)
+    throw error
   }
-};
+}
 
-// 刪除店家
-const handleDelete = async (storeId, storeName) => {
-  if (!confirm(`確定要刪除「${storeName}」分店嗎？`)) return;
+const validateForm = () => {
+  let isValid = true
+  
+  // 如果已選擇圖片但沒有填寫描述
+  if (selectedImage.value && !storeForm.value.image.alt.trim()) {
+    errors.imageAlt = true
+    isValid = false
+  } else {
+    errors.imageAlt = false
+  }
+  
+  return isValid
+}
 
-  isDeleting.value = storeId; // 設置正在刪除的店家 ID
-  errorMessage.value = ''; // 清空錯誤信息
+const handleSubmit = async () => {
+  if (!validateForm()) {
+    return
+  }
   
   try {
-    const response = await api.store.delete(storeId);
-    if (response.data.success) {
-      // 刪除成功，重新獲取資料
-      await fetchStores();
-    } else {
-      errorMessage.value = response.data.message || '刪除店家失敗';
+    loading.value = true
+    
+    // 如果有選擇圖片，先上傳圖片
+    if (selectedImage.value) {
+      const imageData = await uploadImage()
+      if (imageData) {
+        storeForm.value.image.url = imageData.secure_url
+        storeForm.value.image.publicId = imageData.public_id
+      }
     }
+    // console.log(storeForm.value)
+    await api.store.create(storeForm.value)
+    router.push('./show')
   } catch (error) {
-    console.error('刪除店家失敗:', error);
-    if (error.response) {
-      // 伺服器有回應但狀態碼不是 2xx
-      errorMessage.value = error.response.data.message || '刪除店家失敗';
-    } else if (error.request) {
-      // 沒有收到伺服器的回應（可能是網路錯誤）
-      errorMessage.value = '無法連線到伺服器';
-    } else {
-      // 其他錯誤
-      errorMessage.value = '發生錯誤，請稍後再試';
-    }
+    console.error('新增失敗:', error)
+    alert('新增失敗，請稍後再試')
   } finally {
-    isDeleting.value = null; // 重置刪除狀態
+    loading.value = false
   }
-};
+}
 
-// 組件掛載時獲取資料
 onMounted(() => {
-  fetchStores();
-});
+  fetchMenus()
+})
 </script>
-
-<style scoped>
-.table {
-  margin-bottom: 0;
-}
-
-.btn-group {
-  gap: 0.5rem;
-}
-</style>
