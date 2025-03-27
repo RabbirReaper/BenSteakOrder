@@ -75,7 +75,7 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: AdminIndex,
-      meta: { requiresAuth: true, role: 'super_admin' }, // 需要登入
+      meta: { requiresAuth: false, role: 'super_admin' }, // 需要登入
       children: [
         // 餐點管理相關路由
         {
