@@ -56,7 +56,16 @@
         <!-- 姓名 -->
         <div class="mb-3">
           <label for="name" class="form-label">姓名</label>
-          <input type="text" class="form-control" id="name" v-model="registrationForm.name" required>
+          <input 
+            type="text" 
+            class="form-control" 
+            id="name" 
+            v-model="registrationForm.name" 
+            required
+            :class="{ 'is-invalid': nameError }"
+            @blur="validateName"
+          >
+          <div class="invalid-feedback">{{ nameError }}</div>
         </div>
 
         <!-- 生日 -->
@@ -78,8 +87,8 @@
               <label class="form-check-label" for="female">女性</label>
             </div>
             <div class="form-check">
-              <input class="form-check-input" type="radio" id="else" value="else" v-model="registrationForm.gender">
-              <label class="form-check-label" for="else">其他</label>
+              <input class="form-check-input" type="radio" id="other" value="other" v-model="registrationForm.gender">
+              <label class="form-check-label" for="other">其他</label>
             </div>
           </div>
         </div>
@@ -92,15 +101,23 @@
 
         <!-- 密碼 -->
         <div class="mb-3">
-          <label for="password" class="form-label">密碼 (8-32 個字元，英數及常見特殊符號)</label>
+          <label for="password" class="form-label">密碼</label>
           <div class="input-group">
-            <input :type="showPassword ? 'text' : 'password'" class="form-control" id="password"
-              v-model="registrationForm.password" placeholder="請設定您的密碼">
+            <input 
+              :type="showPassword ? 'text' : 'password'" 
+              class="form-control" 
+              id="password"
+              v-model="registrationForm.password" 
+              placeholder="請設定您的密碼" 
+              :class="{ 'is-invalid': passwordError }"
+              @blur="validatePassword"
+            >
             <button class="btn btn-outline-secondary" type="button" @click="showPassword = !showPassword">
               <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
             </button>
+            <div class="invalid-feedback">{{ passwordError }}</div>
           </div>
-          <div class="form-text" :class="{ 'text-danger': passwordMismatch }">
+          <div class="form-text">
             請設定 8-32 個字元的密碼
           </div>
         </div>
@@ -109,21 +126,31 @@
         <div class="mb-4">
           <label for="confirmPassword" class="form-label">確認密碼</label>
           <div class="input-group">
-            <input :type="showPassword ? 'text' : 'password'" class="form-control" id="confirmPassword"
-              v-model="registrationForm.confirmPassword" placeholder="請再次輸入密碼">
+            <input 
+              :type="showPassword ? 'text' : 'password'" 
+              class="form-control" 
+              id="confirmPassword"
+              v-model="registrationForm.confirmPassword" 
+              placeholder="請再次輸入密碼"
+              :class="{ 'is-invalid': confirmPasswordError }"
+              @blur="validateConfirmPassword"
+            >
             <button class="btn btn-outline-secondary" type="button" @click="showPassword = !showPassword">
               <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
             </button>
+            <div class="invalid-feedback">{{ confirmPasswordError }}</div>
           </div>
-          <div v-if="passwordMismatch" class="text-danger mt-1">
-            兩次輸入的密碼不一致
-          </div>
+        </div>
+
+        <!-- 錯誤訊息 -->
+        <div v-if="errorMessage" class="alert alert-danger mb-3" role="alert">
+          {{ errorMessage }}
         </div>
 
         <!-- 提交按鈕 -->
         <div class="d-grid">
           <button type="submit" class="btn btn-primary btn-lg"
-            :disabled="isSubmitting || passwordMismatch || !isFormValid">
+            :disabled="isSubmitting || !isFormValid">
             <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
             完成註冊
           </button>
@@ -132,19 +159,34 @@
     </div>
   </div>
 
-  <!-- 註冊成功的 Modal -->
-  <div class="modal fade" id="registerSuccessModal" tabindex="-1" ref="registerSuccessModal">
-    <div class="modal-dialog modal-dialog-centered">
+  <!-- 自定義模態框 - 註冊成功 -->
+  <div v-if="showSuccessModal" class="modal-container">
+    <!-- 模態框遮罩層 - 點擊時關閉模態框 -->
+    <div class="modal-overlay" @click="closeSuccessModal"></div>
+    
+    <!-- 模態框主體 -->
+    <div class="modal-dialog">
       <div class="modal-content">
+        <!-- 標題區域 -->
         <div class="modal-header">
           <h5 class="modal-title">註冊成功</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" @click="closeSuccessModal"></button>
         </div>
+        
+        <!-- 內容區域 -->
         <div class="modal-body">
           <p>恭喜您！帳號已成功註冊。</p>
         </div>
+        
+        <!-- 底部按鈕區域 -->
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" @click="goToLogin">前往登入</button>
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            @click="goToLogin"
+          >
+            前往登入
+          </button>
         </div>
       </div>
     </div>
@@ -152,10 +194,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import api from '@/api';
-import { Modal } from 'bootstrap';
 
 const router = useRouter();
 const route = useRoute();
@@ -167,8 +208,14 @@ const isVerifyingCode = ref(false);
 const isSubmitting = ref(false);
 const resendCountdown = ref(0);
 const showPassword = ref(false);
-const registerSuccessModal = ref(null);
 const codeInputs = ref([]);
+const errorMessage = ref('');
+const showSuccessModal = ref(false);
+
+// 表單錯誤訊息
+const nameError = ref('');
+const passwordError = ref('');
+const confirmPasswordError = ref('');
 
 // 驗證碼
 const verificationCodeDigits = ref(['', '', '', '', '', '']);
@@ -195,48 +242,71 @@ const formattedPhone = computed(() => {
   return `${countryCode} ${phone}`;
 });
 
+// 驗證姓名
+const validateName = () => {
+  if (!registrationForm.value.name.trim()) {
+    nameError.value = '請輸入姓名';
+    return false;
+  }
+  nameError.value = '';
+  return true;
+};
+
+// 驗證密碼
+const validatePassword = () => {
+  if (!registrationForm.value.password) {
+    passwordError.value = '請輸入密碼';
+    return false;
+  }
+  if (registrationForm.value.password.length < 8 || registrationForm.value.password.length > 32) {
+    passwordError.value = '密碼長度必須為 8-32 個字元';
+    return false;
+  }
+  passwordError.value = '';
+  return true;
+};
+
+// 驗證確認密碼
+const validateConfirmPassword = () => {
+  if (!registrationForm.value.confirmPassword) {
+    confirmPasswordError.value = '請再次輸入密碼';
+    return false;
+  }
+  if (registrationForm.value.password !== registrationForm.value.confirmPassword) {
+    confirmPasswordError.value = '兩次輸入的密碼不一致';
+    return false;
+  }
+  confirmPasswordError.value = '';
+  return true;
+};
+
 // 檢查驗證碼是否已填寫完整
 const isVerificationCodeComplete = computed(() => {
   return verificationCodeDigits.value.every(digit => digit !== '');
 });
 
-// 檢查密碼是否一致
-const passwordMismatch = computed(() => {
-  if (!registrationForm.value.password || !registrationForm.value.confirmPassword) {
-    return false;
-  }
-  return registrationForm.value.password !== registrationForm.value.confirmPassword;
-});
-
 // 檢查表單是否有效
 const isFormValid = computed(() => {
   return (
-    registrationForm.value.name.trim() !== '' &&
-    registrationForm.value.password.length >= 8 &&
-    registrationForm.value.password.length <= 32 &&
-    registrationForm.value.password === registrationForm.value.confirmPassword
+    validateName() &&
+    validatePassword() &&
+    validateConfirmPassword()
   );
 });
 
 // 處理驗證碼輸入
 const handleVerificationCodeInput = (index, event) => {
   // 只允許數字
-  if (!/^\d*$/.test(verificationCodeDigits.value[index])) {
-    verificationCodeDigits.value[index] = '';
-    return;
-  }
+  const digit = event.target.value.replace(/\D/g, '');
+  verificationCodeDigits.value[index] = digit;
 
-  // 自動跳到下一個輸入框
-  if (
-    event.key !== 'Backspace' &&
-    verificationCodeDigits.value[index] !== '' &&
-    index < 5
-  ) {
+  // 如果有輸入數字且不是最後一個框，自動跳到下一個框
+  if (digit && index < 5) {
     codeInputs.value[index + 1].focus();
   }
 
-  // 退格鍵返回上一個輸入框
-  if (event.key === 'Backspace' && index > 0 && verificationCodeDigits.value[index] === '') {
+  // 如果按下退格鍵且當前框為空，跳到上一個框
+  if (event.key === 'Backspace' && !digit && index > 0) {
     codeInputs.value[index - 1].focus();
   }
 };
@@ -244,45 +314,49 @@ const handleVerificationCodeInput = (index, event) => {
 // 處理驗證碼粘貼
 const handlePaste = (event) => {
   event.preventDefault();
-  const pastedData = (event.clipboardData || window.clipboardData).getData('text');
+  const pastedData = event.clipboardData.getData('text').replace(/\D/g, '');
 
-  // 只處理數字
-  const digits = pastedData.replace(/\D/g, '').split('').slice(0, 6);
+  // 逐個填入粘貼的數字
+  for (let i = 0; i < Math.min(pastedData.length, 6); i++) {
+    verificationCodeDigits.value[i] = pastedData[i];
+  }
 
-  if (digits.length > 0) {
-    for (let i = 0; i < digits.length && i < 6; i++) {
-      verificationCodeDigits.value[i] = digits[i];
-    }
-
-    // 如果粘貼滿了所有輸入框，自動聚焦最後一個
-    if (digits.length >= 6) {
-      codeInputs.value[5].focus();
-    } else {
-      // 否則聚焦下一個空輸入框
-      codeInputs.value[digits.length].focus();
-    }
+  // 如果有足夠的數字，將焦點放在最後一個填入的框
+  if (pastedData.length > 0 && pastedData.length <= 6) {
+    codeInputs.value[Math.min(pastedData.length - 1, 5)].focus();
   }
 };
 
 // 返回上一頁
 const goBack = () => {
-  router.go(-1);
+  router.back();
 };
 
 // 發送驗證碼
 const sendVerificationCode = async () => {
+  if (!phoneNumber.value) {
+    errorMessage.value = '請輸入電話號碼';
+    return;
+  }
+
+  isLoading.value = true;
+  errorMessage.value = '';
+
   try {
-    isLoading.value = true;
-
-    // 模擬 API 調用，實際項目中應該調用實際的 API
-    // 注意: 此處為模擬驗證碼發送，實際項目應根據 API 格式調整
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // 顯示驗證碼輸入
+    // 實際專案中需調用真實 API
+    // const response = await api.customer.sendVerificationCode(phoneNumber.value);
+    
+    // 模擬驗證碼發送成功
     verificationSent.value = true;
 
-    // 啟動重發倒計時
-    startResendCountdown();
+    // 開始倒數計時（限制重新發送的時間）
+    resendCountdown.value = 60;
+    const countdownInterval = setInterval(() => {
+      resendCountdown.value--;
+      if (resendCountdown.value <= 0) {
+        clearInterval(countdownInterval);
+      }
+    }, 1000);
 
     // 聚焦第一個驗證碼輸入框
     setTimeout(() => {
@@ -290,84 +364,192 @@ const sendVerificationCode = async () => {
         codeInputs.value[0].focus();
       }
     }, 100);
-
   } catch (error) {
     console.error('發送驗證碼失敗:', error);
-    alert('發送驗證碼失敗，請稍後再試。');
+    errorMessage.value = '發送驗證碼失敗，請稍後再試';
   } finally {
     isLoading.value = false;
   }
 };
 
-// 重發驗證碼
-const resendVerificationCode = async () => {
+// 重新發送驗證碼
+const resendVerificationCode = () => {
   if (resendCountdown.value > 0) return;
 
-  try {
-    isLoading.value = true;
+  // 清空驗證碼輸入
+  verificationCodeDigits.value = ['', '', '', '', '', ''];
 
-    // 模擬 API 調用，實際項目中應該調用實際的 API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // 重置驗證碼
-    verificationCodeDigits.value = ['', '', '', '', '', ''];
-
-    // 啟動重發倒計時
-    startResendCountdown();
-
-    // 聚焦第一個驗證碼輸入框
-    setTimeout(() => {
-      if (codeInputs.value[0]) {
-        codeInputs.value[0].focus();
-      }
-    }, 100);
-
-  } catch (error) {
-    console.error('重發驗證碼失敗:', error);
-    alert('重發驗證碼失敗，請稍後再試。');
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-// 啟動重發倒計時
-const startResendCountdown = () => {
-  resendCountdown.value = 60;
-  const timer = setInterval(() => {
-    resendCountdown.value--;
-    if (resendCountdown.value <= 0) {
-      clearInterval(timer);
-    }
-  }, 1000);
+  // 再次發送驗證碼
+  sendVerificationCode();
 };
 
 // 驗證驗證碼
 const verifyCode = async () => {
-  if (!isVerificationCodeComplete.value) return;
+  if (!isVerificationCodeComplete.value) {
+    return;
+  }
+
+  isVerifyingCode.value = true;
+  errorMessage.value = '';
 
   try {
-    isVerifyingCode.value = true;
-
-    // 獲取完整的驗證碼
-    const code = verificationCodeDigits.value.join('');
-
-    // 模擬 API 調用，實際項目中應該調用實際的 API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // 模擬驗證 - 假設任何 6 位數驗證碼都是有效的
-    if (code.length === 6) {
-      // 驗證成功，進入信息填寫階段
-      registrationStep.value = 'information';
-    } else {
-      // 驗證失敗
-      alert('驗證碼不正確，請重新輸入。');
-    }
-
+    const verificationCode = verificationCodeDigits.value.join('');
+    
+    // 實際專案中需調用真實 API
+    // const response = await api.customer.verifyCode(phoneNumber.value, verificationCode);
+    
+    // 模擬驗證成功
+    registrationStep.value = 'information';
   } catch (error) {
-    console.error('驗證驗證碼失敗:', error);
-    alert('驗證失敗，請稍後再試。');
+    console.error('驗證碼驗證失敗:', error);
+    errorMessage.value = '驗證碼錯誤或已過期，請重新獲取';
   } finally {
     isVerifyingCode.value = false;
   }
 };
+
+// 提交註冊
+const submitRegistration = async () => {
+  if (!isFormValid.value) {
+    return;
+  }
+
+  isSubmitting.value = true;
+  errorMessage.value = '';
+  
+  try {
+    // 實際調用 API 註冊帳號
+    const response = await api.customer.register(
+      registrationForm.value.name,
+      phoneNumber.value,
+      registrationForm.value.password,
+      registrationForm.value.birthday,
+      registrationForm.value.gender,
+      registrationForm.value.address
+    );
+
+    // 檢查 API 回應
+    if (response.data.success) {
+      // 顯示成功模態框
+      showSuccessModal.value = true;
+    } else {
+      // API 回應成功但操作失敗
+      errorMessage.value = response.data.message || '註冊失敗，請稍後再試';
+    }
+  } catch (error) {
+    console.error('註冊失敗:', error);
+
+    // 參照 ForgotPassword.vue 的錯誤處理方式
+    if (error.response) {
+      // 伺服器有回應但狀態碼不是 2xx
+      errorMessage.value = error.response.data.message || '註冊失敗，請稍後再試';
+    } else if (error.request) {
+      // 沒有收到伺服器的回應（可能是網路錯誤）
+      errorMessage.value = '無法連線到伺服器';
+    } else {
+      // 其他錯誤（例如程式錯誤）
+      errorMessage.value = '發生錯誤，請稍後再試';
+    }
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
+// 關閉成功模態框
+const closeSuccessModal = () => {
+  showSuccessModal.value = false;
+};
+
+// 跳轉到登入頁面
+const goToLogin = () => {
+  showSuccessModal.value = false; // 關閉模態框
+  router.push({
+    name: 'customer-login-password',
+    query: { phone: phoneNumber.value }
+  });
+};
+
+// 從 URL 查詢參數獲取電話號碼
+onMounted(() => {
+  // 從 URL 查詢參數獲取電話號碼
+  if (route.query.phone) {
+    phoneNumber.value = route.query.phone;
+  } else {
+    // 如果沒有電話號碼，返回登入頁面
+    router.push('/customer/login');
+  }
+});
 </script>
+
+<style scoped>
+.verification-code-input input {
+  width: 48px;
+  height: 48px;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+.modal-dialog {
+  position: relative;
+  width: 500px;
+  max-width: 90%;
+  z-index: 2;
+  margin: 0 auto;
+}
+
+.modal-content {
+  background-color: #fff;
+  border-radius: 0.3rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+  margin: 0;
+}
+
+.modal-body {
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 1rem;
+  border-top: 1px solid #dee2e6;
+  gap: 0.5rem;
+}
+</style>
