@@ -1,39 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// 引入原有的頁面
-import AuthLoginView from '@/views/auth/loginView.vue'
+// 保留直接引入的兩個路由組件
 import StaffOrder from '@/views/staff/index.vue'
-import CustomerMenu from '@/views/customer/menu.vue'
-import NotFound from '@/views/notFound.vue'
-import DishAdd from '@/views/admin/dish/add.vue'
-import DishEdit from '@/views/admin/dish/edit.vue'
-import DishShow from '@/views/admin/dish/show.vue'
-import MenuAdd from '@/views/admin/menu/add.vue'
-import MenuShow from '@/views/admin/menu/show.vue'
-import MenuEdit from '@/views/admin/menu/edit.vue'
-import AdminIndex from '@/views/admin/index.vue'
-import StoreAdd from '@/views/admin/store/add.vue'
-import StoreShow from '@/views/admin/store/show.vue'
-import StoreEdit from '@/views/admin/store/edit.vue'
-import Confirmation from '@/views/customer/confirmation.vue'
-
-// 引入新的會員相關頁面
-import CustomerLoginView from '@/views/customer/loginView.vue'
-import CustomerLoginForm from '@/components/Customer/LoginForm.vue'
-import CustomerLoginPassword from '@/components/Customer/LoginPassword.vue'
-import CustomerRegister from '@/components/Customer/Register.vue'
-import CustomerForgotPassword from '@/components/Customer/ForgotPassword.vue'
-import CustomerMyAccount from '@/views/customer/myAccount.vue'
-import CustomerAccountHome from '@/components/Customer/AccountHome.vue'
-import CustomerAccountEdit from '@/components/Customer/AccountEdit.vue'
-import CustomerPasswordEdit from '@/components/Customer/PasswordEdit.vue'
-import CustomerPoints from '@/components/Customer/Points.vue'
-import CustomerCoupons from '@/components/Customer/Coupons.vue'
-import CustomerOrders from '@/components/Customer/Orders.vue'
 import CustomerOrdering from '@/views/customer/ordering.vue'
-
-// 引入促銷管理相關頁面
-import PromotionIndex from '@/views/admin/promotion/index.vue'
 
 import api from '@/api'
 
@@ -69,61 +38,61 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: AuthLoginView, // 管理員登入頁面
+      component: () => import('@/views/auth/loginView.vue'), // 管理員登入頁面
     },
     {
       path: '/admin',
       name: 'admin',
-      component: AdminIndex,
+      component: () => import('@/views/admin/index.vue'),
       meta: { requiresAuth: false, role: 'super_admin' }, // 需要登入
       children: [
         // 餐點管理相關路由
         {
           path: 'dish/add',
           name: 'admin-dish-add',
-          component: DishAdd,
+          component: () => import('@/views/admin/dish/add.vue'),
         },
         {
           path: 'dish/show',
           name: 'admin-dish-show',
-          component: DishShow,
+          component: () => import('@/views/admin/dish/show.vue'),
         },
         {
           path: 'dish/:type/:id',
           name: 'admin-dish-edit',
-          component: DishEdit,
+          component: () => import('@/views/admin/dish/edit.vue'),
         },
         // 菜單管理相關路由
         {
           path: 'menu/add',
           name: 'admin-menu-add',
-          component: MenuAdd,
+          component: () => import('@/views/admin/menu/add.vue'),
         },
         {
           path: 'menu/show',
           name: 'admin-menu-show',
-          component: MenuShow,
+          component: () => import('@/views/admin/menu/show.vue'),
         },
         {
           path: 'menu/:id',
           name: 'admin-menu-edit',
-          component: MenuEdit,
+          component: () => import('@/views/admin/menu/edit.vue'),
         },
         // 店家管理相關路由
         {
           path: 'store/add',
           name: 'admin-store-add',
-          component: StoreAdd,
+          component: () => import('@/views/admin/store/add.vue'),
         },
         {
           path: 'store/show',
           name: 'admin-store-show',
-          component: StoreShow,
+          component: () => import('@/views/admin/store/show.vue'),
         },
         {
           path: 'store/:id',
           name: 'admin-store-edit',
-          component: StoreEdit,
+          component: () => import('@/views/admin/store/edit.vue'),
         },
         // 訂單列表相關路由
         {
@@ -140,7 +109,7 @@ const router = createRouter({
         {
           path: 'promotion',
           name: 'admin-promotion',
-          component: PromotionIndex,
+          component: () => import('@/views/admin/promotion/index.vue'),
         }
       ],
     },
@@ -153,72 +122,72 @@ const router = createRouter({
     {
       path: '/confirmation/:orderId',
       name: 'confirmation',
-      component: Confirmation,
+      component: () => import('@/views/customer/confirmation.vue'),
     },
     
     // 新增會員相關路由
     {
       path: '/customer/login',
       name: 'customer-login',
-      component: CustomerLoginView,
+      component: () => import('@/views/customer/loginView.vue'),
       children: [
         {
           path: '',
           name: 'customer-login-form',
-          component: CustomerLoginForm,
+          component: () => import('@/components/Customer/LoginForm.vue'),
         },
         {
           path: 'password',
           name: 'customer-login-password',
-          component: CustomerLoginPassword,
+          component: () => import('@/components/Customer/LoginPassword.vue'),
         },
         {
           path: 'register',
           name: 'customer-register',
-          component: CustomerRegister,
+          component: () => import('@/components/Customer/Register.vue'),
         },
         {
           path: 'forgot-password',
           name: 'customer-forgot-password',
-          component: CustomerForgotPassword,
+          component: () => import('@/components/Customer/ForgotPassword.vue'),
         }
       ]
     },
     {
       path: '/customer/my-account',
       name: 'customer-my-account',
-      component: CustomerMyAccount,
+      component: () => import('@/views/customer/myAccount.vue'),
       meta: { requiresCustomerAuth: true },
       children: [
         {
           path: '',
           name: 'customer-account-home',
-          component: CustomerAccountHome,
+          component: () => import('@/components/Customer/AccountHome.vue'),
         },
         {
           path: 'edit',
           name: 'customer-account-edit',
-          component: CustomerAccountEdit,
+          component: () => import('@/components/Customer/AccountEdit.vue'),
         },
         {
           path: 'password/edit',
           name: 'customer-password-edit',
-          component: CustomerPasswordEdit,
+          component: () => import('@/components/Customer/PasswordEdit.vue'),
         },
         {
           path: 'points',
           name: 'customer-points',
-          component: CustomerPoints,
+          component: () => import('@/components/Customer/Points.vue'),
         },
         {
           path: 'coupons',
           name: 'customer-coupons',
-          component: CustomerCoupons,
+          component: () => import('@/components/Customer/Coupons.vue'),
         },
         {
           path: 'orders',
           name: 'customer-orders',
-          component: CustomerOrders,
+          component: () => import('@/components/Customer/Orders.vue'),
         }
       ]
     },
@@ -228,18 +197,11 @@ const router = createRouter({
       component: CustomerOrdering,
     },
     
-    // 重新導向舊的顧客路由到新的線上點餐入口
-    {
-      path: '/customer/:store',
-      name: 'menu',
-      component: CustomerMenu,
-    },
-    
     // 404 頁面
     {
       path: '/:pathMatch(.*)*',
       name: "NotFound",
-      component: NotFound
+      component: () => import('@/views/notFound.vue')
     }
   ],
 })
