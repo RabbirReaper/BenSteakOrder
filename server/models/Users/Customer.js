@@ -10,8 +10,6 @@ const customerSchema = new mongoose.Schema({
   birthday: { type: Date }, // 顧客生日
   address: { type: String }, // 顧客地址
   gender: { type: String, enum: ['male', 'female', 'other'] }, // 顧客性別
-  coupons: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Coupon' }], // 顧客擁有的優惠券
-  orders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }], // 顧客的訂單
 }, { timestamps: true });
 
 export default mongoose.model('Customer', customerSchema);

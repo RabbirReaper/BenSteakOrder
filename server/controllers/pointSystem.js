@@ -1,4 +1,4 @@
-import PointSystem from '../models/Orders/PointSystem.js';
+import PointSystem from '../models/Promotions/PointSystem.js';
 
 // 獲取所有點數系統設定
 export const getAllPointSystems = async (req, res) => {
