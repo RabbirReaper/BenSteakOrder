@@ -1,6 +1,9 @@
 // src/api/modules/dish.js
 // 餐點相關 API
 
+// src/api/modules/dish.js
+// 餐點相關 API
+
 /**
  * 餐點 API 模組
  * @param {Object} apiClient - Axios 實例
@@ -9,53 +12,48 @@
 export default function(apiClient) {
   return {
     /**
-     * 獲取指定類型的所有餐點
-     * @param {string} type - 餐點類型 (mainDish, elseDish, addon, rawMeat)
+     * 獲取所有餐點
      * @returns {Promise} - API 響應
      */
-    getAll(type) {
-      return apiClient.get(`/dish/${type}`);
+    getAll() {
+      return apiClient.get('/dish');
     },
 
     /**
      * 根據 ID 獲取特定餐點
-     * @param {string} type - 餐點類型 (mainDish, elseDish, addon, rawMeat)
      * @param {string} id - 餐點 ID
      * @returns {Promise} - API 響應
      */
-    getById(type, id) {
-      return apiClient.get(`/dish/${type}/${id}`);
+    getById(id) {
+      return apiClient.get(`/dish/${id}`);
     },
 
     /**
      * 創建新餐點
-     * @param {string} type - 餐點類型 (mainDish, elseDish, addon, rawMeat)
      * @param {Object} dishData - 餐點數據
      * @returns {Promise} - API 響應
      */
-    create(type, dishData) {
-      return apiClient.post(`/dish/${type}`, dishData);
+    create(dishData) {
+      return apiClient.post('/dish', dishData);
     },
 
     /**
      * 更新餐點
-     * @param {string} type - 餐點類型 (mainDish, elseDish, addon, rawMeat)
      * @param {string} id - 餐點 ID
      * @param {Object} dishData - 更新的餐點數據
      * @returns {Promise} - API 響應
      */
-    update(type, id, dishData) {
-      return apiClient.put(`/dish/${type}/${id}`, dishData);
+    update(id, dishData) {
+      return apiClient.put(`/dish/${id}`, dishData);
     },
 
     /**
      * 刪除餐點
-     * @param {string} type - 餐點類型 (mainDish, elseDish, addon, rawMeat)
      * @param {string} id - 餐點 ID
      * @returns {Promise} - API 響應
      */
-    delete(type, id) {
-      return apiClient.delete(`/dish/${type}/${id}`);
+    delete(id) {
+      return apiClient.delete(`/dish/${id}`);
     }
   };
 }

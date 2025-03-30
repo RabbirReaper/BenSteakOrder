@@ -82,6 +82,7 @@ export const getTodayStoreOrders = async (req, res) => {
     })
       .populate({
         path: 'items.itemId',
+        // 因為 itemId 是動態引用，所以不需要指定具體模型
       })
       .populate('items.options.addons') // 展開加料 Addon
       .populate('items.options.additionalMeats'); // 展開額外加肉

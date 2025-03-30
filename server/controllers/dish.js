@@ -1,25 +1,15 @@
-import MainDish from '../models/Dishs/MainDish.js';
-import ElseDish from '../models/Dishs/ElseDish.js';
-import Addon from '../models/Dishs/Addon.js';
-import RawMeat from '../models/Dishs/RawMeat.js';
+// server/controllers/dish.js
+import Dish from '../models/Dishs/Dish.js';
+import Option from '../models/Dishs/Option.js';
+import OptionCategory from '../models/Dishs/OptionCategory.js';
+import Combo from '../models/Dishs/Combo.js';
 import { v2 as cloudinary } from 'cloudinary';
 
-const modelMap = {
-  mainDish: MainDish,
-  elseDish: ElseDish,
-  addon: Addon,
-  rawMeat: RawMeat
-};
-
-// 取得多個餐點
+// 取得所有餐點
 export const getDishes = async (req, res) => {
   try {
-    const { type } = req.params;
-    const model = modelMap[type];
-
-    if (!model) return res.status(400).json({ success: false, message: 'Invalid dish type' });
-
-    const dishes = await model.find({});
+    const dishes = await Dish.find();
+    
     if (!dishes) return res.status(404).json({ success: false, message: 'Dish not found' });
 
     res.json({
@@ -35,12 +25,14 @@ export const getDishes = async (req, res) => {
 // 取得單個餐點
 export const getDishById = async (req, res) => {
   try {
-    const { type, id } = req.params;
-    const model = modelMap[type];
-
-    if (!model) return res.status(400).json({ success: false, message: 'Invalid dish type' });
-
-    const dish = await model.findById(id);
+    const { id } = req.params;
+    
+    const dish = await Dish.findById(id)
+      .populate({
+        path: 'optionCategories.categoryId',
+        model: 'OptionCategory'
+      });
+      
     if (!dish) return res.status(404).json({ success: false, message: 'Dish not found' });
 
     res.json({
@@ -56,12 +48,7 @@ export const getDishById = async (req, res) => {
 // 創建新餐點
 export const createDish = async (req, res) => {
   try {
-    const { type } = req.params;
-    const model = modelMap[type];
-
-    if (!model) return res.status(400).json({ success: false, message: 'Invalid dish type' });
-
-    const newDish = new model(req.body);
+    const newDish = new Dish(req.body);
     await newDish.save();
 
     res.json({
@@ -78,18 +65,23 @@ export const createDish = async (req, res) => {
 // 更新餐點
 export const updateDish = async (req, res) => {
   try {
-    const { type, id } = req.params;
-    const model = modelMap[type];
-
-    if (!model) return res.status(400).json({ success: false, message: 'Invalid dish type' });
-
-    const updatedDish = await model.findByIdAndUpdate(id, req.body, { new: true });
-    if (!updatedDish) return res.status(404).json({ success: false, message: 'Dish not found' });
+    const { id } = req.params;
+    
+    // 檢查餐點是否存在
+    const dish = await Dish.findById(id);
+    if (!dish) return res.status(404).json({ success: false, message: 'Dish not found' });
+    
+    // 更新餐點資料
+    Object.keys(req.body).forEach(key => {
+      dish[key] = req.body[key];
+    });
+    
+    await dish.save();
 
     res.json({
       success: true,
       message: 'Dish updated successfully',
-      dish: updatedDish
+      dish
     });
   } catch (error) {
     console.error('Error updating dish:', error);
@@ -100,13 +92,10 @@ export const updateDish = async (req, res) => {
 // 刪除餐點
 export const deleteDish = async (req, res) => {
   try {
-    const { type, id } = req.params;
-    const model = modelMap[type];
-
-    if (!model) return res.status(400).json({ success: false, message: 'Invalid dish type' });
-
+    const { id } = req.params;
+    
     // 先找到餐點，檢查是否有圖片
-    const dish = await model.findById(id);
+    const dish = await Dish.findById(id);
     if (!dish) return res.status(404).json({ success: false, message: 'Dish not found' });
     
     // 如果餐點有圖片，先刪除雲端上的圖片
@@ -120,7 +109,7 @@ export const deleteDish = async (req, res) => {
     }
 
     // 刪除餐點資料
-    await model.findByIdAndDelete(id);
+    await Dish.findByIdAndDelete(id);
     
     res.json({
       success: true,

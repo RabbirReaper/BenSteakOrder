@@ -4,8 +4,10 @@ const DishSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String },
   basePrice: { type: Number, required: true },
-  type: { type: String, enum: ['MainDish', 'SideDish', 'RawMeat'], required: true },
-  optionCategories: [{ type: Schema.Types.ObjectId, ref: 'OptionCategory' }],
+  optionCategories: [{
+    categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'OptionCategory' },
+    order: { type: Number, default: 0 } // 新增 order 欄位儲存順序
+  }],
   image: {
     url: { type: String },
     publicId: { type: String },

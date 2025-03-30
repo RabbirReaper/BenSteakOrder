@@ -3,8 +3,8 @@ import mongoose from 'mongoose';
 const ComboSchema = new mongoose.Schema({
   name: { type: String, required: true },
   dishes: [{
-    dish: { type: Schema.Types.ObjectId, ref: 'Dish', required: true },
-    options: [{ type: Schema.Types.ObjectId, ref: 'Option' }]
+    dish: { type: mongoose.Schema.Types.ObjectId, ref: 'Dish', required: true },
+    options: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Option' }]
   }],
   comboPrice: { type: Number, required: true },
   description: { type: String },
