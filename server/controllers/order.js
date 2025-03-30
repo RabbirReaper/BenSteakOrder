@@ -1,5 +1,6 @@
 import Order from '../models/Orders/Order.js';
 import { getTodayRange } from '../middlewares/dateUtils.js';
+import mongoose from 'mongoose';
 
 // 透過時間範圍獲取訂單
 export const getOrdersByTimeRange = async (req, res) => {
@@ -17,11 +18,13 @@ export const getOrdersByTimeRange = async (req, res) => {
     const orders = await Order.find(filter)
       .populate('store')
       .populate({
-        path: 'items',
-        populate: { path: "itemId" },
+        path: 'items.dishInstance',
+        populate: { 
+          path: 'templateId',
+          model: 'DishTemplate' 
+        }
       })
-      .populate('items.options.addons')
-      .populate('items.options.additionalMeats');
+      .populate('appliedCoupons');
 
     if (!orders) return res.status(404).json({ success: false, message: 'Order not found' });
     
@@ -54,10 +57,13 @@ export const getStoreOrdersByTimeRange = async (req, res) => {
       },
     })
       .populate({
-        path: 'items.itemId',
+        path: 'items.dishInstance',
+        populate: { 
+          path: 'templateId',
+          model: 'DishTemplate' 
+        }
       })
-      .populate('items.options.addons') // 展開加料 Addon
-      .populate('items.options.additionalMeats'); // 展開額外加肉
+      .populate('appliedCoupons');
 
     res.json({
       success: true,
@@ -81,11 +87,13 @@ export const getTodayStoreOrders = async (req, res) => {
       createdAt: { $gte: startUTC, $lt: endUTC },
     })
       .populate({
-        path: 'items.itemId',
-        // 因為 itemId 是動態引用，所以不需要指定具體模型
+        path: 'items.dishInstance',
+        populate: { 
+          path: 'templateId',
+          model: 'DishTemplate' 
+        }
       })
-      .populate('items.options.addons') // 展開加料 Addon
-      .populate('items.options.additionalMeats'); // 展開額外加肉
+      .populate('appliedCoupons');
 
     res.json({
       success: true,
@@ -127,10 +135,20 @@ export const getOrderById = async (req, res) => {
     const order = await Order.findById(id)
       .populate('store') // 取出店家資訊
       .populate({
-        path: 'items.itemId',
+        path: 'items.dishInstance',
+        populate: { 
+          path: 'templateId',
+          model: 'DishTemplate' 
+        }
       })
-      .populate('items.options.addons') // 展開加料 Addon
-      .populate('items.options.additionalMeats'); // 展開額外加肉
+      .populate({
+        path: 'appliedCoupons',
+        populate: {
+          path: 'templateId',
+          model: 'CouponTemplate'
+        }
+      })
+      .populate('owner'); // 也連結顧客資料
 
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
     
@@ -146,15 +164,45 @@ export const getOrderById = async (req, res) => {
 
 // 創建訂單
 export const createOrder = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const newOrder = new Order(req.body);
-    const savedOrder = await newOrder.save();
+    const orderData = req.body;
+    
+    // 創建新訂單
+    const newOrder = new Order(orderData);
+    
+    // 計算總金額
+    newOrder.calculateTotal();
+    
+    const savedOrder = await newOrder.save({ session });
+    
+    // 如果需要，標記相關優惠券為已使用
+    if (orderData.appliedCoupons && orderData.appliedCoupons.length > 0) {
+      const CouponInstance = mongoose.model('CouponInstance');
+      await CouponInstance.updateMany(
+        { _id: { $in: orderData.appliedCoupons } },
+        { 
+          isUsed: true, 
+          usedAt: new Date(),
+          usedOrder: savedOrder._id
+        },
+        { session }
+      );
+    }
+    
+    await session.commitTransaction();
+    session.endSession();
+    
     res.json({ 
       success: true, 
       id: savedOrder._id,
       order: savedOrder
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error('Error creating order:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
@@ -162,40 +210,162 @@ export const createOrder = async (req, res) => {
 
 // 更新訂單
 export const updateOrder = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  
   try {
     const { id } = req.params;
-    const updatedOrder = await Order.findByIdAndUpdate(id, req.body, { new: true });
+    const updateData = req.body;
     
-    if (!updatedOrder) {
+    // 獲取舊訂單
+    const oldOrder = await Order.findById(id).session(session);
+    if (!oldOrder) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
-
+    
+    // 更新訂單
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id, 
+      updateData, 
+      { new: true, session }
+    );
+    
+    // 重新計算總金額
+    updatedOrder.calculateTotal();
+    await updatedOrder.save({ session });
+    
+    // 處理優惠券更新
+    if (updateData.appliedCoupons) {
+      const CouponInstance = mongoose.model('CouponInstance');
+      
+      // 先將舊優惠券重設為未使用
+      if (oldOrder.appliedCoupons && oldOrder.appliedCoupons.length > 0) {
+        await CouponInstance.updateMany(
+          { _id: { $in: oldOrder.appliedCoupons } },
+          { 
+            isUsed: false, 
+            usedAt: null,
+            usedOrder: null
+          },
+          { session }
+        );
+      }
+      
+      // 標記新優惠券為已使用
+      if (updateData.appliedCoupons.length > 0) {
+        await CouponInstance.updateMany(
+          { _id: { $in: updateData.appliedCoupons } },
+          { 
+            isUsed: true, 
+            usedAt: new Date(),
+            usedOrder: updatedOrder._id
+          },
+          { session }
+        );
+      }
+    }
+    
+    await session.commitTransaction();
+    session.endSession();
+    
     res.json({
       success: true,
       message: 'Order updated successfully',
       order: updatedOrder
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error('Error updating order:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+// 更新訂單狀態
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, paymentMethod } = req.body;
+    
+    // 基本驗證
+    if (!status) {
+      return res.status(400).json({ success: false, message: 'Status is required' });
+    }
+    
+    // 準備更新資料
+    const updateData = { orderStatus: status };
+    if (paymentMethod) {
+      updateData.paymentMethod = paymentMethod;
+    }
+    
+    // 更新訂單
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id, 
+      updateData, 
+      { new: true }
+    );
+    
+    if (!updatedOrder) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Order status updated successfully',
+      order: updatedOrder
+    });
+  } catch (error) {
+    console.error('Error updating order status:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
 // 刪除訂單
 export const deleteOrder = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  
   try {
     const { id } = req.params;
-    const deletedOrder = await Order.findByIdAndDelete(id);
     
-    if (!deletedOrder) {
+    // 查找訂單
+    const order = await Order.findById(id).session(session);
+    if (!order) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
-
+    
+    // 解除優惠券使用狀態
+    if (order.appliedCoupons && order.appliedCoupons.length > 0) {
+      const CouponInstance = mongoose.model('CouponInstance');
+      
+      await CouponInstance.updateMany(
+        { _id: { $in: order.appliedCoupons } },
+        { 
+          isUsed: false, 
+          usedAt: null,
+          usedOrder: null
+        },
+        { session }
+      );
+    }
+    
+    // 刪除訂單
+    await Order.findByIdAndDelete(id).session(session);
+    
+    await session.commitTransaction();
+    session.endSession();
+    
     res.json({
       success: true,
       message: 'Order deleted successfully'
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error('Error deleting order:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }

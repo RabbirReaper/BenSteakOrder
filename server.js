@@ -14,9 +14,11 @@ import authRoutes from './server/routes/authRoutes.js'
 import { configureSession } from './server/middlewares/auth.js';
 import customerRoutes from './server/routes/customerRoutes.js';
 import pointSystemRoutes from './server/routes/pointSystemRoutes.js';
-import discountCouponRoutes from './routes/discountCouponRoutes.js';
-import exchangeCouponRoutes from './routes/exchangeCouponRoutes.js';
-
+import dishTemplateRoutes from './routes/dishTemplateRoutes.js';
+import dishInstanceRoutes from './routes/dishInstanceRoutes.js';
+import couponTemplateRoutes from './routes/couponTemplateRoutes.js';
+import couponInstanceRoutes from './routes/couponInstanceRoutes.js';
+import stockLogRoutes from './routes/stockLogRoutes.js';
 
 
 dotenv.config()
@@ -58,9 +60,11 @@ app.use('/image', cloudinaryRoutes);
 app.use('/order', orderRoutes);
 app.use('/customer', customerRoutes);
 app.use('/pointSystem', pointSystemRoutes);
-app.use('/discountCoupon', discountCouponRoutes);
-app.use('/exchangeCoupon', exchangeCouponRoutes);
-
+app.use('/dishTemplate', dishTemplateRoutes);
+app.use('/dishInstance', dishInstanceRoutes);
+app.use('/couponTemplate', couponTemplateRoutes);
+app.use('/couponInstance', couponInstanceRoutes);
+app.use('/stockLog', stockLogRoutes);
 
 
 app.get('*', (req, res) => {

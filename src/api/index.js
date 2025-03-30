@@ -1,8 +1,10 @@
-// src/api/index.js
+// src/api/index.js (更新版
 // API 主入口
 
 import axios from 'axios';
 import dishApi from './modules/dish';
+import dishTemplateApi from './modules/dishTemplate';
+import dishInstanceApi from './modules/dishInstance';
 import menuApi from './modules/menu';
 import storeApi from './modules/store';
 import orderApi from './modules/order';
@@ -10,7 +12,9 @@ import authApi from './modules/auth';
 import imageApi from './modules/image';
 import customerApi from './modules/customer';
 import pointSystemApi from './modules/pointSystem';
-import couponApi from './modules/coupon';
+import couponTemplateApi from './modules/couponTemplate';
+import couponInstanceApi from './modules/couponInstance';
+import stockLogApi from './modules/stockLog';
 
 // 獲取 API 基礎 URL，從環境變數或默認值
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
@@ -49,7 +53,9 @@ apiClient.interceptors.response.use(
 
 // 導出所有 API 模塊
 export default {
-  dish: dishApi(apiClient),
+  dish: dishApi(apiClient), // 待移除
+  dishTemplate: dishTemplateApi(apiClient),
+  dishInstance: dishInstanceApi(apiClient),
   menu: menuApi(apiClient),
   store: storeApi(apiClient),
   order: orderApi(apiClient),
@@ -57,7 +63,9 @@ export default {
   image: imageApi(apiClient),
   customer: customerApi(apiClient),
   pointSystem: pointSystemApi(apiClient),
-  coupon: couponApi(apiClient),
+  couponTemplate: couponTemplateApi(apiClient),
+  couponInstance: couponInstanceApi(apiClient),
+  stockLog: stockLogApi(apiClient),
   // 導出 axios 實例，方便直接使用
   client: apiClient,
 };

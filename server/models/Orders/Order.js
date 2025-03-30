@@ -28,28 +28,23 @@ const orderSchema = new mongoose.Schema({
   deliveryAddress: { type: String }, // 外送地址
   logisticsCancelled: { type: Boolean, default: false }, // 物流取消
   logisticsPickupTime: { type: Date }, // 物流取件時間
-  discountCouponId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'DiscountCoupon' }],
-  exchangeCouponId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ExchangeCoupon' }],
+  
+  // 更新優惠券引用 - 使用新的 CouponInstance 模型
+  appliedCoupons: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'CouponInstance' 
+  }],
+  
+  // 更新訂單項目 - 使用 DishInstance 模型
   items: [
     {
-      itemModel: {
-        type: String,
-        required: true,
-        enum: ['Dish', 'Combo'] // 限制只有這兩種模型可用
-      },
-      itemId: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        refPath: 'items.itemModel' // 根據 itemModel 動態決定引用的 model
+      // 使用 DishInstance 模型，關聯餐點實例
+      dishInstance: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'DishInstance',
+        required: true
       },
       amount: { type: Number, default: 1 },
-      options: [{
-        name: {
-          type: String,
-          required: true
-        },
-        cell: [String]
-      }],
       thisMoney: { type: Number, required: true }
     }
   ],
@@ -59,6 +54,13 @@ const orderSchema = new mongoose.Schema({
     index: true
   },
   weekday: { type: String }, // 星期
+  
+  // // 訂單處理狀態追蹤（可選） 暫時不打算增加
+  // processingStatus: {
+  //   type: String,
+  //   enum: ['Received', 'Preparing', 'Ready', 'Delivered', 'Completed'],
+  //   default: 'Received'
+  // },
 }, { timestamps: true, minimize: true });
 
 // 在儲存之前自動計算星期
@@ -68,5 +70,24 @@ orderSchema.pre('save', function (next) {
   this.weekday = daysOfWeek[createdAtDate.getDay()]; // 根據 createdAt 計算星期
   next();
 });
+
+// 計算訂單總金額的方法
+orderSchema.methods.calculateTotal = function() {
+  // 計算商品金額
+  let total = 0;
+  
+  if (this.items && this.items.length > 0) {
+    // 使用新的 items 結構
+    total = this.items.reduce((sum, item) => sum + (item.thisMoney * item.amount), 0);
+  }
+  
+  // 設置商品金額
+  this.orderAmount = total;
+  
+  // 計算總金額 (商品金額 - 折扣 + 運費)
+  this.totalMoney = total - (this.discounts || 0) + (this.deliveryFee || 0);
+  
+  return this.totalMoney;
+};
 
 export default mongoose.model('Order', orderSchema);
