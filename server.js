@@ -5,7 +5,6 @@ import path from 'path'
 import mongoose from 'mongoose'
 import session from 'express-session'
 import { fileURLToPath } from 'url'
-import dishRoutes from './server/routes/dishRoutes.js';
 import menuRoutes from './server/routes/menuRoutes.js';
 import storeRoutes from './server/routes/storeRoutes.js';
 import cloudinaryRoutes from './server/routes/cloudinaryRoutes.js';
@@ -56,7 +55,6 @@ mongoose.connect(`${process.env.MongoDB_url}`)
 
 
 app.use('/auth', authRoutes)
-app.use('/dish', dishRoutes);
 app.use('/menu', menuRoutes);
 app.use('/store', storeRoutes);
 app.use('/image', cloudinaryRoutes);
