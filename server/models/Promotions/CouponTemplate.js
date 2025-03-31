@@ -43,7 +43,7 @@ const couponTemplateSchema = new mongoose.Schema({
   // 庫存管理
   stock: { type: Number, default: -1 }, // -1 表示無限制
   // 其他可能的限制
-  limitPerCustomer: { type: Number, default: -1 }, // 每人限制數量，-1 為無限制
+  // limitPerCustomer: { type: Number, default: -1 }, // 每人限制數量，-1 為無限制
 }, { timestamps: true });
 
 export default mongoose.model('CouponTemplate', couponTemplateSchema);

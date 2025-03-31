@@ -194,7 +194,6 @@ export const updateCouponTemplate = async (req, res) => {
       startAt,
       endAt,
       stock,
-      limitPerCustomer
     } = req.body;
     
     // 找到模板
@@ -211,7 +210,6 @@ export const updateCouponTemplate = async (req, res) => {
     if (startAt !== undefined) template.startAt = new Date(startAt);
     if (endAt !== undefined) template.endAt = new Date(endAt);
     if (stock !== undefined) template.stock = stock;
-    if (limitPerCustomer !== undefined) template.limitPerCustomer = limitPerCustomer;
     
     await template.save();
     
@@ -248,88 +246,6 @@ export const deleteCouponTemplate = async (req, res) => {
     });
   } catch (error) {
     console.error('Error deleting coupon template:', error);
-    res.status(500).json({ success: false, message: '伺服器錯誤' });
-  }
-};
-
-// 發放優惠券給特定客戶
-export const issueCouponToCustomer = async (req, res) => {
-  try {
-    const { templateId, customerId, acquisitionMethod } = req.body;
-    
-    // 驗證必要數據
-    if (!templateId || !customerId) {
-      return res.status(400).json({ success: false, message: '優惠券模板ID和客戶ID為必填欄位' });
-    }
-    
-    // 檢查模板是否存在
-    const template = await CouponTemplate.findById(templateId);
-    if (!template) {
-      return res.status(404).json({ success: false, message: '優惠券模板不存在' });
-    }
-    
-    // 檢查客戶是否存在
-    const customer = await Customer.findById(customerId);
-    if (!customer) {
-      return res.status(404).json({ success: false, message: '客戶不存在' });
-    }
-    
-    // 檢查庫存
-    if (template.stock !== -1 && template.stock <= 0) {
-      return res.status(400).json({ success: false, message: '優惠券已無庫存' });
-    }
-    
-    // 檢查每人限制
-    if (template.limitPerCustomer !== -1) {
-      const customerCouponCount = await CouponInstance.countDocuments({
-        templateId,
-        owner: customerId,
-        isUsed: false
-      });
-      
-      if (customerCouponCount >= template.limitPerCustomer) {
-        return res.status(400).json({ success: false, message: '已達到每人限制數量' });
-      }
-    }
-    
-    // 設置有效期
-    const now = new Date();
-    let startAt = template.startAt ? new Date(template.startAt) : now;
-    let expireAt = template.endAt ? new Date(template.endAt) : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 默認30天有效期
-    
-    // 如果沒有設置開始日期，或者開始日期已過，則使用當前時間作為開始日期
-    if (!template.startAt || startAt < now) {
-      startAt = now;
-    }
-    
-    // 創建客戶優惠券實例
-    const couponInstance = new CouponInstance({
-      templateId: template._id,
-      name: template.name,
-      type: template.type,
-      discount: template.type === 'discount' ? template.discount : undefined,
-      exchangeItem: template.type === 'exchange' ? template.exchangeItem : undefined,
-      startAt,
-      expireAt,
-      owner: customer._id,
-      acquisitionMethod: acquisitionMethod || 'activity'
-    });
-    
-    await couponInstance.save();
-    
-    // 更新庫存
-    if (template.stock !== -1) {
-      template.stock -= 1;
-      await template.save();
-    }
-    
-    res.status(201).json({
-      success: true,
-      message: '優惠券發放成功',
-      coupon: couponInstance
-    });
-  } catch (error) {
-    console.error('Error issuing coupon:', error);
     res.status(500).json({ success: false, message: '伺服器錯誤' });
   }
 };

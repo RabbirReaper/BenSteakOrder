@@ -38,7 +38,6 @@ export default function(apiClient) {
      * @param {Date|string} templateData.startAt - 上架開始日期
      * @param {Date|string} templateData.endAt - 上架結束日期
      * @param {number} templateData.stock - 庫存 (-1 表示無限制)
-     * @param {number} templateData.limitPerCustomer - 每人限制 (-1 表示無限制)
      * @returns {Promise} - API 響應
      */
     create(templateData) {
