@@ -1,4 +1,4 @@
-// src/api/index.js (更新版
+// src/api/index.js (更新版)
 // API 主入口
 
 import axios from 'axios';
@@ -9,11 +9,19 @@ import storeApi from './modules/store';
 import orderApi from './modules/order';
 import authApi from './modules/auth';
 import imageApi from './modules/image';
+
 import customerApi from './modules/customer';
+
 import pointSystemApi from './modules/pointSystem';
+
 import couponTemplateApi from './modules/couponTemplate';
 import couponInstanceApi from './modules/couponInstance';
+
 import stockLogApi from './modules/stockLog';
+
+import optionCategoryApi from './modules/optionCategory';
+import optionApi from './modules/option';
+import comboApi from './modules/combo';
 
 // 獲取 API 基礎 URL，從環境變數或默認值
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
@@ -64,6 +72,10 @@ export default {
   couponTemplate: couponTemplateApi(apiClient),
   couponInstance: couponInstanceApi(apiClient),
   stockLog: stockLogApi(apiClient),
+  // 新增模組
+  optionCategory: optionCategoryApi(apiClient),
+  option: optionApi(apiClient),
+  combo: comboApi(apiClient),
   // 導出 axios 實例，方便直接使用
   client: apiClient,
 };

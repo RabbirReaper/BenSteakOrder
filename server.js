@@ -19,6 +19,9 @@ import dishInstanceRoutes from './server/routes/dishInstanceRoutes.js';
 import couponTemplateRoutes from './server/routes/couponTemplateRoutes.js';
 import couponInstanceRoutes from './server/routes/couponInstanceRoutes.js';
 import stockLogRoutes from './server/routes/stockLogRoutes.js';
+import optionCategoryRoutes from './server/routes/optionCategoryRoutes.js';
+import optionRoutes from './server/routes/optionRoutes.js';
+import comboRoutes from './server/routes/comboRoutes.js';
 
 
 dotenv.config()
@@ -65,6 +68,9 @@ app.use('/dishInstance', dishInstanceRoutes);
 app.use('/couponTemplate', couponTemplateRoutes);
 app.use('/couponInstance', couponInstanceRoutes);
 app.use('/stockLog', stockLogRoutes);
+app.use('/optionCategory', optionCategoryRoutes);
+app.use('/option', optionRoutes);
+app.use('/combo', comboRoutes);
 
 
 app.get('*', (req, res) => {
