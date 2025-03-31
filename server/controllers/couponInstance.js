@@ -222,19 +222,6 @@ export const purchaseCoupon = async (req, res) => {
       return res.status(400).json({ success: false, message: '優惠券已售罄' });
     }
     
-    // 檢查每人限制
-    if (template.limitPerCustomer !== -1) {
-      const customerCouponCount = await CouponInstance.countDocuments({
-        templateId,
-        owner: customerId,
-        isUsed: false
-      });
-      
-      if (customerCouponCount >= template.limitPerCustomer) {
-        return res.status(400).json({ success: false, message: '已達到每人限制數量' });
-      }
-    }
-    
     // 創建優惠券實例
     const startAt = template.startAt ? new Date(template.startAt) : now;
     let expireAt = template.endAt ? new Date(template.endAt) : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 默認30天有效期

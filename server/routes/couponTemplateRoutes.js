@@ -19,7 +19,4 @@ router.put('/:id', isSuperAdmin, couponTemplateController.updateCouponTemplate);
 // 刪除優惠券模板 (需要驗證)
 router.delete('/:id', isSuperAdmin, couponTemplateController.deleteCouponTemplate);
 
-// 發放優惠券給特定客戶 (需要驗證)
-router.post('/issue', isSuperAdmin, couponTemplateController.issueCouponToCustomer);
-
 export default router;

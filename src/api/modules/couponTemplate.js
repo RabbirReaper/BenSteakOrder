@@ -62,20 +62,5 @@ export default function(apiClient) {
     delete(id) {
       return apiClient.delete(`/couponTemplate/${id}`);
     },
-
-    /**
-     * 發放優惠券給特定客戶
-     * @param {string} templateId - 優惠券模板 ID
-     * @param {string} customerId - 客戶 ID
-     * @param {string} acquisitionMethod - 獲取方式 ('purchase' 或 'activity')
-     * @returns {Promise} - API 響應
-     */
-    issueCoupon(templateId, customerId, acquisitionMethod = 'activity') {
-      return apiClient.post('/couponTemplate/issue', {
-        templateId,
-        customerId,
-        acquisitionMethod
-      });
-    }
   };
 }
