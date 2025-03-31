@@ -14,11 +14,11 @@ import authRoutes from './server/routes/authRoutes.js'
 import { configureSession } from './server/middlewares/auth.js';
 import customerRoutes from './server/routes/customerRoutes.js';
 import pointSystemRoutes from './server/routes/pointSystemRoutes.js';
-import dishTemplateRoutes from './routes/dishTemplateRoutes.js';
-import dishInstanceRoutes from './routes/dishInstanceRoutes.js';
-import couponTemplateRoutes from './routes/couponTemplateRoutes.js';
-import couponInstanceRoutes from './routes/couponInstanceRoutes.js';
-import stockLogRoutes from './routes/stockLogRoutes.js';
+import dishTemplateRoutes from './server/routes/dishTemplateRoutes.js';
+import dishInstanceRoutes from './server/routes/dishInstanceRoutes.js';
+import couponTemplateRoutes from './server/routes/couponTemplateRoutes.js';
+import couponInstanceRoutes from './server/routes/couponInstanceRoutes.js';
+import stockLogRoutes from './server/routes/stockLogRoutes.js';
 
 
 dotenv.config()
