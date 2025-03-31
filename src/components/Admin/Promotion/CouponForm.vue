@@ -225,7 +225,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, defineProps, defineEmits } from 'vue';
+import { ref, reactive, computed, watch, onMounted} from 'vue';
 import api from '@/api';
 
 const props = defineProps({

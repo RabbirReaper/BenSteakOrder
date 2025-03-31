@@ -138,7 +138,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, defineEmits } from 'vue';
+import { ref, reactive } from 'vue';
 import api from '@/api';
 
 const emit = defineEmits(['close', 'save']);
