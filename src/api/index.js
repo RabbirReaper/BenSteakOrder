@@ -2,7 +2,6 @@
 // API 主入口
 
 import axios from 'axios';
-import dishApi from './modules/dish';
 import dishTemplateApi from './modules/dishTemplate';
 import dishInstanceApi from './modules/dishInstance';
 import menuApi from './modules/menu';
@@ -53,7 +52,6 @@ apiClient.interceptors.response.use(
 
 // 導出所有 API 模塊
 export default {
-  dish: dishApi(apiClient), // 待移除
   dishTemplate: dishTemplateApi(apiClient),
   dishInstance: dishInstanceApi(apiClient),
   menu: menuApi(apiClient),
