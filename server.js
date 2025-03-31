@@ -20,8 +20,8 @@ import couponInstanceRoutes from './server/routes/couponInstanceRoutes.js';
 import stockLogRoutes from './server/routes/stockLogRoutes.js';
 import optionCategoryRoutes from './server/routes/optionCategoryRoutes.js';
 import optionRoutes from './server/routes/optionRoutes.js';
-import comboRoutes from './server/routes/comboRoutes.js';
-
+import comboTemplateRoutes from './server/routes/comboTemplateRoutes.js';
+import comboInstanceRoutes from './server/routes/comboInstanceRoutes.js';
 
 dotenv.config()
 const app = express()
@@ -68,8 +68,8 @@ app.use('/couponInstance', couponInstanceRoutes);
 app.use('/stockLog', stockLogRoutes);
 app.use('/optionCategory', optionCategoryRoutes);
 app.use('/option', optionRoutes);
-app.use('/combo', comboRoutes);
-
+app.use('/comboTemplate', comboTemplateRoutes);
+app.use('/comboInstance', comboInstanceRoutes);
 
 app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));

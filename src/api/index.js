@@ -21,8 +21,8 @@ import stockLogApi from './modules/stockLog';
 
 import optionCategoryApi from './modules/optionCategory';
 import optionApi from './modules/option';
-import comboApi from './modules/combo';
-
+import comboTemplateApi from './modules/comboTemplate';
+import comboInstanceApi from './modules/comboInstance';
 // 獲取 API 基礎 URL，從環境變數或默認值
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -75,7 +75,8 @@ export default {
   // 新增模組
   optionCategory: optionCategoryApi(apiClient),
   option: optionApi(apiClient),
-  combo: comboApi(apiClient),
+  comboTemplate: comboTemplateApi(apiClient),
+  comboInstance: comboInstanceApi(apiClient),
   // 導出 axios 實例，方便直接使用
   client: apiClient,
 };
