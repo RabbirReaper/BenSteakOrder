@@ -30,6 +30,12 @@
             訂單列表
           </router-link>
         </li>
+        <!-- 新增餐點管理選項 -->
+        <li class="nav-item">
+          <router-link to="/admin/dish-management/template" class="nav-link text-white">
+            餐點管理（新版）
+          </router-link>
+        </li>
         <!-- 新增促銷管理選項 -->
         <li class="nav-item">
           <router-link to="/admin/promotion" class="nav-link text-white">

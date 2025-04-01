@@ -110,7 +110,48 @@ const router = createRouter({
           path: 'promotion',
           name: 'admin-promotion',
           component: () => import('@/views/admin/promotion/index.vue'),
-        }
+        },
+        {
+          path: 'dish-management',
+          name: 'admin-dish-management',
+          component: () => import('@/views/admin/dish-management/index.vue'),
+          meta: { requiresAuth: false, role: 'super_admin' },
+          children: [
+            // 餐點模板管理
+            {
+              path: 'template',
+              name: 'admin-dish-template',
+              component: () => import('@/views/admin/dish-management/template/index.vue'),
+            },
+            {
+              path: 'template/:id',
+              name: 'admin-dish-template-edit',
+              component: () => import('@/views/admin/dish-management/template/edit.vue'),
+            },
+            // 套餐管理
+            {
+              path: 'combo',
+              name: 'admin-combo-template',
+              component: () => import('@/views/admin/dish-management/combo/index.vue'),
+            },
+            {
+              path: 'combo/:id',
+              name: 'admin-combo-template-edit',
+              component: () => import('@/views/admin/dish-management/combo/edit.vue'),
+            },
+            // 選項管理
+            {
+              path: 'option',
+              name: 'admin-option-category',
+              component: () => import('@/views/admin/dish-management/option/category.vue'),
+            },
+            {
+              path: 'option/:id',
+              name: 'admin-option-edit',
+              component: () => import('@/views/admin/dish-management/option/edit.vue'),
+            }
+          ]
+        },
       ],
     },
     {
@@ -124,7 +165,7 @@ const router = createRouter({
       name: 'confirmation',
       component: () => import('@/views/customer/confirmation.vue'),
     },
-    
+
     // 新增會員相關路由
     {
       path: '/customer/login',
@@ -196,7 +237,7 @@ const router = createRouter({
       name: 'customer-ordering',
       component: CustomerOrdering,
     },
-    
+
     // 404 頁面
     {
       path: '/:pathMatch(.*)*',
@@ -211,7 +252,7 @@ router.beforeEach(async (to, from, next) => {
   // 管理員授權檢查
   if (to.meta.requiresAuth) {
     const { loggedIn, role, storeId } = await checkAuth();
-    
+
     if (!loggedIn) {
       return next({
         path: '/login',
@@ -231,7 +272,7 @@ router.beforeEach(async (to, from, next) => {
       if (role === 'super_admin') {
         return next();
       }
-      
+
       // 店家管理員只能訪問自己的店鋪
       const requestedStoreId = to.params.storeId;
       if (role === 'store_admin' && storeId !== requestedStoreId) {
@@ -240,7 +281,7 @@ router.beforeEach(async (to, from, next) => {
       }
     }
   }
-  
+
   // 會員授權檢查
   if (to.meta.requiresCustomerAuth) {
     const isCustomerLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -251,7 +292,7 @@ router.beforeEach(async (to, from, next) => {
       });
     }
   }
-  
+
   next();
 });
 
