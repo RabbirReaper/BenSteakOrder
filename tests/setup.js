@@ -92,19 +92,6 @@ vi.mock('mongoose', () => {
 // 模擬 express-session
 vi.mock('express-session', () => vi.fn().mockReturnValue((req, res, next) => next()));
 
-// 模擬 cloudinary
-vi.mock('cloudinary', () => ({
-  v2: {
-    config: vi.fn(),
-    uploader: {
-      upload: vi.fn().mockResolvedValue({
-        public_id: 'test_public_id',
-        secure_url: 'https://test-url.com/image.jpg'
-      }),
-      destroy: vi.fn().mockResolvedValue({ result: 'ok' })
-    }
-  }
-}));
 
 // 模擬 dotenv
 vi.mock('dotenv', () => ({
